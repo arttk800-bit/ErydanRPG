@@ -3,29 +3,42 @@ package ru.eyrdan.rpg
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class GameViewModel(app: Application) : AndroidViewModel(app) {
     private val repository = GameRepository(app)
+    private val keyStore = ApiKeyStore(app)
+    private val gm = GmEngine()
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
     init { viewModelScope.launch { repository.load()?.let { _state.value = it } } }
 
     fun submitAction(action: String) {
         if (action.isBlank() || _busy.value) return
-        val current = _state.value
-        _state.value = current.copy(
-            narrative = (current.narrative + "Вы: " + action).takeLast(4),
-            options = listOf("Продолжить", "Осмотреться", "Сделать что-то другое")
-        )
-        viewModelScope.launch { repository.save(_state.value) }
+        viewModelScope.launch {
+            _busy.value = true
+            _error.value = null
+            try {
+                val key = keyStore.get()
+                val current = _state.value
+                val reply = gm.turn(key, current, action)
+                _state.value = current.copy(
+                    narrative = (current.narrative + ("Вы: " + action) + reply.narrative).takeLast(6),
+                    options = if (reply.options.isEmpty()) listOf("Осмотреться", "Продолжить", "Свой вариант") else reply.options.take(5)
+                )
+                repository.save(_state.value)
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Ошибка"
+            } finally { _busy.value = false }
+        }
     }
 
+    fun saveApiKey(value: String) { viewModelScope.launch { keyStore.set(value) } }
     fun rollD20(modifier: Int = 0, dc: Int = 10): DiceResult = DiceEngine.d20(modifier, dc)
 }
