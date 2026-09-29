@@ -38,6 +38,8 @@ fun EyrdanTheme(content: @Composable () -> Unit) {
 @Composable
 fun EyrdanApp(vm: GameViewModel = viewModel()) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val busy by vm.busy.collectAsStateWithLifecycle()
+    val error by vm.error.collectAsStateWithLifecycle()
     var screen by rememberSaveable { mutableStateOf(Screen.GAME) }
     Scaffold(
         bottomBar = {
@@ -56,7 +58,7 @@ fun EyrdanApp(vm: GameViewModel = viewModel()) {
     ) { pad ->
         Box(Modifier.padding(pad).fillMaxSize()) {
             when (screen) {
-                Screen.GAME -> GameScreen(state, vm::submitAction)
+                Screen.GAME -> GameScreen(state, busy, error, vm::submitAction)
                 Screen.CHARACTER -> CharacterScreen(state)
                 Screen.STATUS -> StatusScreen(state)
                 Screen.INVENTORY -> InventoryScreen(state)
@@ -67,7 +69,7 @@ fun EyrdanApp(vm: GameViewModel = viewModel()) {
 }
 
 @Composable
-fun GameScreen(state: GameState, onAction: (String) -> Unit) {
+fun GameScreen(state: GameState, busy: Boolean, error: String?, onAction: (String) -> Unit) {
     var input by rememberSaveable { mutableStateOf("") }
     Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("ЭЙРДАН", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
@@ -82,8 +84,10 @@ fun GameScreen(state: GameState, onAction: (String) -> Unit) {
                 }
             }
         }
-        OutlinedTextField(input, { input = it }, Modifier.fillMaxWidth(), placeholder = { Text("Что ты делаешь?") })
-        Button(onClick = { onAction(input); input = "" }, modifier = Modifier.fillMaxWidth()) { Text("Действовать") }
+        if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
+        if (error != null) Text(error, color = MaterialTheme.colorScheme.error)
+        OutlinedTextField(input, { input = it }, Modifier.fillMaxWidth(), enabled = !busy, placeholder = { Text("Что ты делаешь?") })
+        Button(onClick = { onAction(input); input = "" }, enabled = !busy && input.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("Действовать") }
     }
 }
 
