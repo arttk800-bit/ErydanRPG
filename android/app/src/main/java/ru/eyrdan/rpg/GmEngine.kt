@@ -20,9 +20,13 @@ class GmEngine(private val client: OpenAiClient = OpenAiClient()) {
             put("input", input)
         }.toString()
         val response = json.parseToJsonElement(client.rawPost(key, request)).jsonObject
-        val output = response["output"]?.jsonArray ?: error("Пустой ответ OpenAI")
-        val text = output.flatMap { it.jsonObject["content"]?.jsonArray?.toList().orEmpty() }
-            .firstNotNullOfOrNull { it.jsonObject["text"]?.jsonPrimitive?.contentOrNull }
+        val output = response["output"] as? JsonArray ?: error("Пустой ответ OpenAI")
+        val text = output.asSequence()
+            .mapNotNull { it as? JsonObject }
+            .flatMap { ((it["content"] as? JsonArray)?.asSequence() ?: emptySequence()) }
+            .mapNotNull { it as? JsonObject }
+            .mapNotNull { (it["text"] as? JsonPrimitive)?.contentOrNull }
+            .firstOrNull()
             ?: error("OpenAI не вернул текст")
         return parse(text)
     }
@@ -49,9 +53,9 @@ class GmEngine(private val client: OpenAiClient = OpenAiClient()) {
         if (first >= 0 && last > first) text = text.substring(first, last + 1)
         val obj = json.parseToJsonElement(text).jsonObject
         return GmReply(
-            narrative = obj["narrative"]?.jsonPrimitive?.contentOrNull ?: "Сцена продолжается.",
+            narrative = (obj["narrative"] as? JsonPrimitive)?.contentOrNull ?: "Сцена продолжается.",
             options = parseOptions(obj["options"]),
-            patch = obj["state_patch"]?.jsonObject ?: JsonObject(emptyMap())
+            patch = obj["state_patch"] as? JsonObject ?: JsonObject(emptyMap())
         )
     }
 }
