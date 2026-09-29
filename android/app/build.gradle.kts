@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "ru.eyrdan.rpg"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "ru.eyrdan.rpg"
