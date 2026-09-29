@@ -1,5 +1,8 @@
 package ru.eyrdan.rpg
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class CharacterState(
     val name: String = "Безымянный",
     val race: String = "",
@@ -11,6 +14,7 @@ data class CharacterState(
     val thirst: String = "нет"
 )
 
+@Serializable
 data class GameState(
     val date: String = "1 день",
     val time: String = "08:00",
