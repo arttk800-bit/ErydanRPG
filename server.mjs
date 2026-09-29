@@ -44,10 +44,19 @@ function basePrompt(state,gmPath){const gm=fs.readFileSync(gmPath,'utf8');return
 async function resolveAfterRoll(pending,dice){const {state,history,action,apiKey,gmPath}=pending;const input=buildInput(state,history,action)+`\n\nЧЕСТНЫЙ РЕЗУЛЬТАТ ПРОВЕРКИ СЕРВЕРА:\n${JSON.stringify(dice)}`;const result=await ask(basePrompt(state,gmPath)+`\nСервер уже бросил куб. Прими результат. Верни ТОЛЬКО JSON {"narrative":"...","options":[],"state_patch":{},"gm_state_append":"","notifications":[]}.`,input,apiKey);if(result.gm_state_append)fs.appendFileSync(gmPath,'\n'+String(result.gm_state_append).slice(0,6000));return {narrative:result.narrative||'Сцена продолжается.',options:Array.isArray(result.options)?result.options:[],state_patch:result.state_patch||{},notifications:Array.isArray(result.notifications)?result.notifications:[],dice}}
 const pendingChecks=new Map();setInterval(()=>{const now=Date.now();for(const[k,v]of pendingChecks)if(now-v.created>15*60_000)pendingChecks.delete(k)},60_000).unref();
 
+const GUEST_USER='devplayer';
+function ensureGuestProfile(){
+  if(fs.existsSync(profilePath(GUEST_USER)))return;
+  fs.mkdirSync(userDir(GUEST_USER),{recursive:true});
+  fs.writeFileSync(profilePath(GUEST_USER),JSON.stringify({username:GUEST_USER,password:null,api_key:null,created_at:new Date().toISOString(),temporary_guest:true},null,2));
+  ctx(GUEST_USER);
+}
+ensureGuestProfile();
+
 const server=http.createServer(async(req,res)=>{const url=req.url.split('?')[0];
  if(req.method==='POST'&&url==='/api/register'){try{const b=await bodyJSON(req),u=safeUser(b.username),pw=String(b.password||'');if(u.length<3||pw.length<6)throw Error('Имя от 3 символов, пароль от 6 символов.');if(fs.existsSync(profilePath(u)))throw Error('Такое имя уже занято.');fs.mkdirSync(userDir(u),{recursive:true});const ph=hashPassword(pw);fs.writeFileSync(profilePath(u),JSON.stringify({username:u,password:ph,api_key:null,created_at:new Date().toISOString()},null,2));ctx(u);const t=makeToken(u);return send(res,200,JSON.stringify({token:t,username:u}))}catch(e){return send(res,400,JSON.stringify({error:e.message}))}}
  if(req.method==='POST'&&url==='/api/login'){try{const b=await bodyJSON(req),u=safeUser(b.username),pr=JSON.parse(fs.readFileSync(profilePath(u),'utf8'));if(!verifyPassword(b.password,pr.password))throw Error('Неверное имя или пароль.');const t=makeToken(u);return send(res,200,JSON.stringify({token:t,username:u,has_api_key:!!pr.api_key}))}catch{return send(res,401,JSON.stringify({error:'Неверное имя или пароль.'}))}}
- const user=url.startsWith('/api/')?tokenUser(req):null;if(url.startsWith('/api/')&&!['/api/register','/api/login'].includes(url)&&!user)return send(res,401,JSON.stringify({error:'Нужно войти в аккаунт.',auth_required:true}));
+ const user=url.startsWith('/api/')?(tokenUser(req)||GUEST_USER):null;
  const uc=user?ctx(user):null, apiKey=user?userKey(user):'';
  if(req.method==='GET'&&url==='/api/account')return send(res,200,JSON.stringify({username:user,has_api_key:!!apiKey}));
  if(req.method==='POST'&&url==='/api/api-key'){try{const b=await bodyJSON(req),key=String(b.api_key||'').trim();if(!key.startsWith('sk-'))throw Error('Ключ должен начинаться с sk-.');const pr=JSON.parse(fs.readFileSync(profilePath(user),'utf8'));pr.api_key=encryptSecret(key);fs.writeFileSync(profilePath(user),JSON.stringify(pr,null,2));return send(res,200,JSON.stringify({ok:true}))}catch(e){return send(res,400,JSON.stringify({error:e.message}))}}
