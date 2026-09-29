@@ -27,6 +27,21 @@ class GmEngine(private val client: OpenAiClient = OpenAiClient()) {
         return parse(text)
     }
 
+    private fun parseOptions(element: JsonElement?): List<String> {
+        val array = element as? JsonArray ?: return emptyList()
+        return array.mapNotNull { item ->
+            when (item) {
+                is JsonPrimitive -> item.contentOrNull
+                is JsonObject -> {
+                    val value = item["text"] ?: item["label"] ?: item["title"] ?: item["action"]
+                    (value as? JsonPrimitive)?.contentOrNull
+                }
+                is JsonArray -> item.firstOrNull()?.let { (it as? JsonPrimitive)?.contentOrNull }
+                else -> null
+            }
+        }.filter { it.isNotBlank() }
+    }
+
     private fun parse(raw: String): GmReply {
         var text = raw.trim().removePrefix("~~~json").removePrefix("~~~").removeSuffix("~~~").trim()
         val first = text.indexOf('{')
@@ -35,7 +50,7 @@ class GmEngine(private val client: OpenAiClient = OpenAiClient()) {
         val obj = json.parseToJsonElement(text).jsonObject
         return GmReply(
             narrative = obj["narrative"]?.jsonPrimitive?.contentOrNull ?: "Сцена продолжается.",
-            options = obj["options"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList(),
+            options = parseOptions(obj["options"]),
             patch = obj["state_patch"]?.jsonObject ?: JsonObject(emptyMap())
         )
     }
