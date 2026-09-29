@@ -15,9 +15,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     private val _busy = MutableStateFlow(false)
     val busy: StateFlow<Boolean> = _busy.asStateFlow()
     private val _error = MutableStateFlow<String?>(null)
+    private val _hasApiKey = MutableStateFlow(false)
+    val hasApiKey: StateFlow<Boolean> = _hasApiKey.asStateFlow()
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    init { viewModelScope.launch { repository.load()?.let { _state.value = it } } }
+    init { viewModelScope.launch { repository.load()?.let { _state.value = it }; _hasApiKey.value = keyStore.get().isNotBlank() } }
 
     fun submitAction(action: String) {
         if (action.isBlank() || _busy.value) return
@@ -39,6 +41,6 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun saveApiKey(value: String) { viewModelScope.launch { keyStore.set(value) } }
+    fun saveApiKey(value: String) { viewModelScope.launch { keyStore.set(value); _hasApiKey.value = value.isNotBlank() } }
     fun rollD20(modifier: Int = 0, dc: Int = 10): DiceResult = DiceEngine.d20(modifier, dc)
 }
