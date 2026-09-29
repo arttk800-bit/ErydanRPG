@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="104" fill="#17110d"/>
+<path d="M256 66 405 151v210L256 446 107 361V151Z" fill="#2b1c12" stroke="#b97842" stroke-width="18"/>
+<path d="M256 111 350 165 256 219 162 165Z" fill="#b97842" opacity=".92"/>
+<path d="M162 183 247 232v119l-85-49Z" fill="#6e452a"/>
+<path d="M350 183 265 232v119l85-49Z" fill="#8e5c38"/>
+<path d="m256 367 96-55 26 15-122 70-122-70 26-15Z" fill="#e0ad6b"/>
+<text x="256" y="302" text-anchor="middle" font-family="serif" font-size="112" font-weight="700" fill="#eee4d6">Э</text>
+</svg>
