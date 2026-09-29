@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,13 +47,13 @@ fun EyrdanApp(vm: GameViewModel = viewModel()) {
         bottomBar = {
             NavigationBar {
                 listOf(
-                    Screen.GAME to Icons.Default.AutoStories,
-                    Screen.CHARACTER to Icons.Default.Person,
-                    Screen.STATUS to Icons.Default.Favorite,
-                    Screen.INVENTORY to Icons.Default.Backpack,
-                    Screen.WORLD to Icons.Default.Public
+                    Screen.GAME to "И",
+                    Screen.CHARACTER to "П",
+                    Screen.STATUS to "С",
+                    Screen.INVENTORY to "В",
+                    Screen.WORLD to "М"
                 ).forEach { (s, icon) ->
-                    NavigationBarItem(selected = screen == s, onClick = { screen = s }, icon = { Icon(icon, s.title) }, label = { Text(s.title) })
+                    NavigationBarItem(selected = screen == s, onClick = { screen = s }, icon = { Text(icon) }, label = { Text(s.title) })
                 }
             }
         }
