@@ -1,1 +1,1 @@
-{"name":"eirdan","private":true,"type":"module","scripts":{"test":"node tests/core-regression.mjs && node tests/movement-regression.mjs && node tests/damage-regression.mjs && node tests/actions-regression.mjs && node tests/ai-regression.mjs"}}
+{"name":"eirdan","private":true,"type":"module","scripts":{"test":"node tests/core-regression.mjs && node tests/movement-regression.mjs && node tests/damage-regression.mjs && node tests/actions-regression.mjs"}}

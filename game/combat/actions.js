@@ -1,15 +1,6 @@
-import {hexDistance} from '../core/hex-grid.js';
-import {physicalHit,magicHit} from './damage.js';
-export function canAct(u,cost=0){return !!u&&u.alive&&!u.escaped&&(u.ap??0)>=cost;}
-export function spendAP(u,cost){if(!canAct(u,cost))return false;u.ap-=cost;return true;}
-export function attackRange(a,w){return Number(w?.range??1);}
-export function canTarget(a,t,w){return !!a&&!!t&&a.team!==t.team&&t.alive&&!t.escaped&&hexDistance(a,t)<=attackRange(a,w);}
-export function physicalAttack(state,a,t,{part='torso',weapon,weaponKind='sword',cost=4,mult=1,crit=false,rng=Math.random}={}){
- if(!canAct(a,cost))return{ok:false,reason:'ap'};if(!canTarget(a,t,weapon))return{ok:false,reason:'range'};
- spendAP(a,cost);return{ok:true,...physicalHit(state,a,t,part,weaponKind,weapon,{mult,crit,rng})};
-}
-export function spellAttack(state,a,t,{base,cost=4,mana=0,range=5,mult=1,label='Магия',element='arcane',spellPower=1,rng=Math.random}={}){
- if(!canAct(a,cost))return{ok:false,reason:'ap'};if((a.mana??0)<mana)return{ok:false,reason:'mana'};
- if(a.team===t.team||!t.alive||t.escaped||hexDistance(a,t)>range)return{ok:false,reason:'range'};
- spendAP(a,cost);a.mana-=mana;return{ok:true,...magicHit(state,a,t,base,{mult,label,element,spellPower,rng})};
-}
+import {hexDistance} from '../core/hex-grid.js';import {activeWeapon,hitChance} from './accuracy.js';import {physicalHit,magicHit} from './damage.js';import {randomPart} from './body-parts.js';
+export function weaponRange(a,t,W){const k=activeWeapon(a,t);return W[k].range+(a.cls==='archer'&&k==='bow'?1:0);}
+export function weaponAp(a,t,W){const k=activeWeapon(a,t);return Math.max(2,W[k].ap-(a.cls==='archer'&&k==='bow'?1:0));}
+export function canWeaponAttack(a,t,W){return !!a&&!!t&&a.alive&&t.alive&&!a.escaped&&!t.escaped&&a.team!==t.team&&hexDistance(a,t)<=weaponRange(a,t,W)&&a.ap>=weaponAp(a,t,W);}
+export function weaponAttack(state,a,t,W,{part=null,heavy=false,rng=Math.random}={}){const k=activeWeapon(a,t),w=W[k];if(!canWeaponAttack(a,t,W))return{ok:false,reason:'illegal'};const cost=weaponAp(a,t,W)+(heavy?2:0);if(a.ap<cost)return{ok:false,reason:'ap'};a.ap-=cost;const p=part??randomPart(rng),chance=hitChance(a,t,W,{part,weaponKey:k});if(rng()*100>chance)return{ok:true,hit:false,chance,part:p,weapon:k};return{ok:true,hit:true,chance,part:p,weapon:k,...physicalHit(state,a,t,p,k,{...w,sd:w.shieldDamage,ad:w.armorDamage},{mult:heavy?1.35:1,rng})};}
+export function castMagic(state,a,t,spec,{rng=Math.random}={}){if(!a?.alive||!t?.alive||a.team===t.team||a.ap<spec.ap||a.mana<spec.mana||hexDistance(a,t)>spec.range)return{ok:false,reason:'illegal'};a.ap-=spec.ap;a.mana-=spec.mana;return{ok:true,...magicHit(state,a,t,spec.base,{label:spec.label,element:spec.element,spellPower:spec.spellPower??1,rng})};}
