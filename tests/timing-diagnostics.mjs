@@ -1,0 +1,1 @@
+import assert from 'node:assert/strict';import {SimulationTimer} from '../game/simulation/timing.js';const t=new SimulationTimer().start();t.finished=t.started+1234;const s=t.summary();assert.equal(s.elapsedMs,1234);assert.equal(s.elapsedSeconds,1.234);console.log('timing diagnostics: OK');
