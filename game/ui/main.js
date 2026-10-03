@@ -14,7 +14,15 @@ function fatal(err){
 }
 
 async function start(){
- const weapons=await (await fetch('../data/weapons.json')).json();
+ const weapons={
+ sword:{name:'Меч',type:'melee',range:1,ap:3,acc:8,dmg:[10,16]},
+ axe:{name:'Топор',type:'melee',range:1,ap:3,acc:3,dmg:[12,18]},
+ dagger:{name:'Кинжал',type:'melee',range:1,ap:2,acc:12,dmg:[7,11]},
+ bow:{name:'Лук',type:'bow',range:6,ap:4,acc:5,dmg:[8,13]},
+ crossbow:{name:'Арбалет',type:'bow',range:7,ap:4,acc:10,dmg:[12,18]},
+ staff:{name:'Посох',type:'melee',range:1,ap:3,acc:0,dmg:[6,10]},
+ greataxe:{name:'Секира',type:'melee',range:1,ap:4,acc:0,dmg:[15,22]}
+ };
  const state=new GameState(1);
  state.units=[
   createUnit({id:'a0',name:'Леон',team:'ally',cls:'guardian',q:1,r:4}),
