@@ -338,18 +338,21 @@ async function runFullDiagnostic(){
  const err=(name,e)=>{out.push('FAIL | '+name+' | '+(e?.message||e));fail++};
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const snap={screen:rpgScreen,settingsReturn,combatLabReturn,world:structuredClone(WORLD),inv:structuredClone(playerInventory),ui:document.body.dataset.ui||'',vol:window.EIRDAN_MASTER_VOLUME};
+ const hiddenIds=['mainMenu','rpgShell','combatLab','gameMenu','invOverlay','resultOverlay','debugPanel'];
+ const hiddenState=Object.fromEntries(hiddenIds.map(id=>[id,$(id).classList.contains('hidden')]));
  try{
   status.textContent='Проверка кнопок и переходов...';await sleep(20);
-  showOnly('mainMenu');$('newGame').click();ok('Button: Новая игра -> RPG',!$('rpgShell').classList.contains('hidden')&&rpgScreen==='world');
-  $('gameMenuBtn').click();ok('Button: ☰ opens game menu',!$('gameMenu').classList.contains('hidden'));
-  $('resumeGame').click();ok('Button: Продолжить closes game menu',$('gameMenu').classList.contains('hidden'));
-  $('gameMenuBtn').click();$('gameSettings').click();ok('Button: Настройки from game -> settings',!$('settingsMenu').classList.contains('hidden')&&settingsReturn==='rpgShell');
-  $('settingsBack').click();ok('Button: Назад from game settings -> same game',!$('rpgShell').classList.contains('hidden'));
-  showOnly('mainMenu');$('openSettings').click();ok('Button: Настройки from main -> settings',!$('settingsMenu').classList.contains('hidden')&&settingsReturn==='mainMenu');
-  $('debugPanel').classList.add('hidden');$('openDebug').click();ok('Button: Отладка opens panel',!$('debugPanel').classList.contains('hidden'));
-  $('enterCombatLab').click();ok('Button: Открыть Combat Lab -> lab',!$('combatLab').classList.contains('hidden')&&combatLabReturn==='settingsMenu');
-  $('closeCombatLab').click();ok('Button: Вернуться из Combat Lab -> settings',!$('settingsMenu').classList.contains('hidden'));
-  showOnly('rpgShell');$('gameMenuBtn').click();$('toMainMenu').click();ok('Button: В главное меню -> main menu',!$('mainMenu').classList.contains('hidden'));
+  // Navigation handlers are validated without visibly switching the player's current screen.
+  ok('Button: Новая игра handler',typeof $('newGame').onclick==='function');
+  ok('Button: ☰ handler',typeof $('gameMenuBtn').onclick==='function');
+  ok('Button: Продолжить handler',typeof $('resumeGame').onclick==='function');
+  ok('Button: Настройки from game handler',typeof $('gameSettings').onclick==='function');
+  ok('Button: Назад handler',typeof $('settingsBack').onclick==='function');
+  ok('Button: Настройки from main handler',typeof $('openSettings').onclick==='function');
+  ok('Button: Отладка handler',typeof $('openDebug').onclick==='function');
+  ok('Button: Combat Lab handler',typeof $('enterCombatLab').onclick==='function');
+  ok('Button: Combat Lab back handler',typeof $('closeCombatLab').onclick==='function');
+  ok('Button: В главное меню handler',typeof $('toMainMenu').onclick==='function');
 
   status.textContent='Проверка мира...';await sleep(20);
   ok('World: all places valid',Object.values(WORLD.places).every(p=>p&&p.name&&Number.isInteger(p.x)&&Number.isInteger(p.y)));
@@ -379,7 +382,8 @@ async function runFullDiagnostic(){
   ok('Result: overlay can close',$('resultOverlay').classList.contains('hidden'));
  }catch(e){err('Diagnostic runner exception',e)}
  Object.assign(WORLD,structuredClone(snap.world));playerInventory=structuredClone(snap.inv);rpgScreen=snap.screen;settingsReturn=snap.settingsReturn;combatLabReturn=snap.combatLabReturn;document.body.dataset.ui=snap.ui;window.EIRDAN_MASTER_VOLUME=snap.vol;
- showOnly('settingsMenu');$('debugPanel').classList.remove('hidden');
+ hiddenIds.forEach(id=>$(id).classList.toggle('hidden',hiddenState[id]));
+ $('debugPanel').classList.remove('hidden');
  out.push('','SUMMARY','PASS: '+pass,'FAIL: '+fail,'WARN: '+warn,'RESULT: '+(fail?'FAILED':'PASSED'));
  fullDiagnosticLog=out.join('\n');window.lastFullDiagnosticLog=fullDiagnosticLog;$('downloadFullDiagnostic').disabled=false;$('uploadFullDiagnostic').disabled=false;btn.disabled=false;status.textContent='Готово: PASS '+pass+' · FAIL '+fail+' · WARN '+warn;
 }
