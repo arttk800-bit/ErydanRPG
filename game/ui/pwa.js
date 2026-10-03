@@ -1,4 +1,4 @@
-const BUILD="guardian-skills-10";
+const BUILD="batched-sim-11";
 async function forceFreshBuild(){
  if(!("serviceWorker" in navigator))return;
  try{
