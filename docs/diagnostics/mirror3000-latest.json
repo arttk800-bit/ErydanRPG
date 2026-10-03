@@ -9,9 +9,9 @@
     "avgRounds": 8.23,
     "maxRounds": 28,
     "timing": {
-      "elapsedMs": 1188,
-      "elapsedSeconds": 1.188,
-      "formatted": "1.188s"
+      "elapsedMs": 1043,
+      "elapsedSeconds": 1.043,
+      "formatted": "1.043s"
     }
   },
   "comparison": {
@@ -19,8 +19,13 @@
     "allyRateDelta": 0.533,
     "enemyRateDelta": 0.367,
     "drawRateDelta": -0.9,
+    "avgRoundsDelta": -18.87,
+    "maxRoundsRatio": 0.126,
     "hardCaps": 0,
-    "pass": true,
-    "reasons": []
+    "pass": false,
+    "reasons": [
+      "avg-rounds",
+      "max-rounds"
+    ]
   }
 }
