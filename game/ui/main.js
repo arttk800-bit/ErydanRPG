@@ -4,6 +4,7 @@ import {createClient} from '../client/bootstrap.js';
 import {renderBattlefield} from './battlefield.js';
 import {renderHud} from './hud.js';
 import {icon} from './icons.js';
+import {combatMove} from '../combat/movement-action.js';
 
 const board=document.querySelector('#board'),hud=document.querySelector('#hud'),turn=document.querySelector('#turn');
 
@@ -33,7 +34,7 @@ async function start(){
  function draw(){
   const u=state.order[state.turnIndex];
   if(turn)turn.textContent=u?`Ход: ${u.name} · раунд ${state.round}`:'';
-  renderBattlefield(board,state,{onUnit:t=>{if(u&&t.team!==u.team)client.actions.target(t);}});
+  renderBattlefield(board,state,{onHex:p=>{if(!u||u.team!=='ally')return;const res=combatMove(state,u,p.q,p.r,weapons);if(res.ok)client.store.emit?.();else draw();},onUnit:t=>{if(u&&t.team!==u.team)client.actions.target(t);}});
   renderHud(hud,u,[
    {id:'attack',label:'Атака',icon:icon('attack'),onClick:()=>client.actions.select('attack')},
    {id:'aim',label:'Точная',icon:icon('aim'),onClick:()=>client.actions.select('aim')},
