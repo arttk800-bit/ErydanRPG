@@ -1,4 +1,4 @@
-const CACHE="eirdan-pwa-diagnostic-loadout-04";
+const CACHE="eirdan-pwa-diagnostic-19";
 self.addEventListener("install",()=>self.skipWaiting());
 self.addEventListener("activate",e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k!==CACHE)await caches.delete(k);await self.clients.claim()})()));
 self.addEventListener("fetch",e=>{
