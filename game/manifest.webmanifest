@@ -1,0 +1,11 @@
+{
+  "name": "Eirdan",
+  "short_name": "Eirdan",
+  "description": "Eirdan tactical RPG",
+  "start_url": "./ui/index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090d0c",
+  "theme_color": "#090d0c",
+  "orientation": "any"
+}
