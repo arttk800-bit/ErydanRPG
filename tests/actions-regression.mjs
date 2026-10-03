@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';import {GameState} from '../game/core/game-state.js';import {createBody} from '../game/combat/body-parts.js';import {physicalAttack,spellAttack} from '../game/combat/actions.js';import {bandage} from '../game/combat/skills.js';
+const u=(id,team,q=0,r=0)=>({id,team,cls:'test',alive:true,escaped:false,hp:90,maxHp:90,ap:9,mana:50,st:100,body:createBody(),shield:0,armorKind:'light',armorHead:0,maxArmorHead:18,armorBody:0,maxArmorBody:32,armCover:.3,legCover:.1,buffs:{stone:0,rage:0},resolve:100,q,r,bandages:1});
+{const s=new GameState(1),a=u('a','ally'),e=u('e','enemy',1,0);s.units=[a,e];s.order=[a,e];const x=physicalAttack(s,a,e,{weapon:{min:10,max:10,type:'melee',range:1},rng:()=>.99});assert.equal(x.ok,true);assert.equal(a.ap,5);assert.equal(e.hp,80);}
+{const s=new GameState(2),a=u('a','ally'),e=u('e','enemy',6,0);s.units=[a,e];s.order=[a,e];assert.equal(physicalAttack(s,a,e,{weapon:{min:10,max:10,type:'melee',range:1}}).ok,false);assert.equal(a.ap,9);}
+{const s=new GameState(3),a=u('a','ally'),e=u('e','enemy',2,0);s.units=[a,e];s.order=[a,e];const x=spellAttack(s,a,e,{base:10,cost:4,mana:10,range:5,rng:()=>.99});assert.equal(x.ok,true);assert.equal(a.ap,5);assert.equal(a.mana,40);}
+{const a=u('a','ally');a.body.larm.bleed=2;a.bleed=2;assert.equal(bandage(a).ok,true);assert.equal(a.bleed,0);assert.equal(a.bandages,0);}
+console.log('actions regression: OK');

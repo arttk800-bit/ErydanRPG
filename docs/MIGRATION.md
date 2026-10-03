@@ -3,26 +3,22 @@
 ## Completed
 - Repository structure + Android shell.
 - Reference monolith inventory and migration manifest.
-- Pure battle lifecycle + turn manager.
-- Pure hex grid + movement service.
-- Internal chess-like hex IDs (A1..N10) for telemetry; labels are not rendered on the battlefield.
-- Movement history records one authoritative event per move and detects immediate A->B->A backtracks.
+- Battle lifecycle + turn manager.
+- Hex grid + movement + authoritative movement telemetry.
+- Body parts + physical/magic damage + wound shock + Resolve pipeline.
+- Action validation layer: AP/mana/range checks and shared physical/spell execution.
+- Initial skill adapters: aimed/heavy/spell/bandage.
+- AI legal-action context separated from decision policy.
 
 ## Current gate
-Migrate damage/body parts/Resolve without changing the alpha14p combat math.
+Migrate complete skill semantics from alpha14p, then AI decision policy. AI must call the same action API as manual control.
 
-## Movement invariants
-- Only movement.js mutates q/r in the new runtime.
-- Occupied/out-of-bounds destinations are rejected.
-- AI asks movement for legal steps; it does not directly edit coordinates.
-- Telemetry is emitted by movement itself, eliminating duplicate observer hooks.
-- Immediate backtracking is measurable and can be avoided by path choice.
+## Invariants
+- No direct coordinate mutation outside movement.
+- No death resolution outside lifecycle.
+- Resolve loss is applied before lethal resolution.
+- No combat rule depends on DOM.
+- No rebalance until migration equivalence is established.
 
-## Next
-1. Damage/body parts/Resolve.
-2. Actions and skills.
-3. AI policies.
-4. UI.
-5. Headless Mirror x100 -> x1000 -> x3000.
-
-No rebalance until migration equivalence is established.
+## Regression order
+Node unit regressions -> fixed seed 2030699025 -> Mirror x100 -> x1000 -> x3000.
