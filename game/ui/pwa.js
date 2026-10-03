@@ -1,4 +1,4 @@
-const BUILD="full-diagnostics-07";
+const BUILD="full-diagnostics-08";
 async function forceFreshBuild(){
  if(!("serviceWorker" in navigator))return;
  try{
