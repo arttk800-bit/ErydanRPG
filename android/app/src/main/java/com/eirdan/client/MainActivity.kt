@@ -46,7 +46,7 @@ class MainActivity:Activity(){
 
  private fun latestBuild(stamp:Long):String=try{
   val json=fetch("https://api.github.com/repos/arttk800-bit/ErydanRPG/commits/main",stamp)
-  Regex("\\\"sha\\\"\\s*:\\s*\\\"([0-9a-f]{7,40})\\\"").find(json)?.groupValues?.get(1)?.take(7) ?: "unknown"
+  Regex(""""sha"\\s*:\\s*"([0-9a-f]{7,40})"""").find(json)?.groupValues?.get(1)?.take(7) ?: "unknown"
  }catch(_:Exception){"unknown"}
 
  private fun loadRemoteGame(){
