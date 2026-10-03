@@ -10,7 +10,22 @@ function genTerrain(){terrain={};let density={open:.04,sparse:.11,normal:.18,den
 function fill(){let o=TEST_POOL.map(c=>'<option value="'+c+'">'+CL[c].n+'</option>').join('');['a0','a1','a2'].forEach((id,i)=>{$(id).innerHTML=o;$(id).value=cfg.allies[i]})}fill();
 $('random').onclick=()=>['a0','a1','a2'].forEach(id=>$(id).value=pick(TEST_POOL));
 $('start').onclick=()=>{cfg.allies=['a0','a1','a2'].map(id=>$(id).value);cfg.enemies=Math.max(1,Math.min(6,+$('enemies').value||3));cfg.terrain=$('terrain').value;let ap=[[1,4],[1,5],[1,6]],ep=[[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];units=[];for(let i=0;i<3;i++)units.push(make('a'+i,i?'Союзник '+(i+1):'ГГ','ally',...ap[i],cfg.allies[i]));for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));order=[...units];idx=0;round=1;over=false;auto=false;combatLog=[];genTerrain();render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden')};
-function render(){let by=new Map(units.filter(u=>u.alive).map(u=>[u.q+','+u.r,u]));$('grid').replaceChildren();for(let r=0;r<GRID.R;r++)for(let q=0;q<GRID.C;q++){let d=document.createElement('div'),u=by.get(q+','+r),t=terrain[q+','+r];d.className='hex '+(t||'')+(u?' '+u.team:'');d.dataset.q=q;d.dataset.r=r;d.style.left='calc(50% + '+((q-(GRID.C-1)/2)*36)+'px - 24px)';d.style.top='calc(50% + '+((r-(GRID.R-1)/2)*55.426+(q&1)*27.713)+'px - 27.713px)';d.textContent=u?(u.team==='ally'?'🔵 ':'🔴 ')+(Number(u.id.slice(1))+1):(t==='rock'?'К':t==='tree'?'Д':t==='bush'?'Кст':'');$('grid').append(d)}$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+u.armorName+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
+function canvasLayout(){
+ let cv=$('battleCanvas'),box=$('grid').getBoundingClientRect(),dpr=Math.max(1,window.devicePixelRatio||1);
+ if(cv.width!==Math.round(box.width*dpr)||cv.height!==Math.round(box.height*dpr)){cv.width=Math.round(box.width*dpr);cv.height=Math.round(box.height*dpr)}
+ let ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+ let s=Math.min(box.width/(1.5*(GRID.C-1)+2),box.height/(Math.sqrt(3)*(GRID.R+.5)))*.96;
+ let fieldW=s*(1.5*(GRID.C-1)+2),fieldH=Math.sqrt(3)*s*(GRID.R+.5),ox=(box.width-fieldW)/2+s,oy=(box.height-fieldH)/2+Math.sqrt(3)*s/2;
+ return{cv,ctx,s,ox,oy,w:box.width,h:box.height}
+}
+function hexCenter(q,r,L){return{x:L.ox+1.5*L.s*q,y:L.oy+Math.sqrt(3)*L.s*(r+.5*(q&1))}}
+function hexPath(ctx,x,y,s){ctx.beginPath();for(let i=0;i<6;i++){let a=Math.PI/180*(60*i),px=x+s*Math.cos(a),py=y+s*Math.sin(a);i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath()}
+function drawField(){
+ let L=canvasLayout(),{ctx,s}=L;ctx.clearRect(0,0,L.w,L.h);let by=new Map(units.filter(u=>u.alive).map(u=>[u.q+','+u.r,u]));
+ for(let q=0;q<GRID.C;q++)for(let r=0;r<GRID.R;r++){let {x,y}=hexCenter(q,r,L),u=by.get(q+','+r),t=terrain[q+','+r];hexPath(ctx,x,y,s);ctx.fillStyle=u?(u.team==='ally'?'#152d48':'#421a20'):t==='bush'?'#193023':t==='rock'||t==='tree'?'#29312d':'#141c1a';ctx.fill();ctx.strokeStyle='#46534f';ctx.lineWidth=1;ctx.stroke();let label=u?((u.team==='ally'?'● ':'● ')+(Number(u.id.slice(1))+1)):(t==='rock'?'К':t==='tree'?'Д':t==='bush'?'Кст':'');if(label){ctx.fillStyle=u?(u.team==='ally'?'#55aaff':'#ff5364'):'#dce4e0';ctx.font=Math.max(9,s*.34)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,x,y)}}
+ window.__hexLayout=L
+}
+function render(){drawField();$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+u.armorName+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
 $('back').onclick=()=>{$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
 
 const dirs=(q)=>(q&1)?[[1,0],[1,1],[0,1],[-1,1],[-1,0],[0,-1]]:[[1,-1],[1,0],[0,1],[-1,0],[-1,-1],[0,-1]];
