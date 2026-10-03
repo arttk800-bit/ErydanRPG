@@ -354,9 +354,23 @@ async function runFullDiagnostic(){
   ok('Button: Combat Lab back handler',typeof $('closeCombatLab').onclick==='function');
   ok('Button: В главное меню handler',typeof $('toMainMenu').onclick==='function');
 
+  // Static UI contract: catches missing controls/IDs without navigating the visible game.
+  const requiredIds=['mainMenu','newGame','loadGame','openSettings','quitGame','settingsMenu','uiMode','masterVolume','settingsBack','openDebug','debugPanel','runFullDiagnostic','downloadFullDiagnostic','uploadFullDiagnostic','enterCombatLab','rpgShell','gameMenuBtn','gameMenu','resumeGame','gameSettings','toMainMenu','rpgCharacter','inventory','invOverlay','invClose','invEquip','invUnequip','tabBag','tabChar','combatLab','closeCombatLab','sim1v1','sim3v3','resultOverlay','resultNew','resultDownload'];
+  ok('UI: required controls exist',requiredIds.every(id=>!!$(id)),requiredIds.filter(id=>!$(id)).join(', '));
+  ok('UI: Load Game intentionally disabled',$('loadGame').disabled===true);
+  ok('Settings: interface control wired',typeof $('uiMode').onchange==='function');
+  ok('Settings: volume control wired',typeof $('masterVolume').oninput==='function');
+  ok('Inventory: action handlers wired',[invClose,invEquip,invUnequip,tabBag,tabChar].every(el=>typeof $(el.id).onclick==='function'));
+  ok('Result: action handlers wired',typeof $('resultNew').onclick==='function'&&typeof $('resultDownload').onclick==='function');
+  ok('Simulation: action handlers wired',typeof $('sim1v1').onclick==='function'&&typeof $('sim3v3').onclick==='function');
+
   status.textContent='Проверка мира...';await sleep(20);
   ok('World: all places valid',Object.values(WORLD.places).every(p=>p&&p.name&&Number.isInteger(p.x)&&Number.isInteger(p.y)));
   let t0=WORLD.minutes;passTime(30);ok('World: passTime +30',WORLD.minutes===t0+30||WORLD.day>snap.world.day);Object.assign(WORLD,structuredClone(snap.world));
+  ok('World: current place exists',!!WORLD.places[WORLD.current]);
+  ok('World: travel function exists',typeof travelTo==='function');
+  ok('World: render functions exist',[renderRpg,renderLocation,renderTown,showGateEvent].every(fn=>typeof fn==='function'));
+  ok('World: place IDs unique',new Set(Object.keys(WORLD.places)).size===Object.keys(WORLD.places).length);
 
   status.textContent='Проверка инвентаря и предметов...';await sleep(20);
   playerInventory=structuredClone(snap.inv);openInventory();ok('Inventory: opens',!$('invOverlay').classList.contains('hidden'));
@@ -374,6 +388,10 @@ async function runFullDiagnostic(){
 
   status.textContent='Проверка боя и симуляций...';await sleep(20);
   ok('Combat: core functions exist',['attack','nextTurn','restSkill','prepareSkill','simulateDiagnostic'].every(n=>typeof eval(n)==='function'));
+  const combatIds=['start','random','back','auto','restSkill','prepareSkill','endTurn'];
+  ok('Combat: primary controls exist',combatIds.every(id=>!!$(id)),combatIds.filter(id=>!$(id)).join(', '));
+  ok('Combat: start/random/back handlers wired',['start','random','back'].every(id=>typeof $(id)?.onclick==='function'));
+  ok('Combat: inventory handler wired',typeof $('inventory').onclick==='function');
   await simulateDiagnostic('1v1',100);ok('Simulation: 1v1 x100 report generated',!!window.lastSimulationReport);
   if(window.lastSimulationReport)out.push('','--- 1v1 x100 REPORT ---',window.lastSimulationReport,'--- END 1v1 ---');hideResultOverlay();
   await simulateDiagnostic('3v3',100);ok('Simulation: 3v3 x100 report generated',!!window.lastSimulationReport);
