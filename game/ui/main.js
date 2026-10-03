@@ -1,0 +1,1 @@
+import {GameState} from '../core/game-state.js';import {renderBattlefield} from './battlefield.js';import {renderHud} from './hud.js';const state=new GameState(1);const board=document.querySelector('#board'),hud=document.querySelector('#hud');renderBattlefield(board,state);renderHud(hud,null);
