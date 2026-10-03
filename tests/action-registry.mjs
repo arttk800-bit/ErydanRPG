@@ -1,0 +1,1 @@
+import assert from 'node:assert/strict';import {ActionRegistry} from '../game/core/action-registry.js';const r=new ActionRegistry();r.register('x',{canUse:c=>c.ok,execute:()=>({ok:true,value:7})});assert.equal(r.execute('x',{ok:false}).ok,false);assert.equal(r.execute('x',{ok:true}).value,7);assert.throws(()=>r.register('x',{}));console.log('action registry: OK');
