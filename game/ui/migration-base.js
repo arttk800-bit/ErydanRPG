@@ -52,7 +52,7 @@ function simulateBatch(n=100){
   let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy');wins[A&&!E?'ally':E&&!A?'enemy':'draw']++;rounds+=round;maxRounds=Math.max(maxRounds,round)
  }
  cfg=snap.cfg;units=snap.units;terrain=snap.terrain;order=snap.order;idx=snap.idx;round=snap.round;over=snap.over;combatLog=snap.combatLog;auto=oldAuto;nextRender();
- alert('Симуляция ×'+n+'\nСоюзники: '+wins.ally+'\nВраги: '+wins.enemy+'\nНичьи: '+wins.draw+'\nСреднее раундов: '+(rounds/n).toFixed(1)+'\nМакс. раундов: '+maxRounds)
+ let report=['EIRDAN 0.15 · BATCH DIAGNOSTIC','BUILD: '+(window.EIRDAN_BUILD||'unknown'),'BATTLES: '+n,'SEED CALLS: '+GameRNG.calls,'','RESULTS','Allies: '+wins.ally,'Enemies: '+wins.enemy,'Draws/timeouts: '+wins.draw,'Average rounds: '+(rounds/n).toFixed(1),'Max rounds: '+maxRounds,'','NOTE: balance values unchanged.'].join('\n');let blob=new Blob([report],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Eirdan_batch_diagnostic_'+Date.now()+'.txt';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);alert('Симуляция ×'+n+' завершена.\nРезультат скачан автоматически.\nСоюзники: '+wins.ally+' · Враги: '+wins.enemy+' · Ничьи: '+wins.draw)
 }
 function nextTurnSync(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return}c.ap=9;c.st=Math.min(100,c.st+12)}
 $('sim100').onclick=()=>simulateBatch(100);
