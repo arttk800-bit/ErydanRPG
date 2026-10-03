@@ -412,7 +412,39 @@ $('openDebug').onclick=()=>$('debugPanel').classList.toggle('hidden');
 $('enterCombatLab').onclick=()=>openCombatLab('settingsMenu');
 $('runFullDiagnostic').onclick=runFullDiagnostic;
 $('downloadFullDiagnostic').onclick=()=>{if(fullDiagnosticLog)downloadTxt('Eirdan_full_diagnostic_'+Date.now()+'.txt',fullDiagnosticLog)};
-async function uploadFullDiagnosticLog(auto=false){const b=$('uploadFullDiagnostic'),s=$('fullDiagnosticStatus');if(!fullDiagnosticLog){s.textContent='TRANSPORT: NO LOG';return false}b.disabled=true;const runId='eirdan_'+Date.now();s.textContent='TRANSPORT: START '+runId+' > POST';try{const r=await fetch(DIAGNOSTIC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({run_id:runId,build:window.EIRDAN_BUILD||'unknown',generated_at:new Date().toISOString(),log:fullDiagnosticLog})});s.textContent='TRANSPORT: '+runId+' > HTTP '+r.status;const x=await r.json();if(!r.ok||!x.ok)throw Error(x.error||('HTTP '+r.status));s.textContent='TRANSPORT: '+runId+' > HTTP '+r.status+' > OK '+x.run_id;return true}catch(e){s.textContent='TRANSPORT: '+runId+' > ERROR '+(e?.message||e);return false}finally{b.disabled=false}}
+async function uploadFullDiagnosticLog(auto=false){
+ const button=$('uploadFullDiagnostic'),status=$('fullDiagnosticStatus');
+ if(!fullDiagnosticLog){status.textContent='TRANSPORT: NO LOG';return false}
+ button.disabled=true;
+ const runId='eirdan_'+Date.now();
+ const payload=JSON.stringify({run_id:runId,build:window.EIRDAN_BUILD||'unknown',generated_at:new Date().toISOString(),log:fullDiagnosticLog});
+ let lastError='';
+ for(let attempt=1;attempt<=3;attempt++){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),20000);
+  status.textContent='TRANSPORT: '+runId+' > attempt '+attempt+'/3 > POST';
+  try{
+   const response=await fetch(DIAGNOSTIC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:payload,signal:controller.signal});
+   clearTimeout(timer);
+   status.textContent='TRANSPORT: '+runId+' > attempt '+attempt+'/3 > HTTP '+response.status;
+   const result=await response.json();
+   if(!response.ok||!result.ok)throw Error(result.error||('HTTP '+response.status));
+   status.textContent='TRANSPORT: '+runId+' > HTTP '+response.status+' > OK '+(result.run_id||runId);
+   button.disabled=false;
+   return true;
+  }catch(e){
+   clearTimeout(timer);
+   lastError=e?.name==='AbortError'?'timeout 20s':(e?.message||String(e));
+   if(attempt<3){
+    status.textContent='TRANSPORT: '+runId+' > attempt '+attempt+'/3 > RETRY '+lastError;
+    await new Promise(r=>setTimeout(r,1500*attempt));
+   }
+  }
+ }
+ status.textContent='TRANSPORT: '+runId+' > FAILED after 3 attempts > '+lastError;
+ button.disabled=false;
+ return false;
+}
 $('uploadFullDiagnostic').onclick=()=>uploadFullDiagnosticLog(false);
 $('gameMenuBtn').onclick=()=>$('gameMenu').classList.toggle('hidden');
 $('resumeGame').onclick=()=>$('gameMenu').classList.add('hidden');
