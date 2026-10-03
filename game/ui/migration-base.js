@@ -267,6 +267,52 @@ $('sim3v3').onclick=()=>simulateDiagnostic('3v3',100);
 function ensureBattleControls(){['combatLog','auto','endTurn','restSkill','prepareSkill'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.disabled=false;b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let r=document.createElement('button');r.id='restSkill';r.textContent='Передышка (+30 ST, 4 AP)';r.onclick=()=>{if(!auto&&order[idx]?.id==='a0'&&restSkill(order[idx]))nextRender()};$('hud').querySelector('.actions').append(r);let p=document.createElement('button');p.id='prepareSkill';p.textContent='Приготовиться (4 AP)';p.onclick=()=>{if(!auto&&order[idx]?.id==='a0'&&prepareSkill(order[idx]))nextRender()};$('hud').querySelector('.actions').append(p);let e=document.createElement('button');e.id='endTurn';e.disabled=false;e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender();}
 $('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+q+','+r+'] · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st);nextRender()}};
 
+
+const WORLD={
+ day:1,minutes:8*60,location:'road',gold:24,reputation:0,
+ flags:{gateIncident:false},
+ places:{
+  road:{name:'Старый тракт',desc:'Дорога к небольшому пограничному городу.',x:1,y:2},
+  eirdan:{name:'Эйрдан',desc:'Небольшой укреплённый город.',x:2,y:2},
+  village:{name:'Деревня Рен',desc:'Несколько десятков домов и поля.',x:0,y:2},
+  forest:{name:'Серый лес',desc:'Лес к северу от тракта.',x:1,y:1},
+  ruins:{name:'Старые руины',desc:'Пока недоступно.',x:2,y:0,locked:true}
+ }
+};
+let rpgScreen='world';
+function worldTime(){let h=Math.floor(WORLD.minutes/60)%24,m=WORLD.minutes%60;return 'День '+WORLD.day+' · '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
+function passTime(min){WORLD.minutes+=min;while(WORLD.minutes>=1440){WORLD.minutes-=1440;WORLD.day++}}
+function renderRpg(){
+ $('worldClock').textContent=worldTime();
+ $('rpgStats').textContent='Локация: '+WORLD.places[WORLD.location].name+' · Золото: '+WORLD.gold+' · Репутация Эйрдана: '+WORLD.reputation;
+ if(rpgScreen==='town')return renderTown();
+ let cells=Array(9).fill(null),entries=Object.entries(WORLD.places);for(const [id,p] of entries)cells[p.y*3+p.x]=[id,p];
+ $('rpgView').innerHTML='<h2 style="margin-top:0">Карта региона</h2><div class="note">Тестовый регион. Переходы пока мгновенные с расходом игрового времени.</div><div class="worldMap">'+cells.map(x=>x?'<button class="worldNode '+(WORLD.location===x[0]?'current ':'')+(x[1].locked?'locked':'')+'" data-world="'+x[0]+'" '+(x[1].locked?'disabled':'')+'><b>'+x[1].name+'</b><small>'+x[1].desc+'</small></button>':'<div></div>').join('')+'</div>';
+ document.querySelectorAll('[data-world]').forEach(b=>b.onclick=()=>travelTo(b.dataset.world))
+}
+function travelTo(id){
+ if(id===WORLD.location&&id==='eirdan'){rpgScreen='town';return renderRpg()}
+ if(id!==WORLD.location){passTime(id==='eirdan'?45:30);WORLD.location=id}
+ if(id==='eirdan'){rpgScreen='town';renderRpg();if(!WORLD.flags.gateIncident)setTimeout(showGateEvent,0);return}
+ renderRpg()
+}
+function renderTown(){
+ $('rpgView').innerHTML='<h2 style="margin:0 0 4px">Эйрдан</h2><div class="note">Тестовая карта поселения.</div><div class="townGrid">'+
+ ['Таверна','Кузница','Рынок','Казармы'].map((n,i)=>'<button class="townPlace" data-place="'+i+'><b>'+n+'</b><br><small>'+(i===0?'Еда, слухи и постояльцы':i===1?'Оружие и ремесло':i===2?'Торговцы и горожане':'Городская стража')+'</small></button>').join('')+
+ '</div><button id="leaveTown" style="width:100%;margin-top:10px">К городским воротам / на карту</button><div id="townEvent"></div>';
+ document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{passTime(20);$('townEvent').innerHTML='<div class="eventBox"><b>'+b.querySelector('b').textContent+'</b><p>Пока это тестовая точка. Время прошло на 20 минут.</p></div>';renderRpgStatsOnly()});
+ $('leaveTown').onclick=()=>{rpgScreen='world';renderRpg()}
+}
+function renderRpgStatsOnly(){$('worldClock').textContent=worldTime();$('rpgStats').textContent='Локация: '+WORLD.places[WORLD.location].name+' · Золото: '+WORLD.gold+' · Репутация Эйрдана: '+WORLD.reputation}
+function showGateEvent(){
+ WORLD.flags.gateIncident=true;let box=$('townEvent');if(!box)return;
+ box.innerHTML='<div class="eventBox"><b>У городских ворот</b><p>У телеги спорят торговец и городской стражник. Вокруг уже собрались зеваки.</p><div class="eventChoices"><button data-event="listen">Остановиться и послушать</button><button data-event="leave">Не вмешиваться</button></div></div>';
+ box.querySelector('[data-event="listen"]').onclick=()=>{passTime(10);WORLD.reputation+=1;box.innerHTML='<div class="eventBox"><b>Слух</b><p>Торговец жалуется на пропажи товара на северном тракте. Стражник советует не ходить к лесу после заката.</p></div>';renderRpgStatsOnly()};
+ box.querySelector('[data-event="leave"]').onclick=()=>{box.innerHTML=''}
+}
+$('openCombatLab').onclick=()=>{$('rpgShell').classList.add('hidden');$('combatLab').classList.remove('hidden')};
+$('rpgCharacter').onclick=()=>{openInventory()};
+renderRpg();
 $('inventory').onclick=openInventory;
 $('invClose').onclick=closeInventory;
 $('invEquip').onclick=equipSelected;
@@ -285,3 +331,5 @@ $('resultDownload').onclick=()=>{
  if($('resultOverlay').dataset.kind==='simulation'&&window.lastSimulationReport){downloadTxt(window.lastSimulationFile||('Eirdan_simulation_'+Date.now()+'.txt'),window.lastSimulationReport);return}
  if(window.lastBattleReport)downloadTxt('Eirdan_battle_'+Date.now()+'.txt',window.lastBattleReport)
 };
+
+$('closeCombatLab').onclick=()=>{$('combatLab').classList.add('hidden');$('rpgShell').classList.remove('hidden');renderRpg()};
