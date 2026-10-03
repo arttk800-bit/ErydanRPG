@@ -1,5 +1,5 @@
 import {W,CL,ARMORS,PD,CLASS_POOL,GRID,DEFAULT_BATTLE_CFG,mkbody} from '../alpha14p/data/constants.js';import {GameRNG,pick} from '../alpha14p/core/rng.js';
-const TEST_POOL=['guardian','archer','berserker'];
+const TEST_POOL=['guardian'];
 
 const INV_ITEMS={
  sword_iron:{n:'Железный меч',type:'weapon',slot:'main',w:1.35,ico:'⚔',desc:'Одноручный меч',combat:{weapon:'sword'}},
@@ -77,14 +77,14 @@ function genTerrain(){terrain={};let density={open:.04,sparse:.11,normal:.18,den
 let pendingDuel=false;
 function fill(){let o=TEST_POOL.map(c=>'<option value="'+c+'">'+CL[c].n+'</option>').join('');['a0','a1','a2'].forEach((id,i)=>{$(id).innerHTML=o;$(id).value=cfg.allies[i]})}fill();
 $('random').onclick=()=>['a0','a1','a2'].forEach(id=>$(id).value=pick(TEST_POOL));
-function updateModeUI(){let duel=$('battleMode').value==='1v1';$('enemyCountLabel').classList.toggle('hidden',duel);$('a1').closest('label').classList.toggle('hidden',duel);$('a2').closest('label').classList.toggle('hidden',duel);$('random').classList.toggle('hidden',duel);$('start').textContent=duel?'Подготовить бой 1 vs 1':'Начать бой';$('modeHint').textContent=duel?'Сначала откроется инвентарь. Бой начнётся только после подтверждения экипировки.':''}
+function updateModeUI(){let duel=$('battleMode').value==='1v1';$('enemyCountLabel').classList.toggle('hidden',duel);$('ally1Label').classList.toggle('hidden',duel);$('ally2Label').classList.toggle('hidden',duel);$('random').classList.toggle('hidden',duel);$('start').textContent=duel?'Подготовить бой 1 vs 1':'Начать бой';$('modeHint').textContent=duel?'ГГ против одного Стража. Сначала настрой экипировку, затем нажми «Вступить в бой».':'Тестовый режим 3 vs 3. Временно доступен только Страж.'}
 $('battleMode').onchange=updateModeUI;updateModeUI();
 $('start').onclick=()=>{
  if($('battleMode').value==='1v1'){pendingDuel=true;$('prepFight').classList.remove('hidden');openInventory();return}
  pendingDuel=false;$('prepFight').classList.add('hidden');beginBattle(false)
 };
 function beginBattle(duel=false){
- cfg.allies=['a0','a1','a2'].map(id=>$(id).value);cfg.enemies=duel?1:Math.max(1,Math.min(6,+$('enemies').value||3));cfg.terrain=$('terrain').value;
+ cfg.allies=duel?[$('a0').value]:['a0','a1','a2'].map(id=>$(id).value);cfg.enemies=duel?1:Math.max(1,Math.min(6,+$('enemies').value||3));cfg.terrain=$('terrain').value;
  let ap=duel?[[2,5]]:[[1,4],[1,5],[1,6]],ep=duel?[[11,5]]:[[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];
  units=[];let allyN=duel?1:3;for(let i=0;i<allyN;i++)units.push(make('a'+i,i?'Союзник '+(i+1):'ГГ','ally',...ap[i],cfg.allies[i]));
  for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));
