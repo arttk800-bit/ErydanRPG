@@ -268,6 +268,7 @@ function ensureBattleControls(){['combatLog','auto','endTurn','restSkill','prepa
 $('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+q+','+r+'] · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st);nextRender()}};
 
 
+document.body.appendChild($('invOverlay'));
 const WORLD={
  day:1,minutes:8*60,location:'road',gold:24,reputation:0,
  flags:{gateIncident:false},
@@ -294,13 +295,24 @@ function travelTo(id){
  if(id===WORLD.location&&id==='eirdan'){rpgScreen='town';return renderRpg()}
  if(id!==WORLD.location){passTime(id==='eirdan'?45:30);WORLD.location=id}
  if(id==='eirdan'){rpgScreen='town';renderRpg();if(!WORLD.flags.gateIncident)setTimeout(showGateEvent,0);return}
- renderRpg()
+ rpgScreen='location';renderLocation(id)
+}
+function renderLocation(id){
+ let p=WORLD.places[id];$('worldClock').textContent=worldTime();renderRpgStatsOnly();
+ $('rpgView').innerHTML='<h2 style="margin:0 0 4px">'+p.name+'</h2><div class="note">'+p.desc+'</div><div class="eventBox"><b>Осмотреться</b><p>'+(id==='forest'?'Между деревьями тянется старая тропа. Пока здесь нет активных событий.':id==='village'?'Небольшая деревня живёт обычной жизнью. Позже здесь появятся дома и NPC.':'Пыльный тракт соединяет поселения региона. Пока дорога безопасна.')+'</p></div><button id="locationBack" style="width:100%;margin-top:10px">На карту региона</button>';
+ $('locationBack').onclick=()=>{rpgScreen='world';renderRpg()}
 }
 function renderTown(){
- $('rpgView').innerHTML='<h2 style="margin:0 0 4px">Эйрдан</h2><div class="note">Тестовая карта поселения.</div><div class="townGrid">'+
- ['Таверна','Кузница','Рынок','Казармы'].map((n,i)=>'<button class="townPlace" data-place="'+i+'><b>'+n+'</b><br><small>'+(i===0?'Еда, слухи и постояльцы':i===1?'Оружие и ремесло':i===2?'Торговцы и горожане':'Городская стража')+'</small></button>').join('')+
- '</div><button id="leaveTown" style="width:100%;margin-top:10px">К городским воротам / на карту</button><div id="townEvent"></div>';
- document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{passTime(20);$('townEvent').innerHTML='<div class="eventBox"><b>'+b.querySelector('b').textContent+'</b><p>Пока это тестовая точка. Время прошло на 20 минут.</p></div>';renderRpgStatsOnly()});
+ $('rpgView').innerHTML=`
+ <h2 style="margin:0 0 4px">Эйрдан</h2><div class="note">Тестовая карта поселения.</div>
+ <div class="townGrid">
+  <button class="townPlace" data-place="Таверна"><b>Таверна</b><br><small>Еда, слухи и постояльцы</small></button>
+  <button class="townPlace" data-place="Кузница"><b>Кузница</b><br><small>Оружие и ремесло</small></button>
+  <button class="townPlace" data-place="Рынок"><b>Рынок</b><br><small>Торговцы и горожане</small></button>
+  <button class="townPlace" data-place="Казармы"><b>Казармы</b><br><small>Городская стража</small></button>
+ </div>
+ <button id="leaveTown" style="width:100%;margin-top:10px">К городским воротам / на карту</button><div id="townEvent"></div>`;
+ document.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>{passTime(20);$('townEvent').innerHTML='<div class="eventBox"><b>'+b.dataset.place+'</b><p>Пока это тестовая точка. Время прошло на 20 минут.</p></div>';renderRpgStatsOnly()});
  $('leaveTown').onclick=()=>{rpgScreen='world';renderRpg()}
 }
 function renderRpgStatsOnly(){$('worldClock').textContent=worldTime();$('rpgStats').textContent='Локация: '+WORLD.places[WORLD.location].name+' · Золото: '+WORLD.gold+' · Репутация Эйрдана: '+WORLD.reputation}
@@ -310,8 +322,8 @@ function showGateEvent(){
  box.querySelector('[data-event="listen"]').onclick=()=>{passTime(10);WORLD.reputation+=1;box.innerHTML='<div class="eventBox"><b>Слух</b><p>Торговец жалуется на пропажи товара на северном тракте. Стражник советует не ходить к лесу после заката.</p></div>';renderRpgStatsOnly()};
  box.querySelector('[data-event="leave"]').onclick=()=>{box.innerHTML=''}
 }
-$('openCombatLab').onclick=()=>{$('rpgShell').classList.add('hidden');$('combatLab').classList.remove('hidden')};
-$('rpgCharacter').onclick=()=>{openInventory()};
+$('openCombatLab').onclick=()=>{closeInventory();$('rpgShell').classList.add('hidden');$('combatLab').classList.remove('hidden')};
+$('rpgCharacter').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;playerInventory.selectedSlot=null;openInventory()};
 renderRpg();
 $('inventory').onclick=openInventory;
 $('invClose').onclick=closeInventory;
