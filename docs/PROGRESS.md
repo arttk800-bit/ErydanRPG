@@ -1,6 +1,6 @@
 # Eirdan 0.15 migration progress
-Current estimate: 62/100.
+Current estimate: 67/100.
 
-Done: modular core/combat foundation, movement telemetry, initial skills/AI, simulation diagnostics/mirror parity tools, authoritative action registry, and first pure GameState-driven UI layer (store/view-model/battlefield/HUD).
+Added: direct action selection/target flow, body-part picker foundation, SVG icon system, end-turn confirmation setting, local audio controller, and documented combat interaction invariants.
 
-Remaining: exact legacy skill/AI parity; production UI assets/interactions; asset extraction; fixed-seed/mirror execution parity; Android runtime wiring; APK/update flow; legacy removal.
+Remaining: exact skill/AI parity; production battlefield/HUD composition; real asset binaries; regression/mirror parity; Android wiring and APK/update flow; legacy removal.

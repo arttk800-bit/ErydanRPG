@@ -1,0 +1,1 @@
+import assert from 'node:assert/strict';import {DEFAULT_SETTINGS,toggleEndConfirmation} from '../game/ui/settings.js';const s={...DEFAULT_SETTINGS};assert.equal(s.confirmEndTurn,true);toggleEndConfirmation(s);assert.equal(s.confirmEndTurn,false);console.log('settings: OK');

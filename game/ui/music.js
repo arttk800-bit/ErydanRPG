@@ -1,0 +1,1 @@
+export class MusicController{constructor(url){this.audio=new Audio(url);this.audio.loop=true;this.audio.preload='auto';}setVolume(v){this.audio.volume=Math.max(0,Math.min(1,v));}async play(){try{await this.audio.play();return true}catch{return false}}pause(){this.audio.pause();}}
