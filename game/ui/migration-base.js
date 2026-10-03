@@ -95,7 +95,7 @@ function beginBattle(duel=false){
  let ap=duel?[[2,5]]:[[1,4],[1,5],[1,6]],ep=duel?[[11,5]]:[[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];
  units=[];let allyN=duel?1:3;for(let i=0;i<allyN;i++)units.push(make('a'+i,i?'Союзник '+(i+1):'ГГ','ally',...ap[i],cfg.allies[i]));
  for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));
- syncPlayerInventoryToCombat(units[0]);units[0].loadout=structuredClone(playerInventory.equip);order=[...units];idx=0;round=1;over=false;auto=false;combatLog=[];genTerrain();render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden');ensureBattleControls()
+ syncPlayerInventoryToCombat(units[0]);units[0].loadout=structuredClone(playerInventory.equip);order=[...units];fullLog.push('=== START ===','Режим: '+(duel?'1v1':'3v3')+' · местность '+cfg.terrain,...units.map(u=>u.name+' ['+u.q+','+u.r+'] · '+unitDerivedText(u)+(u.loadout?'\n'+loadoutText(u.loadout):'')));idx=0;round=1;over=false;auto=false;combatLog=[];genTerrain();render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden');ensureBattleControls()
 }
 $('prepFight').onclick=()=>{if(!pendingDuel)return;pendingDuel=false;$('prepFight').classList.add('hidden');closeInventory();beginBattle(true)};
 
@@ -130,8 +130,23 @@ const partKeys=['head','torso','larm','rarm','lleg','rleg'];
 const rndPart=()=>{let x=GameRNG.random()*100;return x<10?'head':x<50?'torso':x<62?'larm':x<74?'rarm':x<87?'lleg':'rleg'};
 function coverPenalty(a,t){let pen=0,steps=Math.max(1,Math.ceil(dist(a,t)));for(let i=1;i<steps;i++){let q=Math.round(a.q+(t.q-a.q)*i/steps),r=Math.round(a.r+(t.r-a.r)*i/steps),z=terrain[q+','+r];if(z==='tree')pen+=25;else if(z==='bush')pen+=7;else if(z==='rock')pen+=35}if(terrain[t.q+','+t.r]==='bush')pen+=10;return Math.min(75,pen)}
 function chance(a,t,p=null,wk=null){let w=W[wk||activeWeapon(a,t)],pen=w.type==='bow'?Math.max(0,dist(a,t)-2)*8:0,fat=a.st<25?20:a.st<50?8:0,cov=w.type==='bow'?coverPenalty(a,t):0;return Math.max(5,Math.min(95,a.skill+w.acc-t.def-pen-fat-cov+(p?PD[p].mod:0)))}
-function oneHit(a,t,p,wk,m=1){let w=W[wk],fat=a.st<25?.7:a.st<50?.88:1,raw=Math.max(1,Math.round((w.min+GameRNG.random()*(w.max-w.min))*fat*m));if(t.shield>0&&GameRNG.random()<(w.type==='bow'?.82:.65)){let sd=Math.max(1,Math.round(raw*w.sd));t.shield=Math.max(0,t.shield-sd);log(a.name+' → '+t.name+': щит −'+sd);return}let slot=p==='head'?'armorHead':p==='torso'||p.includes('arm')||p.includes('leg')?'armorBody':null,cover=p==='head'?1:p==='torso'?1:p.includes('arm')?t.armCover:t.legCover,bodyD=raw;if(slot&&t[slot]>0&&GameRNG.random()<cover){let max='max'+slot[0].toUpperCase()+slot.slice(1),ratio=t[slot]/t[max],pen=Math.min(.7,(w.pen||.1)+(1-ratio)*.45);bodyD=Math.max(1,Math.round(raw*pen));t[slot]=Math.max(0,t[slot]-Math.max(1,Math.round(raw*(w.ad||.5))))}let before=t.body[p].hp;t.body[p].hp=Math.max(0,before-bodyD);t.hp=Math.max(0,t.hp-bodyD);if(before>0&&t.body[p].hp<=0&&['larm','rarm','lleg','rleg'].includes(p))t.bleed=Math.min(12,(t.bleed||0)+2);if(t.hp<=0||t.body.head.hp<=0||t.body.torso.hp<=0)t.alive=false;log(a.name+' → '+t.name+': '+PD[p].n+' −'+bodyD+(t.alive?'':' · ВЫБЫЛ'))}
-function attack(a,t,p=null){let wk=activeWeapon(a,t),w=W[wk],cost=p?5:w.ap;if(a.ap<cost||dist(a,t)>w.r)return false;a.ap-=cost;a.st=Math.max(0,a.st-(p?18:14));let ch=chance(a,t,p,wk);if(GameRNG.random()*100<=ch)oneHit(a,t,p||rndPart(),wk,p?PD[p].m:1);else log(a.name+' → '+t.name+': ПРОМАХ ('+Math.round(ch)+'%)');checkEnd();return true}
+function oneHit(a,t,p,wk,m=1){
+ let w=W[wk],fat=a.st<25?.7:a.st<50?.88:1,raw=Math.max(1,Math.round((w.min+GameRNG.random()*(w.max-w.min))*fat*m));
+ let pre={hp:t.hp,part:t.body[p].hp,shield:t.shield,ah:t.armorHead,ab:t.armorBody,bleed:t.bleed};
+ if(t.shield>0&&GameRNG.random()<(w.type==='bow'?.82:.65)){
+  let sd=Math.max(1,Math.round(raw*w.sd)),actual=Math.min(t.shield,sd);t.shield=Math.max(0,t.shield-sd);
+  log('[АТАКА] '+a.name+' → '+t.name+' · '+W[wk].n+' · '+PD[p].n+' · сырой '+raw+' · ЩИТ поглотил '+actual+' ('+pre.shield+'→'+t.shield+')');return
+ }
+ let slot=p==='head'?'armorHead':p==='torso'||p.includes('arm')||p.includes('leg')?'armorBody':null,cover=p==='head'?1:p==='torso'?1:p.includes('arm')?t.armCover:t.legCover,bodyD=raw,armorHit=false,armorLoss=0,pen=1;
+ if(slot&&t[slot]>0&&GameRNG.random()<cover){
+  armorHit=true;let max='max'+slot[0].toUpperCase()+slot.slice(1),ratio=t[slot]/Math.max(1,t[max]);pen=Math.min(.7,(w.pen||.1)+(1-ratio)*.45);bodyD=Math.max(1,Math.round(raw*pen));armorLoss=Math.min(t[slot],Math.max(1,Math.round(raw*(w.ad||.5))));t[slot]=Math.max(0,t[slot]-Math.max(1,Math.round(raw*(w.ad||.5))))
+ }
+ let before=t.body[p].hp;t.body[p].hp=Math.max(0,before-bodyD);t.hp=Math.max(0,t.hp-bodyD);
+ let cripple=before>0&&t.body[p].hp<=0&&['larm','rarm','lleg','rleg'].includes(p);if(cripple)t.bleed=Math.min(12,(t.bleed||0)+2);
+ if(t.hp<=0||t.body.head.hp<=0||t.body.torso.hp<=0)t.alive=false;
+ log('[АТАКА] '+a.name+' → '+t.name+' · '+W[wk].n+' · '+PD[p].n+' · сырой '+raw+(armorHit?' · БРОНЯ '+(slot==='armorHead'?'голова':'корпус')+' −'+armorLoss+' ('+(slot==='armorHead'?pre.ah:pre.ab)+'→'+t[slot]+'), прошло '+bodyD+' ['+Math.round(pen*100)+'%]':' · без брони, прошло '+bodyD)+' · часть '+pre.part+'→'+t.body[p].hp+' · HP '+pre.hp+'→'+t.hp+(cripple?' · КОНЕЧНОСТЬ ВЫВЕДЕНА · bleed '+pre.bleed+'→'+t.bleed:'')+(t.alive?'':' · ВЫБЫЛ'))
+}
+function attack(a,t,p=null){let wk=activeWeapon(a,t),w=W[wk],cost=p?5:w.ap;if(a.ap<cost||dist(a,t)>w.r)return false;let ap0=a.ap,st0=a.st,d=dist(a,t);a.ap-=cost;a.st=Math.max(0,a.st-(p?18:14));let ch=chance(a,t,p,wk);log('[НАМЕРЕНИЕ] '+a.name+' атакует '+t.name+' · '+W[wk].n+' · дистанция '+d+' · шанс '+Math.round(ch)+'% · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st);if(GameRNG.random()*100<=ch)oneHit(a,t,p||rndPart(),wk,p?PD[p].m:1);else log('[ПРОМАХ] '+a.name+' → '+t.name+' · '+W[wk].n+' · шанс '+Math.round(ch)+'% · позиция ['+a.q+','+a.r+']→['+t.q+','+t.r+']');checkEnd();return true}
 function battleResultText(A,E){
  let result=A&&!E?'ПОБЕДА':E&&!A?'ПОРАЖЕНИЕ':'БОЙ ЗАВЕРШЁН';
  let lines=['=== '+result+' ===','Раунд: '+round,''];
@@ -141,7 +156,7 @@ function battleResultText(A,E){
   lines.push('HP '+u.hp+'/'+u.maxHp+' · Голова '+head+'/'+(u.body?.head?.max??'?')+' · Туловище '+torso+'/'+(u.body?.torso?.max??'?'));
   lines.push('Оружие: '+(W[u.w]?.n||u.w)+' · Броня: '+(u.armorName||'Без брони')+' · Щит '+u.shield+'/'+u.maxShield+' · Кровотечение '+u.bleed);if(u.loadout){lines.push(loadoutText(u.loadout));lines.push(unitDerivedText(u))}
  }
- lines.push('','--- Последние события ---',...combatLog.slice(0,12));
+ lines.push('','--- ПОЛНЫЙ ЖУРНАЛ БОЯ ---',...fullLog);
  return lines.join('\n')
 }
 function checkEnd(){let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy'),was=over;over=!A||!E;if(over){$('round').textContent=(A?'Победа':'Поражение')+' · раунд '+round;if(!was)setTimeout(()=>showBattleResult(A,E),0)}return over}
@@ -153,7 +168,7 @@ function showBattleResult(A,E){
  $('resultOverlay').classList.remove('hidden');
  let autoBtn=$('auto'),endBtn=$('endTurn');if(autoBtn){autoBtn.disabled=true;autoBtn.textContent='Бой завершён'}if(endBtn)endBtn.disabled=true;
 }
-function nextTurn(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){log(c.name+': кровотечение −'+c.bleed);c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return nextRender()}c.ap=9;c.st=Math.min(100,c.st+12);nextRender();if(auto||c.id!=='a0')setTimeout(aiTurn,60)}
+function nextTurn(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){let hp0=c.hp;log('[СОСТОЯНИЕ] '+c.name+': кровотечение −'+c.bleed+' · HP '+hp0+'→'+Math.max(0,hp0-c.bleed));c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return nextRender()}let st0=c.st;c.ap=9;c.st=Math.min(c.maxSt||100,c.st+12);log('[ХОД] '+c.name+' · позиция ['+c.q+','+c.r+'] · AP=9 · ST '+st0+'→'+c.st+' · HP '+c.hp+'/'+c.maxHp+' · bleed '+c.bleed);nextRender();if(auto||c.id!=='a0')setTimeout(aiTurn,60)}
 function pathStep(a,t,range=1){
  const start=a.q+','+a.r,queue=[[a.q,a.r]],seen=new Set([start]),parent=new Map(),key=(q,r)=>q+','+r;
  let goal=null,limit=GRID.C*GRID.R+20;
@@ -172,12 +187,12 @@ function pathStep(a,t,range=1){
  while(prev&&!(prev[0]===a.q&&prev[1]===a.r)){cur=prev;prev=parent.get(key(cur[0],cur[1]))}
  return cur
 }
-function aiTurn(){if(over)return;let a=order[idx];if(!a.alive)return nextTurn();let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let acted=false,wk=activeWeapon(a,t),w=W[wk];if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}nextRender();if(!acted)return setTimeout(nextTurn,60);setTimeout(()=>{if(over)return;let target=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y))[0];if(!target)return;let aw=W[activeWeapon(a,target)],mc=moveCost(a);let canAttack=dist(a,target)<=aw.r&&a.ap>=aw.ap,canMove=a.ap>=mc.ap&&!!pathStep(a,target,aw.r);if(canAttack||canMove)aiTurn();else nextTurn()},60)}
+function aiTurn(){if(over)return;let a=order[idx];if(!a.alive)return nextTurn();let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let acted=false,wk=activeWeapon(a,t),w=W[wk];if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+a.q+','+a.r+'] · цель '+t.name+' · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st+' · дистанция '+hd(q0,r0,t.q,t.r)+'→'+dist(a,t));acted=true}}nextRender();if(!acted)return setTimeout(nextTurn,60);setTimeout(()=>{if(over)return;let target=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y))[0];if(!target)return;let aw=W[activeWeapon(a,target)],mc=moveCost(a);let canAttack=dist(a,target)<=aw.r&&a.ap>=aw.ap,canMove=a.ap>=mc.ap&&!!pathStep(a,target,aw.r);if(canAttack||canMove)aiTurn();else nextTurn()},60)}
 function nextRender(){render();$('round').textContent=(over?$('round').textContent:'Раунд '+round+' · ход '+(order[idx]?.name||''));let l=$('combatLog');if(l)l.textContent=combatLog.slice(0,18).join('\n');}
 
 function simulateDiagnostic(mode,n=100){
  let wins={ally:0,enemy:0,draw:0},rounds=0,maxRounds=0,timeouts=0,oldAuto=auto,details=[],equipWins={};
- const snap={cfg:structuredClone(cfg),units:structuredClone(units),terrain:structuredClone(terrain),order:structuredClone(order),idx,round,over,combatLog:[...combatLog],equip:structuredClone(playerInventory.equip)};
+ const snap={cfg:structuredClone(cfg),units:structuredClone(units),terrain:structuredClone(terrain),order:structuredClone(order),idx,round,over,combatLog:[...combatLog],fullLog:[...fullLog],equip:structuredClone(playerInventory.equip)};
  for(let k=0;k<n;k++){
   let duel=mode==='1v1',ap=duel?[[2,5]]:[[1,4],[1,5],[1,6]],ep=duel?[[11,5]]:[[12,2],[12,3],[12,4]];
   units=[];let count=duel?1:3;
@@ -187,24 +202,24 @@ function simulateDiagnostic(mode,n=100){
   else{ // strict mirrored gear per pair
    for(let i=0;i<3;i++){let eq=randomLoadout();applyLoadoutToUnit(units[i],eq);applyLoadoutToUnit(units[3+i],structuredClone(eq))}
   }
-  order=[...units];idx=0;round=1;over=false;combatLog=[];genTerrain();let guard=0;
+  order=[...units];idx=0;round=1;over=false;combatLog=[];fullLog=[];genTerrain();fullLog.push('=== SIM START ===',...units.map(u=>u.name+' ['+u.q+','+u.r+']'+(u.loadout?'\n'+loadoutText(u.loadout):'')));let guard=0;
   while(!over&&round<=250&&guard++<6000){
    let a=order[idx];if(!a.alive){nextTurnSync();continue}
    let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t){checkEnd();break}
    let wk=activeWeapon(a,t),w=W[wk],acted=false;if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}if(!acted||a.ap<Math.min(moveCost(a).ap,W[activeWeapon(a,t)]?.ap||99))nextTurnSync()
   }
   let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy'),res=A&&!E?'ally':E&&!A?'enemy':'draw';if(res==='draw')timeouts++;wins[res]++;rounds+=round;maxRounds=Math.max(maxRounds,round);
-  if(duel){let keyA=units[0].loadout.main,keyE=units[1].loadout.main;equipWins[keyA]=equipWins[keyA]||{b:0,w:0};equipWins[keyE]=equipWins[keyE]||{b:0,w:0};equipWins[keyA].b++;equipWins[keyE].b++;if(res==='ally')equipWins[keyA].w++;if(res==='enemy')equipWins[keyE].w++;details.push('BATTLE '+(k+1)+' · '+res.toUpperCase()+' · rounds '+round+'\nALLY\n'+loadoutText(units[0].loadout)+'\n'+unitDerivedText(units[0])+'\nENEMY\n'+loadoutText(units[1].loadout)+'\n'+unitDerivedText(units[1]))}
+  if(duel){let keyA=units[0].loadout.main,keyE=units[1].loadout.main;equipWins[keyA]=equipWins[keyA]||{b:0,w:0};equipWins[keyE]=equipWins[keyE]||{b:0,w:0};equipWins[keyA].b++;equipWins[keyE].b++;if(res==='ally')equipWins[keyA].w++;if(res==='enemy')equipWins[keyE].w++;details.push('BATTLE '+(k+1)+' · '+res.toUpperCase()+' · rounds '+round+'\nALLY\n'+loadoutText(units[0].loadout)+'\n'+unitDerivedText(units[0])+'\nENEMY\n'+loadoutText(units[1].loadout)+'\n'+unitDerivedText(units[1])+'\nEVENTS\n'+fullLog.join('\n'))}
  }
  let equipLines=Object.entries(equipWins).map(([id,x])=>(INV_ITEMS[id]?.n||id)+': '+x.w+'/'+x.b+' wins ('+(x.b?(x.w/x.b*100).toFixed(1):0)+'%)');
  let report=['EIRDAN 0.15 · DIAGNOSTIC','BUILD: '+(window.EIRDAN_BUILD||'unknown'),'MODE: '+(mode==='1v1'?'1v1 RANDOM EQUIPMENT':'3v3 MIRROR EQUIPMENT'),'BATTLES: '+n,'SEED CALLS: '+GameRNG.calls,'','RESULTS','Allies: '+wins.ally,'Enemies: '+wins.enemy,'Draws/timeouts: '+wins.draw,'Average rounds: '+(rounds/n).toFixed(1),'Max rounds: '+maxRounds,'Timeouts: '+timeouts,'',...(duel?['WEAPON RESULTS',...equipLines,'','FULL LOADOUTS',...details]:['MIRROR RULE: each ally slot is mirrored by corresponding enemy slot; Guardian only.']),'','CHECKS','Two-handed weapon occupies off-hand: enforced','Inventory loadout -> combat stats: enforced','Armor/head/shield reset from loadout: enforced','Round cap: 250 · guard cap: 6000','Balance values: unchanged.'].join('\n');
- cfg=snap.cfg;units=snap.units;terrain=snap.terrain;order=snap.order;idx=snap.idx;round=snap.round;over=snap.over;combatLog=snap.combatLog;playerInventory.equip=snap.equip;auto=oldAuto;nextRender();downloadTxt('Eirdan_'+mode+'_diagnostic_'+Date.now()+'.txt',report);alert(mode+' ×'+n+' завершено. TXT отправлен в загрузки.')
+ cfg=snap.cfg;units=snap.units;terrain=snap.terrain;order=snap.order;idx=snap.idx;round=snap.round;over=snap.over;combatLog=snap.combatLog;fullLog=snap.fullLog;playerInventory.equip=snap.equip;auto=oldAuto;nextRender();downloadTxt('Eirdan_'+mode+'_diagnostic_'+Date.now()+'.txt',report);alert(mode+' ×'+n+' завершено. TXT отправлен в загрузки.')
 }
 function nextTurnSync(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return}c.ap=9;c.st=Math.min(c.maxSt||100,c.st+12)}
 $('sim1v1').onclick=()=>simulateDiagnostic('1v1',100);
 $('sim3v3').onclick=()=>simulateDiagnostic('3v3',100);
 function ensureBattleControls(){['combatLog','auto','endTurn'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.disabled=false;b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let e=document.createElement('button');e.id='endTurn';e.disabled=false;e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender();}
-$('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);nextRender()}};
+$('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+q+','+r+'] · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st);nextRender()}};
 
 $('inventory').onclick=openInventory;
 $('invClose').onclick=closeInventory;
