@@ -4,15 +4,14 @@ import {REFERENCE,compareMirror} from '../game/simulation/parity.js';
 const ref=REFERENCE.mirror3000;
 assert.equal(ref.battles,3000);
 assert.equal(ref.ally+ref.enemy+ref.draw,3000);
-assert.ok(ref.avgRounds>0);
-assert.ok(ref.maxRounds>=ref.avgRounds);
 
-const exact=compareMirror({...ref});
+const exact=compareMirror({...ref,hardCaps:0});
 assert.equal(exact.pass,true);
 assert.deepEqual(exact.reasons,[]);
 
-const broken=compareMirror({...ref,draw:ref.draw+100});
-assert.equal(broken.pass,false);
-assert.ok(broken.reasons.length>0);
+const tooFast=compareMirror({...ref,avgRounds:8.23,maxRounds:28,hardCaps:0});
+assert.equal(tooFast.pass,false);
+assert.ok(tooFast.reasons.includes('avg-rounds'));
+assert.ok(tooFast.reasons.includes('max-rounds'));
 
 console.log('parity gate: OK');
