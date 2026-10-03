@@ -315,11 +315,12 @@ function travelTo(id){openTravel(id)}
 function renderLocation(id){
  let p=WORLD.places[id];$('worldClock').textContent=worldTime();renderRpgStatsOnly();
  $('rpgView').innerHTML='<h2 style="margin:0 0 4px">'+p.name+'</h2><div class="note">'+p.desc+'</div><div class="eventBox"><b>Осмотреться</b><p>'+(id==='forest'?'Между деревьями тянется старая тропа. Пока здесь нет активных событий.':id==='village'?'Небольшая деревня живёт обычной жизнью. Позже здесь появятся дома и NPC.':'Пыльный тракт соединяет поселения региона. Пока дорога безопасна.')+'</p></div><button id="locationBack" style="width:100%;margin-top:10px">На карту региона</button>';
- $('locationBack').onclick=()=>{rpgScreen='world';renderRpg()}
+ $('locationBack').onclick=()=>{rpgScreen='region';renderRpg()}
 }
 const EIRDAN_PLACES=WORLD_DATA.cities?.eirdan?.places||{};
+function townFallbackIcon(id){return ({tavern:'♨',smith:'⚒',market:'¤',barracks:'⚔',temple:'✦',homes:'⌂'})[id]||'◆'}
 function renderTown(){
- $('rpgView').innerHTML='<h2 style="margin:0 0 4px">Эйрдан</h2><div class="note">Выберите место в городе.</div><div class="townMap"><div class="townWall"></div><i class="townRoad main"></i><i class="townRoad cross"></i><i class="townCenter"></i>'+Object.entries(EIRDAN_PLACES).map(([id,p])=>'<button class="townPlace" data-town="'+id+'" style="left:'+p.x+'%;top:'+p.y+'%"><span class="placeIcon">'+p.icon+'</span><span class="placeLabel">'+p.name+'</span></button>').join('')+'<button id="leaveTown" class="townGate">Ворота</button></div><div id="townEvent"></div>';
+ $('rpgView').innerHTML='<h2 style="margin:0 0 4px">Эйрдан</h2><div class="note">Выберите место в городе.</div><div class="townMap"><div class="townWall"></div><i class="townRoad main"></i><i class="townRoad cross"></i><i class="townCenter"></i>'+Object.entries(EIRDAN_PLACES).map(([id,p])=>'<button class="townPlace" data-town="'+id+'" style="left:'+p.x+'%;top:'+p.y+'%"><span class="placeIcon">'+(p.icon||townFallbackIcon(id))+'</span><span class="placeLabel">'+p.name+'</span></button>').join('')+'<button id="leaveTown" class="townGate">Ворота</button></div><div id="townEvent"></div>';
  document.querySelectorAll('[data-town]').forEach(btn=>btn.onclick=()=>openTownPlace(btn.dataset.town));$('leaveTown').onclick=()=>{rpgScreen='world';renderRpg()}
 }
 function openTownPlace(id){const p=EIRDAN_PLACES[id];if(!p)return;const ov=document.createElement('div');ov.className='placeOverlay';ov.innerHTML='<section class="placeCard"><h3>'+p.name+'</h3><div class="note">'+p.desc+'</div><div class="placeActions"><button class="primary" data-enter>Войти · ~'+p.minutes+' мин</button><button data-cancel>Отмена</button></div></section>';document.body.appendChild(ov);ov.querySelector('[data-cancel]').onclick=()=>ov.remove();ov.querySelector('[data-enter]').onclick=()=>{ov.remove();visitTownPlace(id)}}
