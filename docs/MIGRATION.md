@@ -1,23 +1,28 @@
 # Migration gates
 
 ## Completed
-- 0.15 repository structure and Android shell.
-- Reference monolith inventory: 28 ordered JS blocks, CSS separated, Clash Defiant identified as external binary asset.
-- Pure 0.15 battle lifecycle and turn manager implemented with Node regression tests.
+- Repository structure + Android shell.
+- Reference monolith inventory and migration manifest.
+- Pure battle lifecycle + turn manager.
+- Pure hex grid + movement service.
+- Internal chess-like hex IDs (A1..N10) for telemetry; labels are not rendered on the battlefield.
+- Movement history records one authoritative event per move and detects immediate A->B->A backtracks.
 
 ## Current gate
-Replace alpha14n lifecycle wrappers with the pure core API while preserving 0.14.15 behavior:
-- active = alive && !escaped
-- resolve after death, escape, summon and turn transition
-- summons participate in the same roster/order
-- victory is determined only by active combatants
+Migrate damage/body parts/Resolve without changing the alpha14p combat math.
+
+## Movement invariants
+- Only movement.js mutates q/r in the new runtime.
+- Occupied/out-of-bounds destinations are rejected.
+- AI asks movement for legal steps; it does not directly edit coordinates.
+- Telemetry is emitted by movement itself, eliminating duplicate observer hooks.
+- Immediate backtracking is measurable and can be avoided by path choice.
 
 ## Next
-1. Hex/grid + movement state.
-2. Damage/body parts/Resolve.
-3. Actions and skills.
-4. AI policies.
-5. UI.
-6. Headless Mirror regression x100 -> x1000 -> x3000.
+1. Damage/body parts/Resolve.
+2. Actions and skills.
+3. AI policies.
+4. UI.
+5. Headless Mirror x100 -> x1000 -> x3000.
 
 No rebalance until migration equivalence is established.

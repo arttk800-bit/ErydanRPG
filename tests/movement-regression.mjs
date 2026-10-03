@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {GameState} from '../game/core/game-state.js';
+import {hexId,hexDistance,neighbors} from '../game/core/hex-grid.js';
+import {moveUnit,stepToward,chooseStepToward} from '../game/core/movement.js';
+const u=(id,team,q,r)=>({id,team,cls:'test',alive:true,escaped:false,hp:90,q,r});
+const s=new GameState(2030699025),a=u('a','ally',1,4),e=u('e','enemy',4,4);s.units=[a,e];s.order=[a,e];
+assert.equal(hexId(1,4),'B5');assert.equal(hexDistance(a,e)>0,true);assert.equal(neighbors(1,4).length,6);
+let p=chooseStepToward(s,a,e);assert.ok(p);const d0=hexDistance(a,e);assert.equal(moveUnit(s,a,p.q,p.r,'test').ok,true);assert.ok(hexDistance(a,e)<d0);
+const first=s.movement.events.at(-1);const [q0,r0]=[1,4];moveUnit(s,a,q0,r0,'forced-test');assert.equal(s.movement.events.at(-1).immediateBacktrack,true);assert.equal(s.movement.backtracks,1);
+const before=hexId(a.q,a.r);stepToward(s,a,e);assert.notEqual(hexId(a.q,a.r),before);
+console.log('movement regression: OK');
