@@ -7,6 +7,9 @@ on:
     paths:
       - ".github/workflows/mirror-eirdan-diagnostics.yml"
   workflow_dispatch:
+  repository_dispatch:
+    types:
+      - eirdan-diagnostic-ready
   schedule:
     - cron: "*/5 * * * *"
 
