@@ -6,12 +6,13 @@ android {
   applicationId="com.eirdan.client"
   minSdk=26
   targetSdk=35
-  versionCode=1501
-  versionName="0.15.1-debug"
+  versionCode=1502
+  versionName="0.15.2-debug"
  }
  sourceSets {
   getByName("main") {
-   assets.srcDirs("../../game")
+   assets.srcDirs("../../")
+   assets.includes.add("game/**")
   }
  }
 }
