@@ -1,4 +1,4 @@
-const BUILD="rpg-shell-02";
+const BUILD="diagnostic-19";
 async function forceFreshBuild(){
  if(!("serviceWorker" in navigator))return;
  try{
