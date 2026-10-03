@@ -6,15 +6,7 @@ android {
   applicationId="com.eirdan.client"
   minSdk=26
   targetSdk=35
-  versionCode=1503
-  versionName="0.15.3-debug"
- }
- sourceSets {
-  getByName("main") {
-   assets.srcDir("../../")
-  }
- }
- aaptOptions {
-  ignoreAssetsPattern = "!.git:!.github:!android:!docs:!node_modules:!tests:!scripts:!artifacts"
+  versionCode=1504
+  versionName="0.15.4-debug"
  }
 }
