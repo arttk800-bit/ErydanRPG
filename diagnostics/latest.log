@@ -1,6 +1,6 @@
 EIRDAN FULL GAME DIAGNOSTIC
-Build: diagnostic-07
-Generated: 2026-10-03T22:48:31.653Z
+Build: diagnostic-09
+Generated: 2026-10-03T22:55:04.630Z
 Source code: NOT INCLUDED
 
 === AUTOMATED INTERACTION TESTS ===
@@ -14,8 +14,19 @@ PASS | Button: Отладка handler
 PASS | Button: Combat Lab handler
 PASS | Button: Combat Lab back handler
 PASS | Button: В главное меню handler
+PASS | UI: required controls exist
+PASS | UI: Load Game intentionally disabled
+PASS | Settings: interface control wired
+PASS | Settings: volume control wired
+PASS | Inventory: action handlers wired
+PASS | Result: action handlers wired
+PASS | Simulation: action handlers wired
 PASS | World: all places valid
 PASS | World: passTime +30
+FAIL | World: current place exists
+PASS | World: travel function exists
+PASS | World: render functions exist
+PASS | World: place IDs unique
 PASS | Inventory: opens
 PASS | Inventory: Рюкзак tab
 PASS | Inventory: equip two-handed weapon
@@ -27,11 +38,14 @@ PASS | Inventory: Персонаж tab
 PASS | Inventory: unequip selected slot
 PASS | Inventory: closes
 PASS | Combat: core functions exist
+FAIL | Combat: primary controls exist | auto, restSkill, prepareSkill, endTurn
+PASS | Combat: start/random/back handlers wired
+PASS | Combat: inventory handler wired
 PASS | Simulation: 1v1 x100 report generated
 
 --- 1v1 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-07
+BUILD: diagnostic-09
 MODE: 1v1 RANDOM EQUIPMENT
 BATTLES: 100
 SEED CALLS: 17315
@@ -9752,7 +9766,7 @@ PASS | Simulation: 3v3 x100 report generated
 
 --- 3v3 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-07
+BUILD: diagnostic-09
 MODE: 3v3 MIRROR EQUIPMENT
 BATTLES: 100
 SEED CALLS: 45028
@@ -10027,7 +10041,7 @@ PASS | Simulation: buttons restored
 PASS | Result: overlay can close
 
 SUMMARY
-PASS: 27
-FAIL: 0
+PASS: 39
+FAIL: 2
 WARN: 0
-RESULT: PASSED
+RESULT: FAILED
