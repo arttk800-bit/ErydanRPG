@@ -74,8 +74,8 @@ const SPRITE_SRC={
 };
 const SPRITES={};for(const[k,v]of Object.entries(SPRITE_SRC)){let im=new Image();im.onload=()=>{SPRITES[k]=im;if(!$('battle')?.classList.contains('hidden'))drawField()};im.src=v}
 
-let cfg=structuredClone(DEFAULT_BATTLE_CFG),units=[],terrain={},order=[],idx=0,round=1,over=false,auto=false,combatLog=[];
-const log=s=>{combatLog.unshift('R'+round+' · '+s);if(combatLog.length>80)combatLog.length=80};
+let cfg=structuredClone(DEFAULT_BATTLE_CFG),units=[],terrain={},order=[],idx=0,round=1,over=false,auto=false,combatLog=[],fullLog=[];
+const log=s=>{let line='R'+round+' · '+s;combatLog.unshift(line);if(combatLog.length>80)combatLog.length=80;fullLog.push(line)};
 const $=id=>document.getElementById(id);
 function gear(cls){if(cls==='guardian')return{w:pick(['sword','axe']),w2:null,shield:55};if(cls==='berserker')return{w:pick(['greatsword','greataxe']),w2:null,shield:0};if(['priest','firemage','wizard'].includes(cls))return{w:pick(['staff','wand']),w2:null,shield:0};if(cls==='archer')return{w:'bow',w2:'dagger',shield:0};if(cls==='crossbowman')return{w:'crossbow',w2:'dagger',shield:0};if(cls==='assassin')return{w:'dagger',w2:'dagger',shield:0};if(cls==='rogue')return{w:'throwknife',w2:'dagger',shield:0};return{w:'sword',w2:null,shield:0}}
 function make(id,name,team,q,r,cls){let g=gear(cls),ak=pick(['light','medium','heavy']),ar=ARMORS[ak],magic=['priest','firemage','wizard'].includes(cls);return{id,name,team,q,r,cls,w:g.w,w2:g.w2,shield:g.shield,maxShield:g.shield,armorKind:ak,armorName:ar.n,armCover:ar.arm,legCover:ar.leg,body:mkbody(),hp:90,maxHp:90,bleed:0,armorHead:ar.head,maxArmorHead:ar.head,armorBody:ar.body,maxArmorBody:ar.body,ap:9,maxAp:9,st:100,mana:magic?80:0,maxMana:magic?80:0,skill:63,def:6,alive:true,bandages:1,loaded:false,guarding:false,poison:0,shock:0,stun:0,buffs:{stone:0,rage:0}}}
@@ -95,7 +95,7 @@ function beginBattle(duel=false){
  let ap=duel?[[2,5]]:[[1,4],[1,5],[1,6]],ep=duel?[[11,5]]:[[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];
  units=[];let allyN=duel?1:3;for(let i=0;i<allyN;i++)units.push(make('a'+i,i?'Союзник '+(i+1):'ГГ','ally',...ap[i],cfg.allies[i]));
  for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));
- syncPlayerInventoryToCombat(units[0]);units[0].loadout=structuredClone(playerInventory.equip);order=[...units];fullLog.push('=== START ===','Режим: '+(duel?'1v1':'3v3')+' · местность '+cfg.terrain,...units.map(u=>u.name+' ['+u.q+','+u.r+'] · '+unitDerivedText(u)+(u.loadout?'\n'+loadoutText(u.loadout):'')));idx=0;round=1;over=false;auto=false;combatLog=[];genTerrain();render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden');ensureBattleControls()
+ syncPlayerInventoryToCombat(units[0]);units[0].loadout=structuredClone(playerInventory.equip);order=[...units];idx=0;round=1;over=false;auto=false;combatLog=[];fullLog=[];genTerrain();fullLog.push('=== START ===','Режим: '+(duel?'1v1':'3v3')+' · местность '+cfg.terrain,...units.map(u=>u.name+' ['+u.q+','+u.r+'] · '+unitDerivedText(u)+(u.loadout?'\n'+loadoutText(u.loadout):'')));render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden');ensureBattleControls()
 }
 $('prepFight').onclick=()=>{if(!pendingDuel)return;pendingDuel=false;$('prepFight').classList.add('hidden');closeInventory();beginBattle(true)};
 
