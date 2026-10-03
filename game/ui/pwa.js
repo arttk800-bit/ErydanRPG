@@ -1,4 +1,4 @@
-const BUILD="sim-result-12";
+const BUILD="sim-result-13";
 async function forceFreshBuild(){
  if(!("serviceWorker" in navigator))return;
  try{
