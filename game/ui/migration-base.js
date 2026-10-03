@@ -3,21 +3,28 @@ const TEST_POOL=['guardian','archer','berserker'];
 
 const INV_ITEMS={
  sword_iron:{n:'Железный меч',type:'weapon',slot:'main',w:1.35,ico:'⚔',desc:'Одноручный меч',combat:{weapon:'sword'}},
- shield_round:{n:'Круглый щит',type:'shield',slot:'off',w:3.2,ico:'◉',desc:'Деревянный щит',combat:{shield:55}},
- helm_mail:{n:'Кольчужный капюшон',type:'armor',slot:'head',w:2.1,ico:'♜',desc:'Защита головы',combat:{head:30}},
- armor_mail:{n:'Кольчуга',type:'armor',slot:'body',w:8.4,ico:'▦',desc:'Защита корпуса',combat:{body:55,armCover:.7,legCover:.35}},
- boots_leather:{n:'Кожаные сапоги',type:'armor',slot:'feet',w:1.1,ico:'♟',desc:'Лёгкая обувь',combat:{}},
- dagger:{n:'Кинжал',type:'weapon',slot:'main',w:.55,ico:'†',desc:'Запасное оружие',combat:{weapon:'dagger'}},
- backpack:{n:'Походный рюкзак',type:'bag',slot:'back',w:1.3,ico:'▣',desc:'Увеличивает переносимый вес',combat:{capacity:12}}
+ axe_iron:{n:'Боевой топор',type:'weapon',slot:'main',w:1.8,ico:'◆',desc:'Одноручный топор',combat:{weapon:'axe'}},
+ greatsword:{n:'Двуручный меч',type:'weapon',slot:'main',w:3.4,ico:'⚔',desc:'Двуручное оружие',two:true,combat:{weapon:'greatsword'}},
+ greataxe:{n:'Двуручный топор',type:'weapon',slot:'main',w:4.2,ico:'◆',desc:'Двуручное оружие',two:true,combat:{weapon:'greataxe'}},
+ shield_round:{n:'Круглый щит',type:'shield',slot:'off',w:3.2,ico:'◉',desc:'Щит · 55 прочности',combat:{shield:55}},
+ helm_medium:{n:'Кольчужный капюшон',type:'armor',slot:'head',w:2.1,ico:'♜',desc:'Средний шлем · броня 30',combat:{head:30}},
+ helm_heavy:{n:'Латный шлем',type:'armor',slot:'head',w:3.6,ico:'♜',desc:'Тяжёлый шлем · броня 45',combat:{head:45}},
+ armor_medium:{n:'Кольчуга',type:'armor',slot:'body',w:8.4,ico:'▦',desc:'Средняя броня · 55 · руки 50% · ноги 20%',combat:{body:55,armCover:.50,legCover:.20,kind:'medium'}},
+ armor_heavy:{n:'Латный доспех',type:'armor',slot:'body',w:14.5,ico:'▦',desc:'Тяжёлая броня · 80 · руки 75% · ноги 40%',combat:{body:80,armCover:.75,legCover:.40,kind:'heavy'}},
+ boots_light:{n:'Кожаные сапоги',type:'armor',slot:'feet',w:1.1,ico:'♟',desc:'Лёгкие сапоги · защита 0 · ST +0',combat:{def:0,st:0}},
+ boots_heavy:{n:'Латные сапоги',type:'armor',slot:'feet',w:3.2,ico:'♟',desc:'Латные сапоги · защита +2 · ST −5',combat:{def:2,st:-5}},
+ backpack_small:{n:'Походный рюкзак',type:'bag',slot:'back',w:1.3,ico:'▣',desc:'Грузоподъёмность +12 кг',combat:{capacity:12}},
+ backpack_large:{n:'Большой походный рюкзак',type:'bag',slot:'back',w:2.4,ico:'▣',desc:'Грузоподъёмность +22 кг · защита −1',combat:{capacity:22,def:-1}},
+ dagger:{n:'Кинжал',type:'weapon',slot:'main',w:.55,ico:'†',desc:'Одноручный кинжал',combat:{weapon:'dagger'}}
 };
-let playerInventory={cap:30,slots:40,equip:{main:'sword_iron',off:'shield_round',head:'helm_mail',body:'armor_mail',feet:'boots_leather',back:null},bag:['dagger','boots_leather','backpack'],selected:null,selectedSlot:null,view:'bag'};
+let playerInventory={cap:30,slots:40,equip:{main:'sword_iron',off:'shield_round',head:'helm_medium',body:'armor_medium',feet:'boots_light',back:'backpack_small'},bag:['axe_iron','greatsword','greataxe','helm_heavy','armor_heavy','boots_heavy','backpack_large','dagger'],selected:null,selectedSlot:null,view:'bag'};
 const SLOT_NAMES={main:'Правая рука',off:'Левая рука',head:'Голова',body:'Корпус',feet:'Ноги',back:'Спина'};
 function invWeight(){let ids=[...Object.values(playerInventory.equip).filter(Boolean),...playerInventory.bag];return ids.reduce((s,id)=>s+(INV_ITEMS[id]?.w||0),0)}
 function renderInventory(){
  let eq=$('equip'),bag=$('bag'),w=invWeight();
  $('invStats').textContent='Вес '+w.toFixed(1)+' / '+playerInventory.cap.toFixed(1)+' кг · '+playerInventory.bag.length+' / '+playerInventory.slots+' слотов';
  eq.innerHTML=Object.entries(SLOT_NAMES).map(([slot,n])=>{let id=playerInventory.equip[slot],it=id&&INV_ITEMS[id];return '<div class="slot '+(!it?'empty ':'')+(playerInventory.selectedSlot===slot?'sel':'')+'" data-slot="'+slot+'"><b>'+n+'</b><div class="ico">'+(it?it.ico:'—')+'</div><small>'+(it?it.n:'Пусто')+'</small></div>'}).join('');
- let pickText='Ничего не выбрано';if(playerInventory.selected!=null){let id=playerInventory.bag[playerInventory.selected],it=INV_ITEMS[id];if(it)pickText='Выбрано: '+it.n+' · '+it.w+' кг · '+it.desc}else if(playerInventory.selectedSlot){let id=playerInventory.equip[playerInventory.selectedSlot],it=id&&INV_ITEMS[id];pickText='Выбран слот: '+SLOT_NAMES[playerInventory.selectedSlot]+' · '+(it?it.n:'пусто')} $('invPick').textContent=pickText;
+ let pickText='Ничего не выбрано';if(playerInventory.selected!=null){let id=playerInventory.bag[playerInventory.selected],it=INV_ITEMS[id];if(it){let c=it.combat||{},wp=c.weapon&&W[c.weapon],extra=wp?' · Урон '+wp.min+'–'+wp.max+' · AP '+wp.ap+' · Точн. '+(wp.acc>=0?'+':'')+wp.acc+' · Проб. '+Math.round((wp.pen||0)*100)+'%':c.head!=null?' · Броня головы '+c.head:c.body!=null?' · Броня корпуса '+c.body:c.shield?' · Щит '+c.shield:c.capacity?' · Вместимость +'+c.capacity+' кг':'';pickText='Выбрано: '+it.n+' · '+it.w+' кг · '+it.desc+extra}}else if(playerInventory.selectedSlot){let id=playerInventory.equip[playerInventory.selectedSlot],it=id&&INV_ITEMS[id];pickText='Выбран слот: '+SLOT_NAMES[playerInventory.selectedSlot]+' · '+(it?it.n:'пусто')} $('invPick').textContent=pickText;
  let cells=[];for(let i=0;i<playerInventory.slots;i++){let id=playerInventory.bag[i],it=id&&INV_ITEMS[id];cells.push('<div class="bagSlot '+(!it?'empty ':'')+(playerInventory.selected===i?'sel':'')+'" data-i="'+i+'" title="'+(it?it.n:'Пустой слот')+'">'+(it?'<div class="ico">'+it.ico+'</div>':'')+'</div>')}bag.innerHTML=cells.join('');
  eq.querySelectorAll('.slot').forEach(el=>el.onclick=()=>{playerInventory.selectedSlot=el.dataset.slot;playerInventory.selected=null;renderInventory()});
  bag.querySelectorAll('.bagSlot').forEach(el=>el.onclick=()=>{let i=+el.dataset.i;if(!playerInventory.bag[i]){playerInventory.selected=null;renderInventory();return}playerInventory.selected=i;playerInventory.selectedSlot=null;renderInventory()});
@@ -27,25 +34,27 @@ function openInventory(){renderInventory();$('invOverlay').classList.remove('hid
 function closeInventory(){$('invOverlay').classList.add('hidden')}
 function equipSelected(){
  let i=playerInventory.selected;if(i==null)return;let id=playerInventory.bag[i],it=INV_ITEMS[id];if(!it||!it.slot)return;
- let old=playerInventory.equip[it.slot];playerInventory.equip[it.slot]=id;playerInventory.bag.splice(i,1);if(old)playerInventory.bag.push(old);playerInventory.selected=null;refreshInventoryCombat()
+ if(it.slot==='off'){let main=INV_ITEMS[playerInventory.equip.main];if(main?.two){$('invPick').textContent='Нельзя: двуручное оружие занимает обе руки';return}}
+ let old=playerInventory.equip[it.slot];
+ if(it.slot==='main'&&it.two&&playerInventory.equip.off){playerInventory.bag.push(playerInventory.equip.off);playerInventory.equip.off=null}
+ playerInventory.equip[it.slot]=id;playerInventory.bag.splice(i,1);if(old)playerInventory.bag.push(old);playerInventory.selected=null;refreshInventoryCombat()
 }
 function unequipSelected(){
- let s=playerInventory.selectedSlot;if(!s||!playerInventory.equip[s])return;playerInventory.bag.push(playerInventory.equip[s]);playerInventory.equip[s]=null;playerInventory.selectedSlot=null;renderInventory()
+ let s=playerInventory.selectedSlot;if(!s||!playerInventory.equip[s])return;playerInventory.bag.push(playerInventory.equip[s]);playerInventory.equip[s]=null;playerInventory.selectedSlot=null;refreshInventoryCombat()
 }
 
 
 function playerUnit(){return units.find(u=>u.id==='a0')}
 function syncPlayerInventoryToCombat(u=playerUnit()){
  if(!u)return;
- let main=INV_ITEMS[playerInventory.equip.main]?.combat||{},off=INV_ITEMS[playerInventory.equip.off]?.combat||{},head=INV_ITEMS[playerInventory.equip.head]?.combat||{},body=INV_ITEMS[playerInventory.equip.body]?.combat||{},back=INV_ITEMS[playerInventory.equip.back]?.combat||{};
- if(main.weapon&&W[main.weapon])u.w=main.weapon;
- else u.w='dagger';
- u.w2=null;
- u.maxShield=off.shield||0;u.shield=Math.min(u.shield,u.maxShield);if(u.maxShield>0&&u.shield===0)u.shield=u.maxShield;
- u.maxArmorHead=head.head||0;u.armorHead=Math.min(u.armorHead,u.maxArmorHead);if(u.maxArmorHead>0&&u.armorHead===0)u.armorHead=u.maxArmorHead;
- u.maxArmorBody=body.body||0;u.armorBody=Math.min(u.armorBody,u.maxArmorBody);if(u.maxArmorBody>0&&u.armorBody===0)u.armorBody=u.maxArmorBody;
- u.armCover=body.armCover||0;u.legCover=body.legCover||0;
- u.armorName=[INV_ITEMS[playerInventory.equip.head]?.n,INV_ITEMS[playerInventory.equip.body]?.n].filter(Boolean).join(' + ')||'Без брони';
+ let mainIt=INV_ITEMS[playerInventory.equip.main],offIt=INV_ITEMS[playerInventory.equip.off],headIt=INV_ITEMS[playerInventory.equip.head],bodyIt=INV_ITEMS[playerInventory.equip.body],feetIt=INV_ITEMS[playerInventory.equip.feet],backIt=INV_ITEMS[playerInventory.equip.back];
+ let main=mainIt?.combat||{},off=offIt?.combat||{},head=headIt?.combat||{},body=bodyIt?.combat||{},feet=feetIt?.combat||{},back=backIt?.combat||{};
+ u.w=main.weapon&&W[main.weapon]?main.weapon:'dagger';u.w2=null;
+ u.maxShield=off.shield||0;u.shield=u.maxShield;
+ u.maxArmorHead=head.head||0;u.armorHead=u.maxArmorHead;
+ u.maxArmorBody=body.body||0;u.armorBody=u.maxArmorBody;u.armCover=body.armCover||0;u.legCover=body.legCover||0;
+ u.armorKind=body.kind||'none';u.armorName=bodyIt?.n||'Без брони';u.helmetName=headIt?.n||'Без шлема';u.bootsName=feetIt?.n||'Без обуви';u.backpackName=backIt?.n||'Без рюкзака';
+ u.def=6+(feet.def||0)+(back.def||0);u.maxSt=100+(feet.st||0);u.st=Math.min(u.st,u.maxSt);
  playerInventory.cap=30+(back.capacity||0);
 }
 function refreshInventoryCombat(){
@@ -65,9 +74,24 @@ function gear(cls){if(cls==='guardian')return{w:pick(['sword','axe']),w2:null,sh
 function make(id,name,team,q,r,cls){let g=gear(cls),ak=pick(['light','medium','heavy']),ar=ARMORS[ak],magic=['priest','firemage','wizard'].includes(cls);return{id,name,team,q,r,cls,w:g.w,w2:g.w2,shield:g.shield,maxShield:g.shield,armorKind:ak,armorName:ar.n,armCover:ar.arm,legCover:ar.leg,body:mkbody(),hp:90,maxHp:90,bleed:0,armorHead:ar.head,maxArmorHead:ar.head,armorBody:ar.body,maxArmorBody:ar.body,ap:9,maxAp:9,st:100,mana:magic?80:0,maxMana:magic?80:0,skill:63,def:6,alive:true,bandages:1,loaded:false,guarding:false,poison:0,shock:0,stun:0,buffs:{stone:0,rage:0}}}
 const hd=(q1,r1,q2,r2)=>{const x1=q1,z1=r1-(q1-(q1&1))/2,y1=-x1-z1,x2=q2,z2=r2-(q2-(q2&1))/2,y2=-x2-z2;return(Math.abs(x1-x2)+Math.abs(y1-y2)+Math.abs(z1-z2))/2};
 function genTerrain(){terrain={};let density={open:.04,sparse:.11,normal:.18,dense:.28}[cfg.terrain]??.18,safe=[[1,4],[1,5],[1,6],[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];for(let q=0;q<GRID.C;q++)for(let r=0;r<GRID.R;r++){if(safe.some(p=>hd(q,r,p[0],p[1])<=1))continue;if(GameRNG.random()<density){let x=GameRNG.random();terrain[q+','+r]=x<.34?'rock':x<.68?'tree':'bush'}}}
+let pendingDuel=false;
 function fill(){let o=TEST_POOL.map(c=>'<option value="'+c+'">'+CL[c].n+'</option>').join('');['a0','a1','a2'].forEach((id,i)=>{$(id).innerHTML=o;$(id).value=cfg.allies[i]})}fill();
 $('random').onclick=()=>['a0','a1','a2'].forEach(id=>$(id).value=pick(TEST_POOL));
-$('start').onclick=()=>{cfg.allies=['a0','a1','a2'].map(id=>$(id).value);cfg.enemies=Math.max(1,Math.min(6,+$('enemies').value||3));cfg.terrain=$('terrain').value;let ap=[[1,4],[1,5],[1,6]],ep=[[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];units=[];for(let i=0;i<3;i++)units.push(make('a'+i,i?'Союзник '+(i+1):'ГГ','ally',...ap[i],cfg.allies[i]));for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));order=[...units];idx=0;round=1;over=false;auto=false;combatLog=[];genTerrain();syncPlayerInventoryToCombat(units.find(u=>u.id==='a0'));render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden')};
+function updateModeUI(){let duel=$('battleMode').value==='1v1';$('enemyCountLabel').classList.toggle('hidden',duel);$('a1').closest('label').classList.toggle('hidden',duel);$('a2').closest('label').classList.toggle('hidden',duel);$('random').classList.toggle('hidden',duel);$('start').textContent=duel?'Подготовить бой 1 vs 1':'Начать бой';$('modeHint').textContent=duel?'Сначала откроется инвентарь. Бой начнётся только после подтверждения экипировки.':''}
+$('battleMode').onchange=updateModeUI;updateModeUI();
+$('start').onclick=()=>{
+ if($('battleMode').value==='1v1'){pendingDuel=true;$('prepFight').classList.remove('hidden');openInventory();return}
+ pendingDuel=false;$('prepFight').classList.add('hidden');beginBattle(false)
+};
+function beginBattle(duel=false){
+ cfg.allies=['a0','a1','a2'].map(id=>$(id).value);cfg.enemies=duel?1:Math.max(1,Math.min(6,+$('enemies').value||3));cfg.terrain=$('terrain').value;
+ let ap=duel?[[2,5]]:[[1,4],[1,5],[1,6]],ep=duel?[[11,5]]:[[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];
+ units=[];let allyN=duel?1:3;for(let i=0;i<allyN;i++)units.push(make('a'+i,i?'Союзник '+(i+1):'ГГ','ally',...ap[i],cfg.allies[i]));
+ for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));
+ syncPlayerInventoryToCombat(units[0]);order=[...units];idx=0;round=1;over=false;auto=false;combatLog=[];genTerrain();render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden');ensureBattleControls()
+}
+$('prepFight').onclick=()=>{if(!pendingDuel)return;pendingDuel=false;$('prepFight').classList.add('hidden');closeInventory();beginBattle(true)};
+
 function canvasLayout(){
  let cv=$('battleCanvas'),box=$('grid').getBoundingClientRect(),dpr=Math.max(1,window.devicePixelRatio||1);
  if(cv.width!==Math.round(box.width*dpr)||cv.height!==Math.round(box.height*dpr)){cv.width=Math.round(box.width*dpr);cv.height=Math.round(box.height*dpr)}
@@ -85,8 +109,8 @@ function drawField(){
  for(const {u,p} of actors){let im=SPRITES[u.cls],h=s*2.15,w=h,footY=p.y+s*.36;ctx.save();ctx.fillStyle=u.team==='ally'?'rgba(60,140,255,.42)':'rgba(225,70,85,.42)';ctx.beginPath();ctx.ellipse(p.x,footY,s*.52,s*.22,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.team==='ally'?'#79b9ff':'#ff7582';ctx.font='bold '+Math.max(9,s*.3)+'px system-ui';ctx.textAlign='center';ctx.fillText(String(Number(u.id.slice(1))+1),p.x,footY+s*.38);ctx.restore()}
  window.__hexLayout=L
 }
-function render(){drawField();$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+u.armorName+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
-$('back').onclick=()=>{$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
+function render(){drawField();$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+(u.id==='a0'?(u.helmetName+' · '+u.armorName+' · '+u.bootsName):u.armorName)+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'/'+(u.maxSt||100)+' · DEF '+u.def+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
+$('back').onclick=()=>{pendingDuel=false;$('prepFight').classList.add('hidden');$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
 
 const dirs=(q)=>(q&1)?[[1,0],[1,1],[0,1],[-1,1],[-1,0],[0,-1]]:[[1,-1],[1,0],[0,1],[-1,0],[-1,-1],[0,-1]];
 const neigh=(q,r)=>dirs(q).map(d=>[q+d[0],r+d[1]]).filter(p=>p[0]>=0&&p[0]<GRID.C&&p[1]>=0&&p[1]<GRID.R);
@@ -131,7 +155,7 @@ function simulateBatch(n=100){
 }
 function nextTurnSync(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return}c.ap=9;c.st=Math.min(100,c.st+12)}
 $('sim100').onclick=()=>simulateBatch(100);
-const oldStart=$('start').onclick;$('start').onclick=()=>{oldStart();['combatLog','auto','endTurn'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let e=document.createElement('button');e.id='endTurn';e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender()};
+function ensureBattleControls(){['combatLog','auto','endTurn'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let e=document.createElement('button');e.id='endTurn';e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender();}
 $('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);nextRender()}};
 
 $('inventory').onclick=openInventory;
