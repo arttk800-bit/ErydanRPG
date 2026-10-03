@@ -1,40 +1,7 @@
-import {hexId,inBounds,neighbors,occupied,hexDistance} from './hex-grid.js';
-
-export function ensureMovementTelemetry(state){
- state.movement ??={events:[],byUnit:new Map(),backtracks:0};
- return state.movement;
-}
-export function movementHistory(state,unitId){
- const m=ensureMovementTelemetry(state);
- if(!m.byUnit.has(unitId))m.byUnit.set(unitId,[]);
- return m.byUnit.get(unitId);
-}
-export function canMoveTo(state,unit,q,r){
- return !!unit&&unit.alive&&!unit.escaped&&inBounds(q,r)&&!occupied(state,q,r,unit.id);
-}
-export function recordMove(state,unit,from,to,reason='move'){
- const m=ensureMovementTelemetry(state),h=movementHistory(state,unit.id);
- const event={round:state.round,unitId:unit.id,from:hexId(from.q,from.r),to:hexId(to.q,to.r),reason};
- const prev=h.at(-1);
- if(prev&&prev.from===event.to&&prev.to===event.from){event.immediateBacktrack=true;m.backtracks++;}
- h.push(event);if(h.length>32)h.shift();
- m.events.push(event);if(m.events.length>2000)m.events.shift();
- return event;
-}
-export function moveUnit(state,unit,q,r,reason='move'){
- if(!canMoveTo(state,unit,q,r))return {ok:false,reason:'illegal-destination'};
- const from={q:unit.q,r:unit.r};unit.q=q;unit.r=r;
- return {ok:true,event:recordMove(state,unit,from,{q,r},reason)};
-}
-export function legalSteps(state,unit){return neighbors(unit.q,unit.r).filter(p=>canMoveTo(state,unit,p.q,p.r));}
-export function chooseStepToward(state,unit,target,{avoidImmediateBacktrack=true}={}){
- let steps=legalSteps(state,unit);
- if(avoidImmediateBacktrack){
-   const prev=movementHistory(state,unit.id).at(-1);
-   if(prev){const filtered=steps.filter(p=>hexId(p.q,p.r)!==prev.from);if(filtered.length)steps=filtered;}
- }
- return steps.sort((a,b)=>hexDistance(a,target)-hexDistance(b,target))[0]??null;
-}
-export function stepToward(state,unit,target,reason='move_toward'){
- const p=chooseStepToward(state,unit,target);return p?moveUnit(state,unit,p.q,p.r,reason):{ok:false,reason:'no-route'};
-}
+import {COLS,ROWS,hexDistance,hexId,neighbors} from './hex-grid.js';
+function movementState(state){return state.movement??=( {events:[],backtracks:0,history:new Map()} );}
+export function occupied(state,q,r,except=null){return state.units.some(u=>u!==except&&u.alive&&!u.escaped&&u.q===q&&u.r===r);}
+export function legalSteps(state,u){return neighbors(u.q,u.r).filter(p=>p.q>=0&&p.q<COLS&&p.r>=0&&p.r<ROWS&&!occupied(state,p.q,p.r,u));}
+export function movementHistory(state,id){return movementState(state).history.get(id)??[];}
+export function moveUnit(state,u,q,r,reason='move',{beforeMove=null,afterMove=null}={}){if(!u?.alive||u.escaped)return{ok:false,reason:'inactive'};if(!legalSteps(state,u).some(p=>p.q===q&&p.r===r))return{ok:false,reason:'illegal-step'};const from={q:u.q,r:u.r,hex:hexId(u.q,u.r)},to={q,r,hex:hexId(q,r)};const pre=beforeMove?.({state,u,from,to});if(pre?.cancel)return{ok:false,reason:pre.reason??'cancelled'};u.q=q;u.r=r;const ms=movementState(state),h=movementHistory(state,u.id);if(h.length&&h.at(-1).from===to.hex)ms.backtracks++;const ev={unit:u.id,from:from.hex,to:to.hex,reason,round:state.round};h.push(ev);if(h.length>24)h.shift();ms.history.set(u.id,h);ms.events.push(ev);afterMove?.({state,u,from,to,event:ev,pre});return{ok:true,from,to,event:ev,pre};}
+export function stepToward(state,u,target,reason='approach',hooks={}){const opts=legalSteps(state,u);if(!opts.length)return{ok:false,reason:'blocked'};const prev=movementHistory(state,u.id).at(-1)?.from;opts.sort((a,b)=>hexDistance(a,target)-hexDistance(b,target)+(hexId(a.q,a.r)===prev?2:0)-(hexId(b.q,b.r)===prev?2:0));const p=opts[0];return moveUnit(state,u,p.q,p.r,reason,hooks);}
