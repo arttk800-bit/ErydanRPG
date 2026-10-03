@@ -421,7 +421,7 @@ async function uploadFullDiagnosticLog(auto=false){
  let lastError='';
  for(let attempt=1;attempt<=3;attempt++){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),20000);
+  const timer=setTimeout(()=>controller.abort(),7000);
   status.textContent='TRANSPORT: '+runId+' > attempt '+attempt+'/3 > POST';
   try{
    const response=await fetch(DIAGNOSTIC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:payload,signal:controller.signal});
@@ -434,10 +434,10 @@ async function uploadFullDiagnosticLog(auto=false){
    return true;
   }catch(e){
    clearTimeout(timer);
-   lastError=e?.name==='AbortError'?'timeout 20s':(e?.message||String(e));
+   lastError=e?.name==='AbortError'?'timeout 7s':(e?.message||String(e));
    if(attempt<3){
     status.textContent='TRANSPORT: '+runId+' > attempt '+attempt+'/3 > RETRY '+lastError;
-    await new Promise(r=>setTimeout(r,1500*attempt));
+    await new Promise(r=>setTimeout(r,1000*attempt));
    }
   }
  }
