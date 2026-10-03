@@ -33,7 +33,9 @@ jobs:
           set -euo pipefail
           mkdir -p diagnostics
           curl --fail --silent --show-error --retry 3 \
-            "https://eirdan-diagnostics.arttk800.workers.dev/latest" \
+            "https://eirdan-diagnostics.arttk800.workers.dev/latest?mirror=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$(date +%s)" \
+            -H "Cache-Control: no-cache" \
+            -H "Pragma: no-cache" \
             -o diagnostics/latest.json
 
           test -s diagnostics/latest.json
