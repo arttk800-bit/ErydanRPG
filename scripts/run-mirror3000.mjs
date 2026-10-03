@@ -4,7 +4,7 @@ import {basic3v3} from '../game/simulation/scenarios.js';
 import {REFERENCE,compareMirror} from '../game/simulation/parity.js';
 
 const weapons=JSON.parse(fs.readFileSync(new URL('../game/data/weapons.json',import.meta.url)));
-const run=runMirror({pairs:1500,seedBase:2030699025,factory:o=>basic3v3(o),weapons,hardCap:1000});
+const run=runMirror({pairs:1500,seedBase:2030699025,factory:(o,seed)=>basic3v3(o,seed),weapons,hardCap:1000});
 const rounds=run.results.flatMap(x=>[x.roundsA,x.roundsB]);
 run.avgRounds=rounds.reduce((a,b)=>a+b,0)/rounds.length;
 run.maxRounds=Math.max(...rounds);
