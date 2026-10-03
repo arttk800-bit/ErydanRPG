@@ -42,12 +42,15 @@ jobs:
             (.log | type == "string" and length > 10)
           ' diagnostics/latest.json >/dev/null
 
+          jq -r '.log' diagnostics/latest.json > diagnostics/latest.log
+          jq '{run_id, build, generated_at, received_at, source, summary, log_characters: (.log | length)}' diagnostics/latest.json > diagnostics/latest-summary.json
+
       - name: Commit latest diagnostic if changed
         shell: bash
         run: |
           set -euo pipefail
 
-          git add diagnostics/latest.json
+          git add diagnostics/latest.json diagnostics/latest.log diagnostics/latest-summary.json
           if git diff --cached --quiet; then
             echo "Diagnostic is already current."
             exit 0
