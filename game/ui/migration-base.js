@@ -10,17 +10,18 @@ const INV_ITEMS={
  dagger:{n:'Кинжал',type:'weapon',slot:'main',w:.55,ico:'†',desc:'Запасное оружие'},
  backpack:{n:'Походный рюкзак',type:'bag',slot:'back',w:1.3,ico:'▣',desc:'Увеличивает переносимый вес'}
 };
-let playerInventory={cap:30,equip:{main:'sword_iron',off:'shield_round',head:'helm_mail',body:'armor_mail',feet:'boots_leather',back:null},bag:['dagger','boots_leather','backpack'],selected:null,selectedSlot:null};
+let playerInventory={cap:30,slots:40,equip:{main:'sword_iron',off:'shield_round',head:'helm_mail',body:'armor_mail',feet:'boots_leather',back:null},bag:['dagger','boots_leather','backpack'],selected:null,selectedSlot:null,view:'bag'};
 const SLOT_NAMES={main:'Правая рука',off:'Левая рука',head:'Голова',body:'Корпус',feet:'Ноги',back:'Спина'};
 function invWeight(){let ids=[...Object.values(playerInventory.equip).filter(Boolean),...playerInventory.bag];return ids.reduce((s,id)=>s+(INV_ITEMS[id]?.w||0),0)}
 function renderInventory(){
  let eq=$('equip'),bag=$('bag'),w=invWeight();
- $('invStats').textContent='Вес '+w.toFixed(1)+' / '+playerInventory.cap.toFixed(1)+' кг · '+playerInventory.bag.length+' предмета в рюкзаке';
+ $('invStats').textContent='Вес '+w.toFixed(1)+' / '+playerInventory.cap.toFixed(1)+' кг · '+playerInventory.bag.length+' / '+playerInventory.slots+' слотов';
  eq.innerHTML=Object.entries(SLOT_NAMES).map(([slot,n])=>{let id=playerInventory.equip[slot],it=id&&INV_ITEMS[id];return '<div class="slot '+(!it?'empty ':'')+(playerInventory.selectedSlot===slot?'sel':'')+'" data-slot="'+slot+'"><b>'+n+'</b><div class="ico">'+(it?it.ico:'—')+'</div><small>'+(it?it.n:'Пусто')+'</small></div>'}).join('');
  let pickText='Ничего не выбрано';if(playerInventory.selected!=null){let id=playerInventory.bag[playerInventory.selected],it=INV_ITEMS[id];if(it)pickText='Выбрано: '+it.n+' · '+it.w+' кг · '+it.desc}else if(playerInventory.selectedSlot){let id=playerInventory.equip[playerInventory.selectedSlot],it=id&&INV_ITEMS[id];pickText='Выбран слот: '+SLOT_NAMES[playerInventory.selectedSlot]+' · '+(it?it.n:'пусто')} $('invPick').textContent=pickText;
- bag.innerHTML=playerInventory.bag.map((id,i)=>{let it=INV_ITEMS[id];return '<div class="item '+(playerInventory.selected===i?'sel':'')+'" data-i="'+i+'"><div class="ico">'+it.ico+'</div><b>'+it.n+'</b><small>'+it.desc+'</small><span class="wt">'+it.w+' кг</span></div>'}).join('');
+ let cells=[];for(let i=0;i<playerInventory.slots;i++){let id=playerInventory.bag[i],it=id&&INV_ITEMS[id];cells.push('<div class="bagSlot '+(!it?'empty ':'')+(playerInventory.selected===i?'sel':'')+'" data-i="'+i+'" title="'+(it?it.n:'Пустой слот')+'">'+(it?'<div class="ico">'+it.ico+'</div>':'')+'</div>')}bag.innerHTML=cells.join('');
  eq.querySelectorAll('.slot').forEach(el=>el.onclick=()=>{playerInventory.selectedSlot=el.dataset.slot;playerInventory.selected=null;renderInventory()});
- bag.querySelectorAll('.item').forEach(el=>el.onclick=()=>{playerInventory.selected=+el.dataset.i;playerInventory.selectedSlot=null;renderInventory()})
+ bag.querySelectorAll('.bagSlot').forEach(el=>el.onclick=()=>{let i=+el.dataset.i;if(!playerInventory.bag[i]){playerInventory.selected=null;renderInventory();return}playerInventory.selected=i;playerInventory.selectedSlot=null;renderInventory()});
+ $('bagView').classList.toggle('hidden',playerInventory.view!=='bag');$('charView').classList.toggle('hidden',playerInventory.view!=='char');$('tabBag').classList.toggle('active',playerInventory.view==='bag');$('tabChar').classList.toggle('active',playerInventory.view==='char');$('invTitle').textContent=playerInventory.view==='bag'?'Рюкзак':'Персонаж';
 }
 function openInventory(){renderInventory();$('invOverlay').classList.remove('hidden')}
 function closeInventory(){$('invOverlay').classList.add('hidden')}
@@ -63,7 +64,7 @@ function drawField(){
  let L=canvasLayout(),{ctx,s}=L;ctx.clearRect(0,0,L.w,L.h);let by=new Map(units.filter(u=>u.alive).map(u=>[u.q+','+u.r,u]));
  for(let q=0;q<GRID.C;q++)for(let r=0;r<GRID.R;r++){let {x,y}=hexCenter(q,r,L),u=by.get(q+','+r),t=terrain[q+','+r];hexPath(ctx,x,y,s);ctx.fillStyle=u?(u.team==='ally'?'#152d48':'#421a20'):t==='bush'?'#193023':t==='rock'||t==='tree'?'#29312d':'#141c1a';ctx.fill();ctx.strokeStyle='#46534f';ctx.lineWidth=1;ctx.stroke();let label=u?((u.team==='ally'?'● ':'● ')+(Number(u.id.slice(1))+1)):(t==='rock'?'К':t==='tree'?'Д':t==='bush'?'Кст':'');if(label){ctx.fillStyle=u?(u.team==='ally'?'#55aaff':'#ff5364'):'#dce4e0';ctx.font=Math.max(9,s*.34)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,x,y)}}
  let actors=units.filter(u=>u.alive).map(u=>({u,p:hexCenter(u.q,u.r,L)})).sort((a,b)=>a.p.y-b.p.y);
- for(const {u,p} of actors){let im=SPRITES[u.cls],h=s*2.15,w=h,footY=p.y+s*.36;ctx.save();ctx.fillStyle=u.team==='ally'?'rgba(60,140,255,.42)':'rgba(225,70,85,.42)';ctx.beginPath();ctx.ellipse(p.x,footY,s*.52,s*.22,0,0,Math.PI*2);ctx.fill();if(im){ctx.imageSmoothingEnabled=false;ctx.drawImage(im,p.x-w/2,footY-h*.84,w,h)}ctx.fillStyle=u.team==='ally'?'#79b9ff':'#ff7582';ctx.font='bold '+Math.max(9,s*.3)+'px system-ui';ctx.textAlign='center';ctx.fillText(String(Number(u.id.slice(1))+1),p.x,footY+s*.38);ctx.restore()}
+ for(const {u,p} of actors){let im=SPRITES[u.cls],h=s*2.15,w=h,footY=p.y+s*.36;ctx.save();ctx.fillStyle=u.team==='ally'?'rgba(60,140,255,.42)':'rgba(225,70,85,.42)';ctx.beginPath();ctx.ellipse(p.x,footY,s*.52,s*.22,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.team==='ally'?'#79b9ff':'#ff7582';ctx.font='bold '+Math.max(9,s*.3)+'px system-ui';ctx.textAlign='center';ctx.fillText(String(Number(u.id.slice(1))+1),p.x,footY+s*.38);ctx.restore()}
  window.__hexLayout=L
 }
 function render(){drawField();$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+u.armorName+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
@@ -119,3 +120,6 @@ $('inventory').onclick=openInventory;
 $('invClose').onclick=closeInventory;
 $('invEquip').onclick=equipSelected;
 $('invUnequip').onclick=unequipSelected;
+
+$('tabBag').onclick=()=>{playerInventory.view='bag';playerInventory.selectedSlot=null;renderInventory()};
+$('tabChar').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;renderInventory()};
