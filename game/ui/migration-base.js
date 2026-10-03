@@ -154,7 +154,25 @@ function showBattleResult(A,E){
  let autoBtn=$('auto'),endBtn=$('endTurn');if(autoBtn){autoBtn.disabled=true;autoBtn.textContent='Бой завершён'}if(endBtn)endBtn.disabled=true;
 }
 function nextTurn(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){log(c.name+': кровотечение −'+c.bleed);c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return nextRender()}c.ap=9;c.st=Math.min(100,c.st+12);nextRender();if(auto||c.id!=='a0')setTimeout(aiTurn,60)}
-function aiTurn(){if(over)return;let a=order[idx];if(!a.alive)return nextTurn();let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let acted=false,wk=activeWeapon(a,t),w=W[wk];if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),before=dist(a,t),o=neigh(a.q,a.r).filter(p=>!at(...p)&&!blocked(...p)&&hd(p[0],p[1],t.q,t.r)<before).sort((x,y)=>hd(x[0],x[1],t.q,t.r)-hd(y[0],y[1],t.q,t.r))[0];if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}nextRender();if(!acted)return setTimeout(nextTurn,60);setTimeout(()=>{if(over)return;let target=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y))[0];if(!target)return;let aw=W[activeWeapon(a,target)],mc=moveCost(a);let canAttack=dist(a,target)<=aw.r&&a.ap>=aw.ap,canMove=a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>!at(...p)&&!blocked(...p)&&hd(p[0],p[1],target.q,target.r)<dist(a,target));if(canAttack||canMove)aiTurn();else nextTurn()},60)}
+function pathStep(a,t,range=1){
+ const start=a.q+','+a.r,queue=[[a.q,a.r]],seen=new Set([start]),parent=new Map(),key=(q,r)=>q+','+r;
+ let goal=null,limit=GRID.C*GRID.R+20;
+ while(queue.length&&limit--){
+  let [q,r]=queue.shift();
+  if(!(q===a.q&&r===a.r)&&hd(q,r,t.q,t.r)<=range){goal=[q,r];break}
+  for(const [nq,nr] of neigh(q,r)){
+   let k=key(nq,nr);if(seen.has(k)||blocked(nq,nr))continue;
+   let occ=at(nq,nr);if(occ&&occ!==a&&occ!==t)continue;
+   if(occ===t)continue;
+   seen.add(k);parent.set(k,[q,r]);queue.push([nq,nr])
+  }
+ }
+ if(!goal)return null;
+ let cur=goal,prev=parent.get(key(cur[0],cur[1]));
+ while(prev&&!(prev[0]===a.q&&prev[1]===a.r)){cur=prev;prev=parent.get(key(cur[0],cur[1]))}
+ return cur
+}
+function aiTurn(){if(over)return;let a=order[idx];if(!a.alive)return nextTurn();let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let acted=false,wk=activeWeapon(a,t),w=W[wk];if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}nextRender();if(!acted)return setTimeout(nextTurn,60);setTimeout(()=>{if(over)return;let target=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y))[0];if(!target)return;let aw=W[activeWeapon(a,target)],mc=moveCost(a);let canAttack=dist(a,target)<=aw.r&&a.ap>=aw.ap,canMove=a.ap>=mc.ap&&!!pathStep(a,target,aw.r);if(canAttack||canMove)aiTurn();else nextTurn()},60)}
 function nextRender(){render();$('round').textContent=(over?$('round').textContent:'Раунд '+round+' · ход '+(order[idx]?.name||''));let l=$('combatLog');if(l)l.textContent=combatLog.slice(0,18).join('\n');}
 
 function simulateDiagnostic(mode,n=100){
@@ -173,7 +191,7 @@ function simulateDiagnostic(mode,n=100){
   while(!over&&round<=250&&guard++<6000){
    let a=order[idx];if(!a.alive){nextTurnSync();continue}
    let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t){checkEnd();break}
-   let wk=activeWeapon(a,t),w=W[wk],acted=false;if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),before=dist(a,t),o=neigh(a.q,a.r).filter(p=>!at(...p)&&!blocked(...p)&&hd(p[0],p[1],t.q,t.r)<before).sort((x,y)=>hd(x[0],x[1],t.q,t.r)-hd(y[0],y[1],t.q,t.r))[0];if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}if(!acted||a.ap<Math.min(moveCost(a).ap,W[activeWeapon(a,t)]?.ap||99))nextTurnSync()
+   let wk=activeWeapon(a,t),w=W[wk],acted=false;if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}if(!acted||a.ap<Math.min(moveCost(a).ap,W[activeWeapon(a,t)]?.ap||99))nextTurnSync()
   }
   let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy'),res=A&&!E?'ally':E&&!A?'enemy':'draw';if(res==='draw')timeouts++;wins[res]++;rounds+=round;maxRounds=Math.max(maxRounds,round);
   if(duel){let keyA=units[0].loadout.main,keyE=units[1].loadout.main;equipWins[keyA]=equipWins[keyA]||{b:0,w:0};equipWins[keyE]=equipWins[keyE]||{b:0,w:0};equipWins[keyA].b++;equipWins[keyE].b++;if(res==='ally')equipWins[keyA].w++;if(res==='enemy')equipWins[keyE].w++;details.push('BATTLE '+(k+1)+' · '+res.toUpperCase()+' · rounds '+round+'\nALLY\n'+loadoutText(units[0].loadout)+'\n'+unitDerivedText(units[0])+'\nENEMY\n'+loadoutText(units[1].loadout)+'\n'+unitDerivedText(units[1]))}
