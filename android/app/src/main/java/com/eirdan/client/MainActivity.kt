@@ -30,7 +30,7 @@ class MainActivity:Activity(){
  private fun get(url:String):ByteArray{val c=URL(url).openConnection() as HttpURLConnection;c.connectTimeout=7000;c.readTimeout=12000;c.useCaches=false;c.setRequestProperty("User-Agent","Eirdan-Android/0.15");try{if(c.responseCode !in 200..299)throw IllegalStateException("HTTP "+c.responseCode);return c.inputStream.use{it.readBytes()}}finally{c.disconnect()}}
  private fun refreshGameInBackground(){io.execute{try{
    val manifest=JSONObject(String(get(manifestUrl),Charsets.UTF_8));if(manifest.optInt("schema")!=1)return@execute
-   val root=File(filesDir,"game-update"),staging=File(filesDir,"game-update.tmp");staging.deleteRecursively();staging.mkdirs()
+   val root=File(filesDir,"game-update");val staging=File(filesDir,"game-update.tmp");staging.deleteRecursively();staging.mkdirs()
    val files=manifest.getJSONArray("files")
    for(i in 0 until files.length()){val path=files.getJSONObject(i).getString("path");if(path.contains("..")||path.startsWith("/"))throw IllegalArgumentException("unsafe path");val out=File(staging,path);out.parentFile?.mkdirs();out.writeBytes(get(rawBase+path))}
    val entry=File(staging,manifest.getString("entry"));if(!entry.isFile)throw IllegalStateException("missing entry")
