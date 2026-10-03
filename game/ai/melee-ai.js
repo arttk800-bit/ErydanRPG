@@ -1,0 +1,3 @@
+import {hexDistance} from '../core/hex-grid.js';import {legalSteps,movementHistory} from '../core/movement.js';
+export function meleePositionScore(state,u,p,target){let score=-hexDistance(p,target)*20;for(const f of state.units){if(f===u||!f.alive||f.escaped)continue;const d=hexDistance(p,f);if(f.team===u.team&&d<=1)score+=5;if(f.team!==u.team&&d<=1)score+=12;}const prev=movementHistory(state,u.id).at(-1);if(prev&&prev.from&&prev.from===p.hex)score-=40;return score;}
+export function chooseMeleeStep(state,u,target){return legalSteps(state,u).map(p=>({...p,hex:String.fromCharCode(65+p.q)+(p.r+1)})).sort((a,b)=>meleePositionScore(state,u,b,target)-meleePositionScore(state,u,a,target))[0]??null;}
