@@ -1,5 +1,36 @@
 import {W,CL,ARMORS,PD,CLASS_POOL,GRID,DEFAULT_BATTLE_CFG,mkbody} from '../alpha14p/data/constants.js';import {GameRNG,pick} from '../alpha14p/core/rng.js';
 const TEST_POOL=['guardian','archer','berserker'];
+
+const INV_ITEMS={
+ sword_iron:{n:'Железный меч',type:'weapon',slot:'main',w:1.35,ico:'⚔',desc:'Одноручный меч'},
+ shield_round:{n:'Круглый щит',type:'shield',slot:'off',w:3.2,ico:'◉',desc:'Деревянный щит'},
+ helm_mail:{n:'Кольчужный капюшон',type:'armor',slot:'head',w:2.1,ico:'♜',desc:'Защита головы'},
+ armor_mail:{n:'Кольчуга',type:'armor',slot:'body',w:8.4,ico:'▦',desc:'Защита корпуса'},
+ boots_leather:{n:'Кожаные сапоги',type:'armor',slot:'feet',w:1.1,ico:'♟',desc:'Лёгкая обувь'},
+ dagger:{n:'Кинжал',type:'weapon',slot:'main',w:.55,ico:'†',desc:'Запасное оружие'},
+ backpack:{n:'Походный рюкзак',type:'bag',slot:'back',w:1.3,ico:'▣',desc:'Увеличивает переносимый вес'}
+};
+let playerInventory={cap:30,equip:{main:'sword_iron',off:'shield_round',head:'helm_mail',body:'armor_mail',feet:'boots_leather',back:null},bag:['dagger','boots_leather','backpack'],selected:null,selectedSlot:null};
+const SLOT_NAMES={main:'Правая рука',off:'Левая рука',head:'Голова',body:'Корпус',feet:'Ноги',back:'Спина'};
+function invWeight(){let ids=[...Object.values(playerInventory.equip).filter(Boolean),...playerInventory.bag];return ids.reduce((s,id)=>s+(INV_ITEMS[id]?.w||0),0)}
+function renderInventory(){
+ let eq=$('equip'),bag=$('bag'),w=invWeight();
+ $('invStats').textContent='Вес '+w.toFixed(1)+' / '+playerInventory.cap.toFixed(1)+' кг · '+playerInventory.bag.length+' предмета в рюкзаке';
+ eq.innerHTML=Object.entries(SLOT_NAMES).map(([slot,n])=>{let id=playerInventory.equip[slot],it=id&&INV_ITEMS[id];return '<div class="slot '+(!it?'empty':'')+'" data-slot="'+slot+'"><b>'+n+'</b><div class="ico">'+(it?it.ico:'—')+'</div><small>'+(it?it.n:'Пусто')+'</small></div>'}).join('');
+ bag.innerHTML=playerInventory.bag.map((id,i)=>{let it=INV_ITEMS[id];return '<div class="item '+(playerInventory.selected===i?'sel':'')+'" data-i="'+i+'"><div class="ico">'+it.ico+'</div><b>'+it.n+'</b><small>'+it.desc+'</small><span class="wt">'+it.w+' кг</span></div>'}).join('');
+ eq.querySelectorAll('.slot').forEach(el=>el.onclick=()=>{playerInventory.selectedSlot=el.dataset.slot;playerInventory.selected=null;renderInventory()});
+ bag.querySelectorAll('.item').forEach(el=>el.onclick=()=>{playerInventory.selected=+el.dataset.i;playerInventory.selectedSlot=null;renderInventory()})
+}
+function openInventory(){renderInventory();$('invOverlay').classList.remove('hidden')}
+function closeInventory(){$('invOverlay').classList.add('hidden')}
+function equipSelected(){
+ let i=playerInventory.selected;if(i==null)return;let id=playerInventory.bag[i],it=INV_ITEMS[id];if(!it||!it.slot)return;
+ let old=playerInventory.equip[it.slot];playerInventory.equip[it.slot]=id;playerInventory.bag.splice(i,1);if(old)playerInventory.bag.push(old);playerInventory.selected=null;renderInventory()
+}
+function unequipSelected(){
+ let s=playerInventory.selectedSlot;if(!s||!playerInventory.equip[s])return;playerInventory.bag.push(playerInventory.equip[s]);playerInventory.equip[s]=null;playerInventory.selectedSlot=null;renderInventory()
+}
+
 const SPRITE_SRC={
  guardian:'data:image/png;base64,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',
  archer:'data:image/png;base64,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',
@@ -82,3 +113,8 @@ function nextTurnSync(){if(over)return;do{idx++;if(idx>=order.length){idx=0;roun
 $('sim100').onclick=()=>simulateBatch(100);
 const oldStart=$('start').onclick;$('start').onclick=()=>{oldStart();let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let e=document.createElement('button');e.id='endTurn';e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender()};
 $('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);nextRender()}};
+
+$('inventory').onclick=openInventory;
+$('invClose').onclick=closeInventory;
+$('invEquip').onclick=equipSelected;
+$('invUnequip').onclick=unequipSelected;
