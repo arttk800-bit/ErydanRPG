@@ -170,7 +170,7 @@ function showResultOverlay(){let o=$('resultOverlay');if(o){o.style.display='gri
 function hideResultOverlay(){let o=$('resultOverlay');if(o){o.classList.add('hidden');o.style.display=''}}
 function showBattleResult(A,E){
  if(simulationRunning||$('resultOverlay').dataset.kind==='simulation')return;
- $('resultOverlay').dataset.kind='battle';$('resultNew').textContent='Новый бой';
+ $('resultOverlay').dataset.kind='battle';$('resultNew').textContent=combatContext?.type==='arena'?'Вернуться на арену':'Новый бой';
  window.lastBattleReport=battleResultText(A,E);
  let title=A&&!E?'Победа':E&&!A?'Поражение':'Бой завершён';
  $('resultTitle').textContent=title;
@@ -326,7 +326,10 @@ function renderCityHub(){$('rpgView').innerHTML='<h2 style="margin:0 0 4px">Эй
 function openCityNode(id){const p=CITY_HUB[id];if(!p)return;if(p.type==='district')return renderDistrict(id);openDirectPlace(id)}
 function renderDistrict(id){const d=DISTRICTS[id];if(!d)return;const list=id==='homes'?[{id:'house_smith',name:'Дом кузнеца',desc:'Дом семьи городского кузнеца.',sprite:'homes',x:31,y:37},{id:'house_merchant',name:'Дом торговца',desc:'Добротный дом зажиточного торговца.',sprite:'homes',x:68,y:38},{id:'inn_rooms',name:'Съёмные комнаты',desc:'Жильё для приезжих и работников.',sprite:'homes',x:50,y:61}]:d.places.map((pid,i)=>({...EIRDAN_PLACES[pid],id:pid,sprite:pid,x:[28,52,73][i],y:[42,58,38][i]}));$('rpgView').innerHTML='<h2 style="margin:0 0 4px">'+d.name+'</h2><div class="note">Выберите здание.</div><div class="townMap districtMap">'+list.map(p=>'<button class="townPlace spritePlace" data-district-place="'+p.id+'" style="left:'+p.x+'%;top:'+p.y+'%"><span class="buildingSprite" style="background-image:url('+window.EIRDAN_BUILDING_SHEET+');background-position:'+(-64*(window.EIRDAN_BUILDING_INDEX?.[p.sprite]??window.EIRDAN_BUILDING_INDEX?.homes??0))+'px 0"></span><span class="placeLabel">'+p.name+'</span></button>').join('')+'<button id="backCity" class="townGate">← Центр Эйрдана</button></div><div id="townEvent"></div>';document.querySelectorAll('[data-district-place]').forEach(btn=>btn.onclick=()=>visitDistrictPlace(id,btn.dataset.districtPlace));$('backCity').onclick=renderCityHub}
 function visitDistrictPlace(district,id){let p=EIRDAN_PLACES[id];if(!p){const names={house_smith:['Дом кузнеца','Дом семьи городского кузнеца.'],house_merchant:['Дом торговца','Дом зажиточного торговца.'],inn_rooms:['Съёмные комнаты','Жильё для приезжих и работников.']};p={name:names[id]?.[0]||id,desc:names[id]?.[1]||'',minutes:10}}openTownPlaceData(p)}
-function openDirectPlace(id){openTownPlaceData(CITY_DIRECT[id])}
+function openDirectPlace(id){if(id==='arena')return openArena();openTownPlaceData(CITY_DIRECT[id])}
+function openArena(){const p=CITY_DIRECT.arena;const ov=document.createElement('div');ov.className='placeOverlay';ov.innerHTML='<section class="placeCard"><h3>Арена Эйрдана</h3><div class="note">'+p.desc+'</div><div class="placeActions"><button class="primary" data-fight>Выйти на арену</button><button data-watch>Осмотреть арену · ~10 мин</button><button data-cancel>Уйти</button></div></section>';document.body.appendChild(ov);ov.querySelector('[data-cancel]').onclick=()=>ov.remove();ov.querySelector('[data-watch]').onclick=()=>{ov.remove();passTime(10);renderRpgStatsOnly();$('townEvent').innerHTML='<div class="eventBox"><b>Арена</b><p>На песке идёт тренировочный бой. Трибуны пока полупусты.</p></div>'};ov.querySelector('[data-fight]').onclick=()=>{ov.remove();startArenaCombat()}}
+function startArenaCombat(){passTime(15);applyTravelNeeds(15,'horse');combatContext={type:'arena',returnTo:'rpgShell'};combatLabReturn='rpgShell';showOnly('combatLab');$('battleMode').value='1v1';updateModeUI();pendingDuel=false;$('prepFight').classList.add('hidden');$('setup').classList.add('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden');beginBattle(true)}
+function returnFromArenaCombat(A,E){hideResultOverlay();$('resultOverlay').dataset.kind='';combatContext=null;showOnly('rpgShell');rpgScreen='town';renderRpg();setTimeout(()=>{let box=$('townEvent');if(box)box.innerHTML='<div class="eventBox"><b>Арена · '+(A&&!E?'Победа':'Поражение')+'</b><p>'+(A&&!E?'Вы выиграли пробный бой на арене.':'Пробный бой окончен поражением.')+'</p><p class="note">Раунд '+round+'. Награды и рейтинг арены добавим следующим слоем.</p></div>'},0)}
 function openTownPlace(id){const p=EIRDAN_PLACES[id];if(p)openTownPlaceData(p)}
 function openTownPlaceData(p){const ov=document.createElement('div');ov.className='placeOverlay';ov.innerHTML='<section class="placeCard"><h3>'+p.name+'</h3><div class="note">'+p.desc+'</div><div class="placeActions"><button class="primary" data-enter>Войти · ~'+(p.minutes||15)+' мин</button><button data-cancel>Отмена</button></div></section>';document.body.appendChild(ov);ov.querySelector('[data-cancel]').onclick=()=>ov.remove();ov.querySelector('[data-enter]').onclick=()=>{ov.remove();passTime(p.minutes||15);applyTravelNeeds(p.minutes||15,'horse');renderRpgStatsOnly();$('townEvent').innerHTML='<div class="eventBox"><b>'+p.name+'</b><p>'+p.desc+'</p><p class="note">Интерьер и действия будут добавлены позже.</p></div>'}}
 function visitTownPlace(id){const p=EIRDAN_PLACES[id];if(p)openTownPlaceData(p)}
@@ -339,7 +342,7 @@ function showGateEvent(){
 }
 function showOnly(id){['mainMenu','settingsMenu','rpgShell','combatLab'].forEach(x=>$(x)?.classList.toggle('hidden',x!==id))}
 function openCombatLab(returnTo='settingsMenu'){closeInventory();combatLabReturn=returnTo;showOnly('combatLab')}
-let settingsReturn='mainMenu',combatLabReturn='settingsMenu',fullDiagnosticLog='';
+let settingsReturn='mainMenu',combatLabReturn='settingsMenu',fullDiagnosticLog='',combatContext=null;
 const DIAGNOSTIC_ENDPOINT='https://eirdan-diagnostics.arttk800.workers.dev/';
 function openSettingsFrom(returnTo){settingsReturn=returnTo||'mainMenu';showOnly('settingsMenu')}
 function diagnosticLine(a){return '['+new Date().toISOString()+'] '+a}
@@ -480,9 +483,9 @@ $('tabChar').onclick=()=>{playerInventory.view='char';playerInventory.selected=n
 
 $('resultNew').onclick=()=>{
  let sim=$('resultOverlay').dataset.kind==='simulation';
- hideResultOverlay();
- if(sim){$('resultOverlay').dataset.kind='';$('resultNew').textContent='Новый бой';window.lastSimulationReport=null;window.lastSimulationFile=null;$('sim1v1').disabled=false;$('sim3v3').disabled=false;return}
- $('back').click()
+ if(sim){hideResultOverlay();$('resultOverlay').dataset.kind='';$('resultNew').textContent='Новый бой';window.lastSimulationReport=null;window.lastSimulationFile=null;$('sim1v1').disabled=false;$('sim3v3').disabled=false;return}
+ if(combatContext?.type==='arena'){let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy');return returnFromArenaCombat(A,E)}
+ hideResultOverlay();$('back').click()
 };
 $('resultDownload').onclick=()=>{
  if($('resultOverlay').dataset.kind==='simulation'&&window.lastSimulationReport){downloadTxt(window.lastSimulationFile||('Eirdan_simulation_'+Date.now()+'.txt'),window.lastSimulationReport);return}
