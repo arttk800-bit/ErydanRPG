@@ -1,9 +1,8 @@
 package com.eirdan.client
 import android.webkit.JavascriptInterface
-class JsBridge(private val activity:MainActivity,private val version:String="0.15.0-dev"){
+class JsBridge(private val activity:MainActivity,private val version:String="0.15.8-shell"){
  @JavascriptInterface fun clientVersion():String=version
  @JavascriptInterface fun platform():String="android"
- @JavascriptInterface fun updateStatus():String=activity.updateStatus()
- @JavascriptInterface fun activateUpdate():Boolean=activity.activateUpdate()
- @JavascriptInterface fun resetToPackaged(){activity.resetToPackaged()}
+ @JavascriptInterface fun gameStatus():String=activity.gameStatus()
+ @JavascriptInterface fun reloadGame(){activity.reloadGame()}
 }
