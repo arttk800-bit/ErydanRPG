@@ -1,8 +1,8 @@
 # Eirdan 0.15 migration progress
-Current estimate: 95/100.
+Current estimate: 97/100.
 
-Added shared melee skill primitives and regression coverage for Shield Bash and Sweep. Opportunity attacks remain wired into centralized combat movement. Added GitHub Actions validation workflow so every main update can run the modular regression suite automatically.
+The modular regression suite now includes an explicit Mirror parity acceptance gate. It validates the locked 3000-battle reference and verifies that material deviations are rejected rather than silently accepted.
 
-Validation note: no workflow run is visible yet for the workflow-creation commit, so CI is not counted as passed.
+CI status: the GitHub connector currently reports no workflow run for the latest main commit, so CI is not claimed as green.
 
-Remaining: get regression CI green; exact alpha14p parity reconciliation; fixed-seed and Mirror parity runs; production UI/assets; release APK validation/updater; legacy cleanup.
+Remaining: execute the new engine's real Mirror x3000 and reconcile it against the locked alpha14 reference; validate production UI/assets; build and validate the Android release APK/updater; remove legacy remnants only after parity.
