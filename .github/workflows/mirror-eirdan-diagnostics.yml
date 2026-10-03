@@ -1,0 +1,51 @@
+name: Mirror Eirdan diagnostics
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/5 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: eirdan-diagnostics-mirror
+  cancel-in-progress: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch latest diagnostic from Cloudflare KV
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p diagnostics
+          curl --fail --silent --show-error --retry 3 \
+            "https://eirdan-diagnostics.arttk800.workers.dev/latest" \
+            -o diagnostics/latest.json
+
+          jq -e '
+            (.run_id | type == "string" and length > 0) and
+            (.log | type == "string" and length > 10)
+          ' diagnostics/latest.json >/dev/null
+
+      - name: Commit latest diagnostic if changed
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- diagnostics/latest.json; then
+            echo "Diagnostic is already current."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add diagnostics/latest.json
+          git commit -m "chore: mirror latest Eirdan diagnostic [skip ci]"
+          git push
