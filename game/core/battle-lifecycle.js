@@ -1,0 +1,1 @@
+export function resolveBattleState(s){const alive=t=>s.units.some(u=>u.team===t&&!u.dead&&!u.escaped);if(!alive('ally')||!alive('enemy')){s.over=true;s.result=alive('ally')?'ally':alive('enemy')?'enemy':'draw';}return s.result;}

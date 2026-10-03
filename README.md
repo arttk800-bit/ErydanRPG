@@ -1,5 +1,7 @@
-# Eirdan
+# Eirdan 0.15
 
-Eirdan 0.15 development branch.
+Modular migration of the Eirdan tactical RPG prototype.
 
-Current combat reference: 0.14.15-alpha14p. The project is being migrated from the legacy single-file prototype to a modular Android-first client.
+Combat reference: 0.14.15-alpha14p. Android-first client. Combat math remains locked during migration.
+
+Folders: android/ native shell; game/core state/turns/lifecycle; game/combat rules; game/ai decision logic; game/ui rendering; game/simulation diagnostics; game/data balance/content; game/assets binary resources; tests regression seeds.

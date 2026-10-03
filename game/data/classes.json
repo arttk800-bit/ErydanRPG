@@ -1,0 +1,14 @@
+{
+  "version": "0.15.0",
+  "classes": [
+    "rogue",
+    "crossbowman",
+    "assassin",
+    "archer",
+    "guardian",
+    "wizard",
+    "priest",
+    "firemage",
+    "berserker"
+  ]
+}

@@ -1,0 +1,1 @@
+<resources><style name="Theme.Eirdan" parent="android:style/Theme.Material.NoActionBar"><item name="android:windowFullscreen">true</item><item name="android:colorAccent">#c7a55b</item></style></resources>
