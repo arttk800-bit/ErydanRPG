@@ -1,0 +1,4 @@
+import {loadVersion} from './version.js';
+export async function fetchManifest(url,{signal}={}){const r=await fetch(url,{cache:'no-store',signal});if(!r.ok)throw new Error('manifest '+r.status);const m=await r.json();if(m.schema!==1||!m.version||!m.entry)throw new Error('invalid manifest');return m;}
+export function compareVersions(a,b){const pa=String(a).replace(/[^0-9.].*$/,'').split('.').map(Number),pb=String(b).replace(/[^0-9.].*$/,'').split('.').map(Number);for(let i=0;i<Math.max(pa.length,pb.length);i++){const d=(pa[i]||0)-(pb[i]||0);if(d)return Math.sign(d);}return 0;}
+export async function checkForUpdate({localUrl='../data/version.json',manifestUrl}){const [local,remote]=await Promise.all([loadVersion(localUrl),fetchManifest(manifestUrl)]);return{local,remote,available:compareVersions(remote.version,local.version)>0};}

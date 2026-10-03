@@ -1,1 +1,1 @@
-{"schema":1,"channel":"development","version":"0.15.0-dev","entry":"ui/index.html","minimumClient":"0.15.0","files":[]}
+{"schema":1,"channel":"development","version":"0.15.0-dev","entry":"ui/index.html","minimumClient":"0.15.0","files":[{"path":"ui/index.html"},{"path":"ui/main.js"},{"path":"ui/game.css"},{"path":"data/weapons.json"},{"path":"data/version.json"}]}
