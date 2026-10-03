@@ -2,25 +2,25 @@
   "reference": "0.14.15-alpha14p",
   "run": {
     "battles": 3000,
-    "ally": 1498,
-    "enemy": 1502,
+    "ally": 1488,
+    "enemy": 1512,
     "draw": 0,
     "hardCaps": 0,
-    "avgRounds": 18.25,
-    "maxRounds": 39,
+    "avgRounds": 15.54,
+    "maxRounds": 40,
     "timing": {
-      "elapsedMs": 1038,
-      "elapsedSeconds": 1.038,
-      "formatted": "1.038s"
+      "elapsedMs": 2030,
+      "elapsedSeconds": 2.03,
+      "formatted": "2.030s"
     }
   },
   "comparison": {
     "battleDelta": 0,
-    "allyRateDelta": 0.433,
-    "enemyRateDelta": 0.467,
+    "allyRateDelta": 0.1,
+    "enemyRateDelta": 0.8,
     "drawRateDelta": -0.9,
-    "avgRoundsDelta": -8.85,
-    "maxRoundsRatio": 0.175,
+    "avgRoundsDelta": -11.56,
+    "maxRoundsRatio": 0.179,
     "hardCaps": 0,
     "pass": false,
     "reasons": [
