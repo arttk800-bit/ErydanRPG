@@ -1,13 +1,2 @@
-import {resolveBattleState} from '../core/battle-lifecycle.js';import {nextTurn,currentUnit} from '../core/turn-manager.js';import {aiTurn} from '../ai/controller.js';import {compactBattleSummary,anomalyTrace} from './telemetry.js';
-export function runHeadless(state,api,{hardCap=500,longBattleRounds=100}={}){
- let actions=0;const traces=[];resolveBattleState(state,'simulation-start');
- while(!state.over&&actions<hardCap){
-  const u=currentUnit(state);if(!u){nextTurn(state);continue;}
-  const before=actions;const events=aiTurn(state,u,api);actions+=Math.max(1,events.length);
-  resolveBattleState(state,'post-ai-turn');if(state.over)break;nextTurn(state);
-  if(actions===before)actions++;
- }
- if(!state.over)traces.push(anomalyTrace(state,'HARD_CAP_'+hardCap));
- if(state.round>longBattleRounds)traces.push(anomalyTrace(state,'LONG_BATTLE'));
- return{...compactBattleSummary(state),actions,hardCapHit:!state.over,traces};
-}
+import {GameState} from '../core/game-state.js';import {SeededRng} from '../core/rng.js';import {resolveBattleState} from '../core/battle-lifecycle.js';import {nextTurn} from '../core/turn-manager.js';import {beginTurn} from '../combat/status.js';import {aiStep} from '../ai/ai-controller.js';
+export function runBattle({seed,units,weapons,hardCap=500}){const state=new GameState(seed),rng=new SeededRng(seed);state.units=units;state.order=[...units];let actions=0;while(!resolveBattleState(state,'runner').over&&actions<hardCap){const u=state.order[state.turnIndex];if(!u?.alive||u.escaped){nextTurn(state);continue;}beginTurn(state,u);let safety=0;while(u.ap>0&&!state.over&&safety++<12){const x=aiStep(state,u,weapons,{rng:()=>rng.next()});actions++;if(x.result?.end||x.result?.ok===false)break;if(x.decision.type==='move')break;if(actions>=hardCap)break;}nextTurn(state);}return{state,actions,hardCapReached:!state.over&&actions>=hardCap};}
