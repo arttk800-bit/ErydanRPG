@@ -326,10 +326,56 @@ function showGateEvent(){
 }
 function showOnly(id){['mainMenu','settingsMenu','rpgShell','combatLab'].forEach(x=>$(x)?.classList.toggle('hidden',x!==id))}
 function openCombatLab(){closeInventory();showOnly('combatLab')}
+let settingsReturn='mainMenu',fullDiagnosticLog='';
+function openSettingsFrom(returnTo){settingsReturn=returnTo||'mainMenu';showOnly('settingsMenu')}
+function diagnosticLine(a){return '['+new Date().toISOString()+'] '+a}
+async function runFullDiagnostic(){
+ const btn=$('runFullDiagnostic'),status=$('fullDiagnosticStatus');btn.disabled=true;$('downloadFullDiagnostic').disabled=true;
+ let out=['EIRDAN FULL GAME DIAGNOSTIC','Build: '+(window.EIRDAN_BUILD||'unknown'),'Generated: '+new Date().toISOString(),'Source code: NOT INCLUDED',''];
+ let pass=0,fail=0,warn=0;
+ const test=(name,fn)=>{try{let r=fn();if(r===false)throw Error('check returned false');out.push('PASS | '+name);pass++}catch(e){out.push('FAIL | '+name+' | '+(e?.message||e));fail++}};
+ const note=(name,msg)=>{out.push('WARN | '+name+' | '+msg);warn++};
+ status.textContent='Проверка интерфейса и состояния...';await new Promise(r=>setTimeout(r,20));
+ test('UI: main menu',()=>!!$('mainMenu')&&!!$('newGame')&&!!$('openSettings'));
+ test('UI: game menu',()=>!!$('gameMenuBtn')&&!!$('toMainMenu')&&!!$('resumeGame'));
+ test('UI: settings/debug',()=>!!$('settingsMenu')&&!!$('debugPanel')&&!!$('enterCombatLab'));
+ test('UI: Combat Lab',()=>!!$('combatLab')&&!!$('sim1v1')&&!!$('sim3v3'));
+ test('UI: result/log controls',()=>!!$('resultOverlay')&&!!$('resultDownload'));
+ test('World data',()=>WORLD&&WORLD.places&&WORLD.places[WORLD.location]);
+ test('World clock',()=>typeof worldTime()==='string');
+ test('Inventory state',()=>playerInventory&&playerInventory.items&&playerInventory.equipment);
+ status.textContent='Проверка боевого движка...';await new Promise(r=>setTimeout(r,20));
+ test('Combat engine available',()=>typeof simulateDiagnostic==='function');
+ try{
+   status.textContent='Боевые симуляции: 1v1 ×100...';await new Promise(r=>setTimeout(r,20));
+   let before=window.lastSimulationReport; simulateDiagnostic('1v1',100);
+   if(window.lastSimulationReport&&window.lastSimulationReport!==before){out.push('PASS | Simulation 1v1 x100 completed');pass++;out.push('', '--- 1v1 x100 REPORT ---',window.lastSimulationReport,'--- END 1v1 ---','');}
+   else {out.push('FAIL | Simulation 1v1 x100 | report was not generated');fail++}
+ }catch(e){out.push('FAIL | Simulation 1v1 x100 | '+(e?.stack||e));fail++}
+ hideResultOverlay();
+ try{
+   status.textContent='Боевые симуляции: 3v3 ×100...';await new Promise(r=>setTimeout(r,20));
+   let before=window.lastSimulationReport; simulateDiagnostic('3v3',100);
+   if(window.lastSimulationReport&&window.lastSimulationReport!==before){out.push('PASS | Simulation 3v3 x100 completed');pass++;out.push('', '--- 3v3 x100 REPORT ---',window.lastSimulationReport,'--- END 3v3 ---','');}
+   else {out.push('FAIL | Simulation 3v3 x100 | report was not generated');fail++}
+ }catch(e){out.push('FAIL | Simulation 3v3 x100 | '+(e?.stack||e));fail++}
+ hideResultOverlay();
+ if(!window.lastSimulationReport)note('Simulation report','No final simulation report retained');
+ out.push('','SUMMARY','PASS: '+pass,'FAIL: '+fail,'WARN: '+warn,'RESULT: '+(fail?'FAILED':'PASSED'));
+ fullDiagnosticLog=out.join('\n');window.lastFullDiagnosticLog=fullDiagnosticLog;
+ $('downloadFullDiagnostic').disabled=false;btn.disabled=false;status.textContent='Готово: PASS '+pass+' · FAIL '+fail+' · WARN '+warn;
+}
 $('newGame').onclick=()=>{showOnly('rpgShell');rpgScreen='world';renderRpg()};
-$('openSettings').onclick=()=>showOnly('settingsMenu');
-$('settingsBack').onclick=()=>showOnly('mainMenu');
-$('openDebug').onclick=openCombatLab;
+$('openSettings').onclick=()=>openSettingsFrom('mainMenu');
+$('settingsBack').onclick=()=>showOnly(settingsReturn);
+$('openDebug').onclick=()=>$('debugPanel').classList.toggle('hidden');
+$('enterCombatLab').onclick=openCombatLab;
+$('runFullDiagnostic').onclick=runFullDiagnostic;
+$('downloadFullDiagnostic').onclick=()=>{if(fullDiagnosticLog)downloadTxt('Eirdan_full_diagnostic_'+Date.now()+'.txt',fullDiagnosticLog)};
+$('gameMenuBtn').onclick=()=>$('gameMenu').classList.toggle('hidden');
+$('resumeGame').onclick=()=>$('gameMenu').classList.add('hidden');
+$('gameSettings').onclick=()=>{$('gameMenu').classList.add('hidden');openSettingsFrom('rpgShell')};
+$('toMainMenu').onclick=()=>{$('gameMenu').classList.add('hidden');showOnly('mainMenu')};
 $('quitGame').onclick=()=>{alert('Выход из игры будет подключён позже.')};
 $('uiMode').onchange=e=>document.body.dataset.ui=e.target.value;
 $('masterVolume').oninput=e=>{window.EIRDAN_MASTER_VOLUME=(+e.target.value||0)/100};
