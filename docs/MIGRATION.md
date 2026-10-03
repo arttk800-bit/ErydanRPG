@@ -1,10 +1,23 @@
 # Migration gates
 
-1. Mechanical split: HTML/CSS/JS/assets, preserving script order.
-2. Boot in Android WebView with no network requirement.
-3. Reproduce seed 2030699025 and compare reference result.
-4. Run compact Mirror x100, then x1000/3000 against the reference distribution.
-5. Replace legacy wrappers subsystem-by-subsystem: lifecycle -> movement -> damage/Resolve -> actions -> AI -> UI -> diagnostics.
-6. Delete a legacy wrapper only after its replacement passes regression.
+## Completed
+- 0.15 repository structure and Android shell.
+- Reference monolith inventory: 28 ordered JS blocks, CSS separated, Clash Defiant identified as external binary asset.
+- Pure 0.15 battle lifecycle and turn manager implemented with Node regression tests.
 
-No rebalance during gates 1-5.
+## Current gate
+Replace alpha14n lifecycle wrappers with the pure core API while preserving 0.14.15 behavior:
+- active = alive && !escaped
+- resolve after death, escape, summon and turn transition
+- summons participate in the same roster/order
+- victory is determined only by active combatants
+
+## Next
+1. Hex/grid + movement state.
+2. Damage/body parts/Resolve.
+3. Actions and skills.
+4. AI policies.
+5. UI.
+6. Headless Mirror regression x100 -> x1000 -> x3000.
+
+No rebalance until migration equivalence is established.
