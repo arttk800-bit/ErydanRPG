@@ -234,9 +234,12 @@ function aiTurn(){
 }
 function nextRender(){render();$('round').textContent=(over?$('round').textContent:'Раунд '+round+' · ход '+(order[idx]?.name||''));let l=$('combatLog');if(l)l.textContent=combatLog.slice(0,18).join('\n');}
 
-function simulateDiagnostic(mode,n=100){
+async function simulateDiagnostic(mode,n=100){
  let wins={ally:0,enemy:0,draw:0},rounds=0,maxRounds=0,timeouts=0,oldAuto=auto,details=[],equipWins={};
  const snap={cfg:structuredClone(cfg),units:structuredClone(units),terrain:structuredClone(terrain),order:structuredClone(order),idx,round,over,combatLog:[...combatLog],fullLog:[...fullLog],equip:structuredClone(playerInventory.equip)};
+ let progress=$('simProgress'),pt=$('simProgressText'),pb=$('simProgressBar'),b1=$('sim1v1'),b3=$('sim3v3'),batchSize=5;
+ progress.classList.remove('hidden');b1.disabled=true;b3.disabled=true;pt.textContent='Подготовка · 0 / '+n;pb.style.width='0%';
+ await new Promise(r=>setTimeout(r,0));
  for(let k=0;k<n;k++){
   let duel=mode==='1v1',ap=duel?[[2,5]]:[[1,4],[1,5],[1,6]],ep=duel?[[11,5]]:[[12,2],[12,3],[12,4]];
   units=[];let count=duel?1:3;
@@ -250,10 +253,11 @@ function simulateDiagnostic(mode,n=100){
   while(!over&&round<=250&&guard++<6000)combatStepSync();
   let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy'),limitHit=!over&&(round>250||guard>=6000);if(limitHit)log('[STALL] лимит симуляции · round '+round+' · actions '+guard+' · '+units.filter(u=>u.alive).map(u=>u.name+' ['+u.q+','+u.r+'] HP '+u.hp+' ST '+u.st).join(' | '));let res=A&&!E?'ally':E&&!A?'enemy':'draw';if(res==='draw')timeouts++;wins[res]++;rounds+=round;maxRounds=Math.max(maxRounds,round);
   if(duel){let keyA=units[0].loadout.main,keyE=units[1].loadout.main;equipWins[keyA]=equipWins[keyA]||{b:0,w:0};equipWins[keyE]=equipWins[keyE]||{b:0,w:0};equipWins[keyA].b++;equipWins[keyE].b++;if(res==='ally')equipWins[keyA].w++;if(res==='enemy')equipWins[keyE].w++;details.push('BATTLE '+(k+1)+' · '+res.toUpperCase()+' · rounds '+round+'\nALLY\n'+loadoutText(units[0].loadout)+'\n'+unitDerivedText(units[0])+'\nENEMY\n'+loadoutText(units[1].loadout)+'\n'+unitDerivedText(units[1])+'\nEVENTS\n'+fullLog.join('\n'))}
+  let done=k+1;if(done%batchSize===0||done===n){pt.textContent=(mode==='1v1'?'1v1':'3v3')+' · '+done+' / '+n+' · победы '+wins.ally+'/'+wins.enemy+' · ничьи '+wins.draw;pb.style.width=(done/n*100).toFixed(1)+'%';await new Promise(r=>setTimeout(r,20))}
  }
  let equipLines=Object.entries(equipWins).map(([id,x])=>(INV_ITEMS[id]?.n||id)+': '+x.w+'/'+x.b+' wins ('+(x.b?(x.w/x.b*100).toFixed(1):0)+'%)');
  let report=['EIRDAN 0.15 · DIAGNOSTIC','BUILD: '+(window.EIRDAN_BUILD||'unknown'),'MODE: '+(mode==='1v1'?'1v1 RANDOM EQUIPMENT':'3v3 MIRROR EQUIPMENT'),'BATTLES: '+n,'SEED CALLS: '+GameRNG.calls,'','RESULTS','Allies: '+wins.ally,'Enemies: '+wins.enemy,'Draws/timeouts: '+wins.draw,'Average rounds: '+(rounds/n).toFixed(1),'Max rounds: '+maxRounds,'Timeouts: '+timeouts,'',...(duel?['WEAPON RESULTS',...equipLines,'','FULL LOADOUTS',...details]:['MIRROR RULE: each ally slot is mirrored by corresponding enemy slot; Guardian only.','FULL TRACE OF LAST MIRROR BATTLE',...fullLog]),'','CHECKS','Two-handed weapon occupies off-hand: enforced','Inventory loadout -> combat stats: enforced','Armor/head/shield reset from loadout: enforced','Round cap: 250 · guard cap: 6000','Balance values: unchanged.'].join('\n');
- cfg=snap.cfg;units=snap.units;terrain=snap.terrain;order=snap.order;idx=snap.idx;round=snap.round;over=snap.over;combatLog=snap.combatLog;fullLog=snap.fullLog;playerInventory.equip=snap.equip;auto=oldAuto;nextRender();downloadTxt('Eirdan_'+mode+'_diagnostic_'+Date.now()+'.txt',report);alert(mode+' ×'+n+' завершено. TXT отправлен в загрузки.')
+ cfg=snap.cfg;units=snap.units;terrain=snap.terrain;order=snap.order;idx=snap.idx;round=snap.round;over=snap.over;combatLog=snap.combatLog;fullLog=snap.fullLog;playerInventory.equip=snap.equip;auto=oldAuto;nextRender();pt.textContent=(mode==='1v1'?'1v1':'3v3')+' · '+n+' / '+n+' · ГОТОВО';pb.style.width='100%';b1.disabled=false;b3.disabled=false;downloadTxt('Eirdan_'+mode+'_diagnostic_'+Date.now()+'.txt',report);setTimeout(()=>progress.classList.add('hidden'),2500)
 }
 $('sim1v1').onclick=()=>simulateDiagnostic('1v1',100);
 $('sim3v3').onclick=()=>simulateDiagnostic('3v3',100);
