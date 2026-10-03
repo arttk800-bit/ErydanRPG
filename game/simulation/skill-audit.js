@@ -1,0 +1,2 @@
+export class SkillAudit{constructor(){this.uses=new Map();this.byClass=new Map();}record(u,skill){this.uses.set(skill,(this.uses.get(skill)||0)+1);const k=u.cls+':'+skill;this.byClass.set(k,(this.byClass.get(k)||0)+1);}summary(){return{uses:Object.fromEntries(this.uses),byClass:Object.fromEntries(this.byClass)};}}
+export function missingSkills(audit,expected){return expected.filter(x=>!(audit.uses.get(x)>0));}
