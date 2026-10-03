@@ -473,6 +473,9 @@ $('masterVolume').oninput=e=>{window.EIRDAN_MASTER_VOLUME=(+e.target.value||0)/1
 $('rpgCharacter').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;playerInventory.selectedSlot=null;openInventory()};
 renderRpg();
 showOnly('mainMenu');
+$('versionBadge').onclick=()=>{$('versionOverlay').classList.remove('hidden')};
+$('versionClose').onclick=()=>{$('versionOverlay').classList.add('hidden')};
+$('versionOverlay').onclick=e=>{if(e.target===$('versionOverlay'))$('versionOverlay').classList.add('hidden')};
 $('inventory').onclick=openInventory;
 $('invClose').onclick=closeInventory;
 $('invEquip').onclick=equipSelected;
