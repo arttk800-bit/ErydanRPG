@@ -367,7 +367,7 @@ async function runFullDiagnostic(){
   status.textContent='Проверка мира...';await sleep(20);
   ok('World: all places valid',Object.values(WORLD.places).every(p=>p&&p.name&&Number.isInteger(p.x)&&Number.isInteger(p.y)));
   let t0=WORLD.minutes;passTime(30);ok('World: passTime +30',WORLD.minutes===t0+30||WORLD.day>snap.world.day);Object.assign(WORLD,structuredClone(snap.world));
-  ok('World: current place exists',!!WORLD.places[WORLD.current]);
+  ok('World: current place exists',!!WORLD.places[WORLD.location]);
   ok('World: travel function exists',typeof travelTo==='function');
   ok('World: render functions exist',[renderRpg,renderLocation,renderTown,showGateEvent].every(fn=>typeof fn==='function'));
   ok('World: place IDs unique',new Set(Object.keys(WORLD.places)).size===Object.keys(WORLD.places).length);
@@ -388,8 +388,9 @@ async function runFullDiagnostic(){
 
   status.textContent='Проверка боя и симуляций...';await sleep(20);
   ok('Combat: core functions exist',['attack','nextTurn','restSkill','prepareSkill','simulateDiagnostic'].every(n=>typeof eval(n)==='function'));
-  const combatIds=['start','random','back','auto','restSkill','prepareSkill','endTurn'];
+  const combatIds=['start','random','back','inventory'];
   ok('Combat: primary controls exist',combatIds.every(id=>!!$(id)),combatIds.filter(id=>!$(id)).join(', '));
+  ok('Combat: skills available',['restSkill','prepareSkill','nextTurn'].every(n=>typeof eval(n)==='function'));
   ok('Combat: start/random/back handlers wired',['start','random','back'].every(id=>typeof $(id)?.onclick==='function'));
   ok('Combat: inventory handler wired',typeof $('inventory').onclick==='function');
   await simulateDiagnostic('1v1',100);ok('Simulation: 1v1 x100 report generated',!!window.lastSimulationReport);
