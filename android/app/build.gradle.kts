@@ -9,7 +9,14 @@ android {
   applicationId="com.eirdan.client"
   minSdk=26
   targetSdk=35
-  versionCode=1505
-  versionName="0.15.5-debug"
+  versionCode=1506
+  versionName="0.15.6-debug"
+ }
+ compileOptions {
+  sourceCompatibility=JavaVersion.VERSION_17
+  targetCompatibility=JavaVersion.VERSION_17
+ }
+ kotlinOptions {
+  jvmTarget="17"
  }
 }
