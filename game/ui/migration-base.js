@@ -268,7 +268,7 @@ function ensureBattleControls(){['combatLog','auto','endTurn','restSkill','prepa
 $('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+q+','+r+'] · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st);nextRender()}};
 
 
-document.body.appendChild($('invOverlay'));
+document.body.appendChild($('invOverlay'));document.body.appendChild($('resultOverlay'));
 const WORLD={
  day:1,minutes:8*60,location:'road',gold:24,reputation:0,
  flags:{gateIncident:false},
