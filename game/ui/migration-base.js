@@ -385,7 +385,7 @@ async function runFullDiagnostic(){
  hiddenIds.forEach(id=>$(id).classList.toggle('hidden',hiddenState[id]));
  $('debugPanel').classList.remove('hidden');
  out.push('','SUMMARY','PASS: '+pass,'FAIL: '+fail,'WARN: '+warn,'RESULT: '+(fail?'FAILED':'PASSED'));
- fullDiagnosticLog=out.join('\n');window.lastFullDiagnosticLog=fullDiagnosticLog;$('downloadFullDiagnostic').disabled=false;$('uploadFullDiagnostic').disabled=false;btn.disabled=false;status.textContent='Готово: PASS '+pass+' · FAIL '+fail+' · WARN '+warn+' · отправка...';await uploadFullDiagnosticLog(true);
+ fullDiagnosticLog=out.join('\n');window.lastFullDiagnosticLog=fullDiagnosticLog;$('downloadFullDiagnostic').disabled=false;$('uploadFullDiagnostic').disabled=false;btn.disabled=false;status.textContent='Готово: PASS '+pass+' · FAIL '+fail+' · WARN '+warn+' · отправка...';setTimeout(()=>uploadFullDiagnosticLog(true),0);
 }
 $('newGame').onclick=()=>{showOnly('rpgShell');rpgScreen='world';renderRpg()};
 $('openSettings').onclick=()=>openSettingsFrom('mainMenu');
