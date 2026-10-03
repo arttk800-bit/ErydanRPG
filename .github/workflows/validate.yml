@@ -30,12 +30,13 @@ jobs:
         with:
           name: mirror3000-modular
           path: artifacts/mirror3000-modular.json
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
       - name: Build Android debug APK
         id: apk
         working-directory: android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+        run: gradle assembleDebug
       - uses: actions/upload-artifact@v4
         if: steps.apk.outcome == 'success'
         with:
