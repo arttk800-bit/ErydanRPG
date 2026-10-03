@@ -38,9 +38,9 @@ class MainActivity:Activity(){
   val manifest=JSONObject(String(get(manifestUrl),Charsets.UTF_8));if(manifest.optInt("schema")!=1)return@execute
   val remote=manifest.getString("version");if(remote==prefs.getString("installedVersion",""))return@execute
   val staging=File(filesDir,"game-update.tmp");staging.deleteRecursively();staging.mkdirs();val files=manifest.getJSONArray("files")
-  for(i in 0 until files.length()){val spec=files.getJSONObject(i),path=spec.getString("path");if(path.contains("..")||path.startsWith("/"))throw IllegalArgumentException("unsafe path");val bytes=get(rawBase+path);if(spec.has("sha256")&&sha256(bytes)!=spec.getString("sha256"))throw IllegalStateException("checksum "+path);val out=File(staging,path);out.parentFile?.mkdirs();out.writeBytes(bytes)}
+  for(i in 0 until files.length()){val spec=files.getJSONObject(i);val path=spec.getString("path");if(path.contains("..")||path.startsWith("/"))throw IllegalArgumentException("unsafe path");val bytes=get(rawBase+path);if(spec.has("sha256")&&sha256(bytes)!=spec.getString("sha256"))throw IllegalStateException("checksum "+path);val out=File(staging,path);out.parentFile?.mkdirs();out.writeBytes(bytes)}
   if(!File(staging,manifest.getString("entry")).isFile)throw IllegalStateException("missing entry")
-  val r=root(),backup=File(filesDir,"game-update.old");backup.deleteRecursively();if(r.exists())r.renameTo(backup)
+  val r=root();val backup=File(filesDir,"game-update.old");backup.deleteRecursively();if(r.exists())r.renameTo(backup)
   if(!staging.renameTo(r)){if(backup.exists())backup.renameTo(r);throw IllegalStateException("install failed")}
   prefs.edit().putString("installedVersion",remote).putBoolean("pending",true).putBoolean("good",false).apply()
  }catch(_:Exception){}}}
