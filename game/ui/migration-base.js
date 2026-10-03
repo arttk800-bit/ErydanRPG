@@ -117,7 +117,7 @@ function drawField(){
  window.__hexLayout=L
 }
 function render(){drawField();$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+(u.id==='a0'?(u.helmetName+' · '+u.armorName+' · '+u.bootsName):u.armorName)+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'/'+(u.maxSt||100)+' · DEF '+u.def+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
-$('back').onclick=()=>{pendingDuel=false;$('prepFight').classList.add('hidden');$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
+$('back').onclick=()=>{$('resultOverlay').classList.add('hidden');pendingDuel=false;$('prepFight').classList.add('hidden');$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
 
 const dirs=(q)=>(q&1)?[[1,0],[1,1],[0,1],[-1,1],[-1,0],[0,-1]]:[[1,-1],[1,0],[0,1],[-1,0],[-1,-1],[0,-1]];
 const neigh=(q,r)=>dirs(q).map(d=>[q+d[0],r+d[1]]).filter(p=>p[0]>=0&&p[0]<GRID.C&&p[1]>=0&&p[1]<GRID.R);
@@ -146,12 +146,16 @@ function battleResultText(A,E){
 }
 function checkEnd(){let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy'),was=over;over=!A||!E;if(over){$('round').textContent=(A?'Победа':'Поражение')+' · раунд '+round;if(!was)setTimeout(()=>showBattleResult(A,E),0)}return over}
 function showBattleResult(A,E){
- let l=$('combatLog');if(l){l.textContent=battleResultText(A,E);l.style.maxHeight='420px';l.scrollTop=0}
- let autoBtn=$('auto'),endBtn=$('endTurn');if(autoBtn){autoBtn.disabled=true;autoBtn.textContent='Бой завершён'}if(endBtn)endBtn.disabled=true;let actions=$('hud').querySelector('.actions');if(actions&&!$('downloadBattleLog')){let d=document.createElement('button');d.id='downloadBattleLog';d.textContent='Скачать лог боя';d.onclick=()=>downloadTxt('Eirdan_battle_'+Date.now()+'.txt',battleResultText(A,E));actions.append(d)}
+ window.lastBattleReport=battleResultText(A,E);
+ let title=A&&!E?'Победа':E&&!A?'Поражение':'Бой завершён';
+ $('resultTitle').textContent=title;
+ $('resultBrief').textContent='Раунд '+round+' · '+units.map(u=>u.name+': '+(u.alive?u.hp+' HP':'выбыл')).join(' · ');
+ $('resultOverlay').classList.remove('hidden');
+ let autoBtn=$('auto'),endBtn=$('endTurn');if(autoBtn){autoBtn.disabled=true;autoBtn.textContent='Бой завершён'}if(endBtn)endBtn.disabled=true;
 }
 function nextTurn(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){log(c.name+': кровотечение −'+c.bleed);c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return nextRender()}c.ap=9;c.st=Math.min(100,c.st+12);nextRender();if(auto||c.id!=='a0')setTimeout(aiTurn,60)}
 function aiTurn(){if(over)return;let a=order[idx];if(!a.alive)return nextTurn();let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let acted=false,wk=activeWeapon(a,t),w=W[wk];if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),before=dist(a,t),o=neigh(a.q,a.r).filter(p=>!at(...p)&&!blocked(...p)&&hd(p[0],p[1],t.q,t.r)<before).sort((x,y)=>hd(x[0],x[1],t.q,t.r)-hd(y[0],y[1],t.q,t.r))[0];if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}nextRender();if(!acted)return setTimeout(nextTurn,60);setTimeout(()=>{if(over)return;let target=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y))[0];if(!target)return;let aw=W[activeWeapon(a,target)],mc=moveCost(a);let canAttack=dist(a,target)<=aw.r&&a.ap>=aw.ap,canMove=a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>!at(...p)&&!blocked(...p)&&hd(p[0],p[1],target.q,target.r)<dist(a,target));if(canAttack||canMove)aiTurn();else nextTurn()},60)}
-function nextRender(){render();$('round').textContent=(over?$('round').textContent:'Раунд '+round+' · ход '+(order[idx]?.name||''));let l=$('combatLog');if(l)l.textContent=over?battleResultText(units.some(u=>u.alive&&u.team==='ally'),units.some(u=>u.alive&&u.team==='enemy')):combatLog.slice(0,18).join('\n');}
+function nextRender(){render();$('round').textContent=(over?$('round').textContent:'Раунд '+round+' · ход '+(order[idx]?.name||''));let l=$('combatLog');if(l)l.textContent=combatLog.slice(0,18).join('\n');}
 
 function simulateDiagnostic(mode,n=100){
  let wins={ally:0,enemy:0,draw:0},rounds=0,maxRounds=0,timeouts=0,oldAuto=auto,details=[],equipWins={};
@@ -181,7 +185,7 @@ function simulateDiagnostic(mode,n=100){
 function nextTurnSync(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return}c.ap=9;c.st=Math.min(c.maxSt||100,c.st+12)}
 $('sim1v1').onclick=()=>simulateDiagnostic('1v1',100);
 $('sim3v3').onclick=()=>simulateDiagnostic('3v3',100);
-function ensureBattleControls(){['combatLog','auto','endTurn','downloadBattleLog'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.disabled=false;b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let e=document.createElement('button');e.id='endTurn';e.disabled=false;e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender();}
+function ensureBattleControls(){['combatLog','auto','endTurn'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.disabled=false;b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let e=document.createElement('button');e.id='endTurn';e.disabled=false;e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender();}
 $('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);nextRender()}};
 
 $('inventory').onclick=openInventory;
@@ -191,3 +195,6 @@ $('invUnequip').onclick=unequipSelected;
 
 $('tabBag').onclick=()=>{playerInventory.view='bag';playerInventory.selectedSlot=null;renderInventory()};
 $('tabChar').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;renderInventory()};
+
+$('resultNew').onclick=()=>{$('resultOverlay').classList.add('hidden');$('back').click()};
+$('resultDownload').onclick=()=>{if(window.lastBattleReport)downloadTxt('Eirdan_battle_'+Date.now()+'.txt',window.lastBattleReport)};
