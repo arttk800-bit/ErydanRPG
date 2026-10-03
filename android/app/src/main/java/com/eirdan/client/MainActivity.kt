@@ -9,7 +9,7 @@ import android.webkit.WebViewClient
 
 class MainActivity:Activity(){
  private lateinit var web:WebView
- private val gameUrl="https://raw.githack.com/arttk800-bit/ErydanRPG/main/game/ui/index.html"
+ private val gameUrl="https://arttk800-bit.github.io/ErydanRPG/game/ui/index.html"
 
  @SuppressLint("SetJavaScriptEnabled")
  override fun onCreate(b:Bundle?){
