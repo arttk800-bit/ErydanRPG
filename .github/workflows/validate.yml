@@ -2,12 +2,15 @@ name: validate
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/diagnostics/mirror3000-latest.json'
+      - 'docs/builds/Eirdan-debug.apk'
   pull_request:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:
@@ -27,17 +30,28 @@ jobs:
         with:
           name: mirror3000-modular
           path: artifacts/mirror3000-modular.json
-      - name: Publish latest Mirror report
+      - name: Build Android debug APK
+        id: apk
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        if: steps.apk.outcome == 'success'
+        with:
+          name: Eirdan-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish latest Mirror report and APK
         if: github.event_name != 'pull_request' && always()
         run: |
-          test -f artifacts/mirror3000-modular.json || exit 0
-          mkdir -p docs/diagnostics
-          cp artifacts/mirror3000-modular.json docs/diagnostics/mirror3000-latest.json
+          mkdir -p docs/diagnostics docs/builds
+          test ! -f artifacts/mirror3000-modular.json || cp artifacts/mirror3000-modular.json docs/diagnostics/mirror3000-latest.json
+          test ! -f android/app/build/outputs/apk/debug/app-debug.apk || cp android/app/build/outputs/apk/debug/app-debug.apk docs/builds/Eirdan-debug.apk
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/diagnostics/mirror3000-latest.json
+          git add docs/diagnostics/mirror3000-latest.json docs/builds/Eirdan-debug.apk 2>/dev/null || true
           git diff --cached --quiet && exit 0
-          git commit -m "chore: publish latest Mirror x3000 report [skip ci]"
+          git commit -m "chore: publish latest diagnostics and APK [skip ci]"
           git push
       - name: Enforce Mirror parity
         if: steps.mirror.outcome == 'failure'
