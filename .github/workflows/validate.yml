@@ -36,7 +36,7 @@ jobs:
       - name: Build Android debug APK
         id: apk
         working-directory: android
-        run: gradle assembleDebug
+        run: gradle assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         if: steps.apk.outcome == 'success'
         with:
