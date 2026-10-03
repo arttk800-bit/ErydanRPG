@@ -322,9 +322,19 @@ function showGateEvent(){
  box.querySelector('[data-event="listen"]').onclick=()=>{passTime(10);WORLD.reputation+=1;box.innerHTML='<div class="eventBox"><b>Слух</b><p>Торговец жалуется на пропажи товара на северном тракте. Стражник советует не ходить к лесу после заката.</p></div>';renderRpgStatsOnly()};
  box.querySelector('[data-event="leave"]').onclick=()=>{box.innerHTML=''}
 }
-$('openCombatLab').onclick=()=>{closeInventory();$('rpgShell').classList.add('hidden');$('combatLab').classList.remove('hidden')};
+function showOnly(id){['mainMenu','settingsMenu','rpgShell','combatLab'].forEach(x=>$(x)?.classList.toggle('hidden',x!==id))}
+function openCombatLab(){closeInventory();showOnly('combatLab')}
+$('newGame').onclick=()=>{showOnly('rpgShell');rpgScreen='world';renderRpg()};
+$('openSettings').onclick=()=>showOnly('settingsMenu');
+$('settingsBack').onclick=()=>showOnly('mainMenu');
+$('openDebug').onclick=openCombatLab;
+$('quitGame').onclick=()=>{alert('Выход из игры будет подключён позже.')};
+$('uiMode').onchange=e=>document.body.dataset.ui=e.target.value;
+$('masterVolume').oninput=e=>{window.EIRDAN_MASTER_VOLUME=(+e.target.value||0)/100};
+$('openCombatLab').onclick=openCombatLab;
 $('rpgCharacter').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;playerInventory.selectedSlot=null;openInventory()};
 renderRpg();
+showOnly('mainMenu');
 $('inventory').onclick=openInventory;
 $('invClose').onclick=closeInventory;
 $('invEquip').onclick=equipSelected;
@@ -344,4 +354,4 @@ $('resultDownload').onclick=()=>{
  if(window.lastBattleReport)downloadTxt('Eirdan_battle_'+Date.now()+'.txt',window.lastBattleReport)
 };
 
-$('closeCombatLab').onclick=()=>{$('combatLab').classList.add('hidden');$('rpgShell').classList.remove('hidden');renderRpg()};
+$('closeCombatLab').onclick=()=>{showOnly('rpgShell');renderRpg()};
