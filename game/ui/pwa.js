@@ -1,4 +1,4 @@
-const BUILD="postbattle-modal-05";
+const BUILD="full-diagnostics-07";
 async function forceFreshBuild(){
  if(!("serviceWorker" in navigator))return;
  try{
