@@ -272,33 +272,51 @@ $('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target
 
 document.body.appendChild($('invOverlay'));document.body.appendChild($('resultOverlay'));
 const WORLD={
- day:1,minutes:8*60,location:'road',gold:24,reputation:0,
+ day:1,minutes:8*60,location:'road',gold:24,reputation:0,hasHorse:false,
+ needs:{hunger:0,thirst:0,fatigue:0},
  flags:{gateIncident:false},
  places:{
-  road:{name:'Старый тракт',desc:'Дорога к небольшому пограничному городу.',x:1,y:2},
-  eirdan:{name:'Эйрдан',desc:'Небольшой укреплённый город.',x:2,y:2},
-  village:{name:'Деревня Рен',desc:'Несколько десятков домов и поля.',x:0,y:2},
-  forest:{name:'Серый лес',desc:'Лес к северу от тракта.',x:1,y:1},
-  ruins:{name:'Старые руины',desc:'Пока недоступно.',x:2,y:0,locked:true}
+  road:{name:'Старый тракт',desc:'Главная дорога региона.',x:48,y:76,type:'wild',icon:'↟',km:0},
+  eirdan:{name:'Эйрдан',desc:'Укреплённый торговый город.',x:76,y:64,type:'town',icon:'♜',km:12},
+  village:{name:'Деревня Рен',desc:'Поля и небольшое поселение.',x:20,y:69,type:'village',icon:'⌂',km:9},
+  forest:{name:'Дремучий лес',desc:'Густой старый лес к северу от тракта.',x:43,y:31,type:'wild',icon:'♠',km:18},
+  ruins:{name:'Старые руины',desc:'Неизведанные развалины на холмах.',x:76,y:20,type:'wild',icon:'◆',km:25,locked:true}
  }
 };
 let rpgScreen='world';
 function worldTime(){let h=Math.floor(WORLD.minutes/60)%24,m=WORLD.minutes%60;return 'День '+WORLD.day+' · '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
 function passTime(min){WORLD.minutes+=min;while(WORLD.minutes>=1440){WORLD.minutes-=1440;WORLD.day++}}
+function travelMinutes(id,mode='walk'){
+ const p=WORLD.places[id],from=WORLD.places[WORLD.location];if(!p||!from)return 0;
+ const dx=(p.x-from.x)/56,dy=(p.y-from.y)/56,km=Math.max(2,Math.round(Math.hypot(dx,dy)*32));
+ return Math.max(15,Math.round(km/(mode==='horse'?10:4.5)*60));
+}
+function applyTravelNeeds(min,mode){WORLD.needs.hunger=Math.min(100,WORLD.needs.hunger+min/55);WORLD.needs.thirst=Math.min(100,WORLD.needs.thirst+min/38);WORLD.needs.fatigue=Math.min(100,WORLD.needs.fatigue+min/(mode==='horse'?65:40))}
 function renderRpg(){
- $('worldClock').textContent=worldTime();
- $('rpgStats').textContent='Локация: '+WORLD.places[WORLD.location].name+' · Золото: '+WORLD.gold+' · Репутация Эйрдана: '+WORLD.reputation;
+ $('worldClock').textContent=worldTime();renderRpgStatsOnly();
  if(rpgScreen==='town')return renderTown();
- let cells=Array(9).fill(null),entries=Object.entries(WORLD.places);for(const [id,p] of entries)cells[p.y*3+p.x]=[id,p];
- $('rpgView').innerHTML='<h2 style="margin-top:0">Карта региона</h2><div class="note">Тестовый регион. Переходы пока мгновенные с расходом игрового времени.</div><div class="worldMap">'+cells.map(x=>x?'<button class="worldNode '+(WORLD.location===x[0]?'current ':'')+(x[1].locked?'locked':'')+'" data-world="'+x[0]+'" '+(x[1].locked?'disabled':'')+'><b>'+x[1].name+'</b><small>'+x[1].desc+'</small></button>':'<div></div>').join('')+'</div>';
- document.querySelectorAll('[data-world]').forEach(b=>b.onclick=()=>travelTo(b.dataset.world))
+ if(rpgScreen==='location')return renderLocation(WORLD.location);
+ $('rpgView').innerHTML='<h2 style="margin:0 0 4px">Карта региона</h2><div class="note">Выберите место для путешествия.</div><div class="worldMap">'+Object.entries(WORLD.places).map(([id,p])=>'<button class="worldNode '+(WORLD.location===id?'current ':'')+(p.locked?'locked':'')+'" style="left:'+p.x+'%;top:'+p.y+'%" data-world="'+id+'" '+(p.locked?'disabled':'')+'><span class="mapIcon">'+p.icon+'</span><b>'+p.name+'</b></button>').join('')+'</div>';
+ document.querySelectorAll('[data-world]').forEach(btn=>btn.onclick=()=>openTravel(btn.dataset.world))
 }
-function travelTo(id){
- if(id===WORLD.location&&id==='eirdan'){rpgScreen='town';return renderRpg()}
- if(id!==WORLD.location){passTime(id==='eirdan'?45:30);WORLD.location=id}
- if(id==='eirdan'){rpgScreen='town';renderRpg();if(!WORLD.flags.gateIncident)setTimeout(showGateEvent,0);return}
- rpgScreen='location';renderLocation(id)
+function openTravel(id){
+ const p=WORLD.places[id];if(!p||p.locked)return;
+ if(id===WORLD.location){if(p.type==='town'){rpgScreen='town';renderRpg()}else{rpgScreen='location';renderLocation(id)}return}
+ const walk=travelMinutes(id,'walk'),horse=travelMinutes(id,'horse');
+ const ov=document.createElement('div');ov.className='travelOverlay';ov.id='travelOverlay';
+ ov.innerHTML='<section class="travelCard"><h3>'+p.name+'</h3><div class="note">'+p.desc+'</div><div class="travelMeta"><div><small>Пешком</small><br><b>~'+formatDuration(walk)+'</b></div><div><small>На лошади</small><br><b>~'+formatDuration(horse)+'</b></div></div><div class="travelActions"><button class="primary" data-travel="walk">Идти пешком · '+formatDuration(walk)+'</button><button data-travel="horse" '+(!WORLD.hasHorse?'disabled':'')+'>На лошади · '+(WORLD.hasHorse?formatDuration(horse):'нет лошади')+'</button><button data-travel="cancel">Отмена</button></div></section>';
+ document.body.appendChild(ov);
+ ov.querySelector('[data-travel="cancel"]').onclick=()=>ov.remove();
+ ov.querySelector('[data-travel="walk"]').onclick=()=>{ov.remove();completeTravel(id,'walk',walk)};
+ let hb=ov.querySelector('[data-travel="horse"]');if(WORLD.hasHorse)hb.onclick=()=>{ov.remove();completeTravel(id,'horse',horse)}
 }
+function formatDuration(min){let h=Math.floor(min/60),m=min%60;return (h?h+' ч ':'')+(m?m+' мин':'')}
+function completeTravel(id,mode,min){
+ passTime(min);applyTravelNeeds(min,mode);WORLD.location=id;
+ const p=WORLD.places[id];rpgScreen=p.type==='town'?'town':'location';renderRpg();
+ if(id==='eirdan'&&!WORLD.flags.gateIncident)setTimeout(showGateEvent,0)
+}
+function travelTo(id){openTravel(id)}
 function renderLocation(id){
  let p=WORLD.places[id];$('worldClock').textContent=worldTime();renderRpgStatsOnly();
  $('rpgView').innerHTML='<h2 style="margin:0 0 4px">'+p.name+'</h2><div class="note">'+p.desc+'</div><div class="eventBox"><b>Осмотреться</b><p>'+(id==='forest'?'Между деревьями тянется старая тропа. Пока здесь нет активных событий.':id==='village'?'Небольшая деревня живёт обычной жизнью. Позже здесь появятся дома и NPC.':'Пыльный тракт соединяет поселения региона. Пока дорога безопасна.')+'</p></div><button id="locationBack" style="width:100%;margin-top:10px">На карту региона</button>';
