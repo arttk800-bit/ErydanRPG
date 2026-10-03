@@ -1,6 +1,6 @@
 EIRDAN FULL GAME DIAGNOSTIC
-Build: diagnostic-10
-Generated: 2026-10-03T23:04:45.703Z
+Build: diagnostic-11
+Generated: 2026-10-03T23:12:15.197Z
 Source code: NOT INCLUDED
 
 === AUTOMATED INTERACTION TESTS ===
@@ -23,7 +23,7 @@ PASS | Result: action handlers wired
 PASS | Simulation: action handlers wired
 PASS | World: all places valid
 PASS | World: passTime +30
-FAIL | World: current place exists
+PASS | World: current place exists
 PASS | World: travel function exists
 PASS | World: render functions exist
 PASS | World: place IDs unique
@@ -38,14 +38,15 @@ PASS | Inventory: Персонаж tab
 PASS | Inventory: unequip selected slot
 PASS | Inventory: closes
 PASS | Combat: core functions exist
-FAIL | Combat: primary controls exist | auto, restSkill, prepareSkill, endTurn
+PASS | Combat: primary controls exist
+PASS | Combat: skills available
 PASS | Combat: start/random/back handlers wired
 PASS | Combat: inventory handler wired
 PASS | Simulation: 1v1 x100 report generated
 
 --- 1v1 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-10
+BUILD: diagnostic-11
 MODE: 1v1 RANDOM EQUIPMENT
 BATTLES: 100
 SEED CALLS: 17315
@@ -9766,7 +9767,7 @@ PASS | Simulation: 3v3 x100 report generated
 
 --- 3v3 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-10
+BUILD: diagnostic-11
 MODE: 3v3 MIRROR EQUIPMENT
 BATTLES: 100
 SEED CALLS: 45028
@@ -10041,7 +10042,7 @@ PASS | Simulation: buttons restored
 PASS | Result: overlay can close
 
 SUMMARY
-PASS: 39
-FAIL: 2
+PASS: 42
+FAIL: 0
 WARN: 0
-RESULT: FAILED
+RESULT: PASSED
