@@ -8,16 +8,37 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm run validate
       - name: Modular Mirror x3000
+        id: mirror
+        continue-on-error: true
         run: npm run mirror:3000
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: mirror3000-modular
           path: artifacts/mirror3000-modular.json
+      - name: Publish latest Mirror report
+        if: github.event_name != 'pull_request' && always()
+        run: |
+          test -f artifacts/mirror3000-modular.json || exit 0
+          mkdir -p docs/diagnostics
+          cp artifacts/mirror3000-modular.json docs/diagnostics/mirror3000-latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/diagnostics/mirror3000-latest.json
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: publish latest Mirror x3000 report [skip ci]"
+          git push
+      - name: Enforce Mirror parity
+        if: steps.mirror.outcome == 'failure'
+        run: exit 1
