@@ -2,6 +2,9 @@ plugins {
  id("com.android.application")
  id("org.jetbrains.kotlin.android")
 }
+dependencies {
+ implementation("androidx.webkit:webkit:1.12.1")
+}
 android {
  namespace="com.eirdan.client"
  compileSdk=35
@@ -9,8 +12,8 @@ android {
   applicationId="com.eirdan.client"
   minSdk=26
   targetSdk=35
-  versionCode=1506
-  versionName="0.15.6-debug"
+  versionCode=1507
+  versionName="0.15.7-debug"
  }
  compileOptions {
   sourceCompatibility=JavaVersion.VERSION_17
