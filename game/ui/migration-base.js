@@ -385,7 +385,7 @@ async function runFullDiagnostic(){
  hiddenIds.forEach(id=>$(id).classList.toggle('hidden',hiddenState[id]));
  $('debugPanel').classList.remove('hidden');
  out.push('','SUMMARY','PASS: '+pass,'FAIL: '+fail,'WARN: '+warn,'RESULT: '+(fail?'FAILED':'PASSED'));
- fullDiagnosticLog=out.join('\n');window.lastFullDiagnosticLog=fullDiagnosticLog;$('downloadFullDiagnostic').disabled=false;$('uploadFullDiagnostic').disabled=false;btn.disabled=false;status.textContent='Готово: PASS '+pass+' · FAIL '+fail+' · WARN '+warn;
+ fullDiagnosticLog=out.join('\n');window.lastFullDiagnosticLog=fullDiagnosticLog;$('downloadFullDiagnostic').disabled=false;$('uploadFullDiagnostic').disabled=false;btn.disabled=false;status.textContent='Готово: PASS '+pass+' · FAIL '+fail+' · WARN '+warn+' · отправка...';await uploadFullDiagnosticLog(true);
 }
 $('newGame').onclick=()=>{showOnly('rpgShell');rpgScreen='world';renderRpg()};
 $('openSettings').onclick=()=>openSettingsFrom('mainMenu');
@@ -394,7 +394,7 @@ $('openDebug').onclick=()=>$('debugPanel').classList.toggle('hidden');
 $('enterCombatLab').onclick=()=>openCombatLab('settingsMenu');
 $('runFullDiagnostic').onclick=runFullDiagnostic;
 $('downloadFullDiagnostic').onclick=()=>{if(fullDiagnosticLog)downloadTxt('Eirdan_full_diagnostic_'+Date.now()+'.txt',fullDiagnosticLog)};
-$('uploadFullDiagnostic').onclick=async()=>{const b=$('uploadFullDiagnostic'),s=$('fullDiagnosticStatus');if(!fullDiagnosticLog)return;b.disabled=true;s.textContent='Отправка диагностики на GitHub...';try{const runId='eirdan_'+Date.now();const r=await fetch(DIAGNOSTIC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({run_id:runId,build:window.EIRDAN_BUILD||'unknown',generated_at:new Date().toISOString(),log:fullDiagnosticLog})});const x=await r.json();if(!r.ok||!x.ok)throw Error(x.error||('HTTP '+r.status));s.textContent='Отправлено на GitHub · '+x.run_id}catch(e){s.textContent='Ошибка отправки: '+(e?.message||e)}finally{b.disabled=false}};
+async function uploadFullDiagnosticLog(auto=false){const b=$('uploadFullDiagnostic'),s=$('fullDiagnosticStatus');if(!fullDiagnosticLog)return false;b.disabled=true;if(!auto)s.textContent='Отправка диагностики...';try{const runId='eirdan_'+Date.now();const r=await fetch(DIAGNOSTIC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({run_id:runId,build:window.EIRDAN_BUILD||'unknown',generated_at:new Date().toISOString(),log:fullDiagnosticLog})});const x=await r.json();if(!r.ok||!x.ok)throw Error(x.error||('HTTP '+r.status));s.textContent=(auto?'Готово и отправлено автоматически · ':'Диагностика отправлена · ')+x.run_id;return true}catch(e){s.textContent='Ошибка отправки: '+(e?.message||e)+' · можно повторить кнопкой';return false}finally{b.disabled=false}}\n$('uploadFullDiagnostic').onclick=()=>uploadFullDiagnosticLog(false);
 $('gameMenuBtn').onclick=()=>$('gameMenu').classList.toggle('hidden');
 $('resumeGame').onclick=()=>$('gameMenu').classList.add('hidden');
 $('gameSettings').onclick=()=>{$('gameMenu').classList.add('hidden');openSettingsFrom('rpgShell')};
