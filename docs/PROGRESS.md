@@ -1,6 +1,6 @@
 # Eirdan 0.15 migration progress
-Current estimate: 85/100.
+Current estimate: 89/100.
 
-Added modular panic/retreat policy and edge escape, ranged melee-pressure logic, Smoke use by archers under pressure, priest healing, berserker Rage, Guardian guard, bandage decisions and combat spell selection. AI remains routed through shared combat/movement APIs.
+Migrated opportunity/disengage foundation: one opportunity attack per enemy per retreating unit turn, 0.8 damage multiplier, -12 Resolve on hit, and no movement stop. Added squad retreat/edge escape helpers and opportunity telemetry.
 
-Remaining: exact alpha14p skill/AI parity and opportunity/disengage details; production UI/assets; fixed-seed and Mirror parity runs; Android build/release validation; updater install path; final legacy cleanup.
+Remaining: wire opportunity resolution into every movement path; finish exact class-skill parity; production assets/UI; execute fixed-seed and mirror parity gates; validate Android release APK/updater; remove legacy code after parity.
