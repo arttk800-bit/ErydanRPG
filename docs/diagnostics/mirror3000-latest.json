@@ -9,9 +9,9 @@
     "avgRounds": 33.28,
     "maxRounds": 322,
     "timing": {
-      "elapsedMs": 1697,
-      "elapsedSeconds": 1.697,
-      "formatted": "1.697s"
+      "elapsedMs": 1470,
+      "elapsedSeconds": 1.47,
+      "formatted": "1.470s"
     }
   },
   "comparison": {
