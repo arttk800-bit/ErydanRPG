@@ -168,7 +168,14 @@ function showBattleResult(A,E){
  $('resultOverlay').classList.remove('hidden');
  let autoBtn=$('auto'),endBtn=$('endTurn');if(autoBtn){autoBtn.disabled=true;autoBtn.textContent='Бой завершён'}if(endBtn)endBtn.disabled=true;
 }
-function nextTurn(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){let hp0=c.hp;log('[СОСТОЯНИЕ] '+c.name+': кровотечение −'+c.bleed+' · HP '+hp0+'→'+Math.max(0,hp0-c.bleed));c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return nextRender()}let st0=c.st;c.ap=9;c.st=Math.min(c.maxSt||100,c.st+12);log('[ХОД] '+c.name+' · позиция ['+c.q+','+c.r+'] · AP=9 · ST '+st0+'→'+c.st+' · HP '+c.hp+'/'+c.maxHp+' · bleed '+c.bleed);nextRender();if(auto||c.id!=='a0')setTimeout(aiTurn,60)}
+function advanceTurnCore(){
+ if(over)return false;
+ do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);
+ let c=order[idx];
+ if(c.bleed){let hp0=c.hp;log('[СОСТОЯНИЕ] '+c.name+': кровотечение −'+c.bleed+' · HP '+hp0+'→'+Math.max(0,hp0-c.bleed));c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return false}
+ let st0=c.st;c.ap=9;c.st=Math.min(c.maxSt||100,c.st+12);log('[ХОД] '+c.name+' · позиция ['+c.q+','+c.r+'] · AP=9 · ST '+st0+'→'+c.st+' · HP '+c.hp+'/'+c.maxHp+' · bleed '+c.bleed);return true
+}
+function nextTurn(){if(!advanceTurnCore())return nextRender();nextRender();let c=order[idx];if(auto||c.id!=='a0')setTimeout(aiTurn,60)}
 function pathStep(a,t,range=1){
  const start=a.q+','+a.r,queue=[[a.q,a.r]],seen=new Set([start]),parent=new Map(),key=(q,r)=>q+','+r;
  let goal=null,limit=GRID.C*GRID.R+20;
@@ -187,6 +194,18 @@ function pathStep(a,t,range=1){
  while(prev&&!(prev[0]===a.q&&prev[1]===a.r)){cur=prev;prev=parent.get(key(cur[0],cur[1]))}
  return cur
 }
+function combatStepSync(){
+ if(over)return false;let a=order[idx];if(!a.alive)return advanceTurnCore();
+ let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t){checkEnd();return false}
+ let wk=activeWeapon(a,t),w=W[wk],acted=false;
+ if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);
+ else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+a.q+','+a.r+'] · цель '+t.name+' · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st+' · дистанция '+hd(q0,r0,t.q,t.r)+'→'+dist(a,t));acted=true}}
+ if(over)return false;
+ let target=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y))[0];if(!target){checkEnd();return false}
+ let aw=W[activeWeapon(a,target)],mc=moveCost(a),canAttack=dist(a,target)<=aw.r&&a.ap>=aw.ap,canMove=a.ap>=mc.ap&&!!pathStep(a,target,aw.r);
+ if(!acted||(!canAttack&&!canMove))advanceTurnCore();
+ return true
+}
 function aiTurn(){if(over)return;let a=order[idx];if(!a.alive)return nextTurn();let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let acted=false,wk=activeWeapon(a,t),w=W[wk];if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+a.q+','+a.r+'] · цель '+t.name+' · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st+' · дистанция '+hd(q0,r0,t.q,t.r)+'→'+dist(a,t));acted=true}}nextRender();if(!acted)return setTimeout(nextTurn,60);setTimeout(()=>{if(over)return;let target=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y))[0];if(!target)return;let aw=W[activeWeapon(a,target)],mc=moveCost(a);let canAttack=dist(a,target)<=aw.r&&a.ap>=aw.ap,canMove=a.ap>=mc.ap&&!!pathStep(a,target,aw.r);if(canAttack||canMove)aiTurn();else nextTurn()},60)}
 function nextRender(){render();$('round').textContent=(over?$('round').textContent:'Раунд '+round+' · ход '+(order[idx]?.name||''));let l=$('combatLog');if(l)l.textContent=combatLog.slice(0,18).join('\n');}
 
@@ -203,19 +222,14 @@ function simulateDiagnostic(mode,n=100){
    for(let i=0;i<3;i++){let eq=randomLoadout();applyLoadoutToUnit(units[i],eq);applyLoadoutToUnit(units[3+i],structuredClone(eq))}
   }
   order=[...units];idx=0;round=1;over=false;combatLog=[];fullLog=[];genTerrain();fullLog.push('=== SIM START ===',...units.map(u=>u.name+' ['+u.q+','+u.r+']'+(u.loadout?'\n'+loadoutText(u.loadout):'')));let guard=0;
-  while(!over&&round<=250&&guard++<6000){
-   let a=order[idx];if(!a.alive){nextTurnSync();continue}
-   let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t){checkEnd();break}
-   let wk=activeWeapon(a,t),w=W[wk],acted=false;if(dist(a,t)<=w.r&&a.ap>=w.ap)acted=attack(a,t);else{let mc=moveCost(a),o=pathStep(a,t,w.r);if(o&&a.ap>=mc.ap){a.q=o[0];a.r=o[1];a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);acted=true}}if(!acted||a.ap<Math.min(moveCost(a).ap,W[activeWeapon(a,t)]?.ap||99))nextTurnSync()
-  }
-  let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy'),res=A&&!E?'ally':E&&!A?'enemy':'draw';if(res==='draw')timeouts++;wins[res]++;rounds+=round;maxRounds=Math.max(maxRounds,round);
+  while(!over&&round<=250&&guard++<6000)combatStepSync();
+  let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy'),limitHit=!over&&(round>250||guard>=6000);if(limitHit)log('[STALL] лимит симуляции · round '+round+' · actions '+guard+' · '+units.filter(u=>u.alive).map(u=>u.name+' ['+u.q+','+u.r+'] HP '+u.hp+' ST '+u.st).join(' | '));let res=A&&!E?'ally':E&&!A?'enemy':'draw';if(res==='draw')timeouts++;wins[res]++;rounds+=round;maxRounds=Math.max(maxRounds,round);
   if(duel){let keyA=units[0].loadout.main,keyE=units[1].loadout.main;equipWins[keyA]=equipWins[keyA]||{b:0,w:0};equipWins[keyE]=equipWins[keyE]||{b:0,w:0};equipWins[keyA].b++;equipWins[keyE].b++;if(res==='ally')equipWins[keyA].w++;if(res==='enemy')equipWins[keyE].w++;details.push('BATTLE '+(k+1)+' · '+res.toUpperCase()+' · rounds '+round+'\nALLY\n'+loadoutText(units[0].loadout)+'\n'+unitDerivedText(units[0])+'\nENEMY\n'+loadoutText(units[1].loadout)+'\n'+unitDerivedText(units[1])+'\nEVENTS\n'+fullLog.join('\n'))}
  }
  let equipLines=Object.entries(equipWins).map(([id,x])=>(INV_ITEMS[id]?.n||id)+': '+x.w+'/'+x.b+' wins ('+(x.b?(x.w/x.b*100).toFixed(1):0)+'%)');
- let report=['EIRDAN 0.15 · DIAGNOSTIC','BUILD: '+(window.EIRDAN_BUILD||'unknown'),'MODE: '+(mode==='1v1'?'1v1 RANDOM EQUIPMENT':'3v3 MIRROR EQUIPMENT'),'BATTLES: '+n,'SEED CALLS: '+GameRNG.calls,'','RESULTS','Allies: '+wins.ally,'Enemies: '+wins.enemy,'Draws/timeouts: '+wins.draw,'Average rounds: '+(rounds/n).toFixed(1),'Max rounds: '+maxRounds,'Timeouts: '+timeouts,'',...(duel?['WEAPON RESULTS',...equipLines,'','FULL LOADOUTS',...details]:['MIRROR RULE: each ally slot is mirrored by corresponding enemy slot; Guardian only.']),'','CHECKS','Two-handed weapon occupies off-hand: enforced','Inventory loadout -> combat stats: enforced','Armor/head/shield reset from loadout: enforced','Round cap: 250 · guard cap: 6000','Balance values: unchanged.'].join('\n');
+ let report=['EIRDAN 0.15 · DIAGNOSTIC','BUILD: '+(window.EIRDAN_BUILD||'unknown'),'MODE: '+(mode==='1v1'?'1v1 RANDOM EQUIPMENT':'3v3 MIRROR EQUIPMENT'),'BATTLES: '+n,'SEED CALLS: '+GameRNG.calls,'','RESULTS','Allies: '+wins.ally,'Enemies: '+wins.enemy,'Draws/timeouts: '+wins.draw,'Average rounds: '+(rounds/n).toFixed(1),'Max rounds: '+maxRounds,'Timeouts: '+timeouts,'',...(duel?['WEAPON RESULTS',...equipLines,'','FULL LOADOUTS',...details]:['MIRROR RULE: each ally slot is mirrored by corresponding enemy slot; Guardian only.','FULL TRACE OF LAST MIRROR BATTLE',...fullLog]),'','CHECKS','Two-handed weapon occupies off-hand: enforced','Inventory loadout -> combat stats: enforced','Armor/head/shield reset from loadout: enforced','Round cap: 250 · guard cap: 6000','Balance values: unchanged.'].join('\n');
  cfg=snap.cfg;units=snap.units;terrain=snap.terrain;order=snap.order;idx=snap.idx;round=snap.round;over=snap.over;combatLog=snap.combatLog;fullLog=snap.fullLog;playerInventory.equip=snap.equip;auto=oldAuto;nextRender();downloadTxt('Eirdan_'+mode+'_diagnostic_'+Date.now()+'.txt',report);alert(mode+' ×'+n+' завершено. TXT отправлен в загрузки.')
 }
-function nextTurnSync(){if(over)return;do{idx++;if(idx>=order.length){idx=0;round++}}while(!order[idx].alive);let c=order[idx];if(c.bleed){c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return}c.ap=9;c.st=Math.min(c.maxSt||100,c.st+12)}
 $('sim1v1').onclick=()=>simulateDiagnostic('1v1',100);
 $('sim3v3').onclick=()=>simulateDiagnostic('3v3',100);
 function ensureBattleControls(){['combatLog','auto','endTurn'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.disabled=false;b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let e=document.createElement('button');e.id='endTurn';e.disabled=false;e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender();}
