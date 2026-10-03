@@ -1,1 +1,150 @@
-{"schema":1,"channel":"development","version":"0.15.0-dev","entry":"ui/index.html","minimumClient":"0.15.0","files":[{"path":"ui/index.html"},{"path":"ui/main.js"},{"path":"ui/game.css"},{"path":"data/weapons.json"},{"path":"data/version.json"}]}
+{
+  "schema": 1,
+  "channel": "development",
+  "version": "0.15.0-dev.1",
+  "entry": "ui/index.html",
+  "minimumClient": "0.15.0",
+  "files": [
+    {
+      "path": "ui/index.html"
+    },
+    {
+      "path": "ui/main.js"
+    },
+    {
+      "path": "ui/game.css"
+    },
+    {
+      "path": "ui/store.js"
+    },
+    {
+      "path": "ui/view-model.js"
+    },
+    {
+      "path": "ui/battlefield.js"
+    },
+    {
+      "path": "ui/hud.js"
+    },
+    {
+      "path": "ui/icons.js"
+    },
+    {
+      "path": "ui/action-controller.js"
+    },
+    {
+      "path": "ui/body-part-picker.js"
+    },
+    {
+      "path": "ui/settings.js"
+    },
+    {
+      "path": "ui/music.js"
+    },
+    {
+      "path": "ui/confirm.js"
+    },
+    {
+      "path": "client/bootstrap.js"
+    },
+    {
+      "path": "client/version.js"
+    },
+    {
+      "path": "data/version.json"
+    },
+    {
+      "path": "data/weapons.json"
+    },
+    {
+      "path": "data/unit-factory.js"
+    },
+    {
+      "path": "core/game-state.js"
+    },
+    {
+      "path": "core/action-registry.js"
+    },
+    {
+      "path": "core/events.js"
+    },
+    {
+      "path": "core/hex-grid.js"
+    },
+    {
+      "path": "core/movement.js"
+    },
+    {
+      "path": "core/battle-lifecycle.js"
+    },
+    {
+      "path": "core/turn-manager.js"
+    },
+    {
+      "path": "core/rng.js"
+    },
+    {
+      "path": "combat/action-catalog.js"
+    },
+    {
+      "path": "combat/actions.js"
+    },
+    {
+      "path": "combat/accuracy.js"
+    },
+    {
+      "path": "combat/damage.js"
+    },
+    {
+      "path": "combat/body-parts.js"
+    },
+    {
+      "path": "combat/resolve.js"
+    },
+    {
+      "path": "combat/status.js"
+    },
+    {
+      "path": "combat/skills.js"
+    },
+    {
+      "path": "combat/skill-engine.js"
+    },
+    {
+      "path": "combat/melee-skills.js"
+    },
+    {
+      "path": "combat/disengage.js"
+    },
+    {
+      "path": "combat/retreat.js"
+    },
+    {
+      "path": "combat/movement-action.js"
+    },
+    {
+      "path": "ai/ai-controller.js"
+    },
+    {
+      "path": "ai/targeting.js"
+    },
+    {
+      "path": "ai/skill-policy.js"
+    },
+    {
+      "path": "ai/spell-policy.js"
+    },
+    {
+      "path": "ai/retreat-policy.js"
+    },
+    {
+      "path": "ai/melee-ai.js"
+    },
+    {
+      "path": "ai/ranged-ai.js"
+    },
+    {
+      "path": "ai/magic-ai.js"
+    }
+  ]
+}
