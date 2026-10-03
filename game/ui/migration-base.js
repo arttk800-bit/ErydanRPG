@@ -296,7 +296,7 @@ function renderRpg(){
  $('worldClock').textContent=worldTime();renderRpgStatsOnly();
  if(rpgScreen==='town')return renderTown();
  if(rpgScreen==='location')return renderLocation(WORLD.location);
- $('rpgView').innerHTML='<h2 style="margin:0 0 4px">Карта региона</h2><div class="note">Выберите место для путешествия.</div><div class="worldMap">'+Object.entries(WORLD.places).map(([id,p])=>'<button class="worldNode '+(WORLD.location===id?'current ':'')+(p.locked?'locked':'')+'" style="left:'+p.x+'%;top:'+p.y+'%" data-world="'+id+'" '+(p.locked?'disabled':'')+'><span class="mapIcon">'+p.icon+'</span><b>'+p.name+'</b></button>').join('')+'</div>';
+ $('rpgView').innerHTML='<h2 style="margin:0 0 4px">Карта региона</h2><div class="note">Нажмите на место, чтобы осмотреть его или отправиться в путь.</div><div class="worldMap"><div class="mapTerrain"><i class="mapForest f1"></i><i class="mapForest f2"></i><i class="mapForest f3"></i><i class="mapHill h1"></i><i class="mapHill h2"></i><i class="mapRiver"></i><i class="mapRoad r1"></i><i class="mapRoad r2"></i><i class="mapRoad r3"></i></div>'+Object.entries(WORLD.places).map(([id,p])=>'<button class="worldNode '+(WORLD.location===id?'current ':'')+(p.locked?'locked':'')+'" style="left:'+p.x+'%;top:'+p.y+'%" data-world="'+id+'" '+(p.locked?'disabled':'')+' aria-label="'+p.name+'"><span class="mapIcon">'+p.icon+'</span><span class="mapLabel">'+p.name+'</span></button>').join('')+'</div>';
  document.querySelectorAll('[data-world]').forEach(btn=>btn.onclick=()=>openTravel(btn.dataset.world))
 }
 function openTravel(id){
