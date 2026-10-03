@@ -6,10 +6,12 @@ import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity:Activity(){
  private lateinit var web:WebView
- private val gameUrl="https://cdn.jsdelivr.net/gh/arttk800-bit/ErydanRPG@main/game/ui/index.html"
+ private val entryUrl="https://cdn.jsdelivr.net/gh/arttk800-bit/ErydanRPG@main/game/ui/index.html"
 
  @SuppressLint("SetJavaScriptEnabled")
  override fun onCreate(b:Bundle?){
@@ -25,9 +27,23 @@ class MainActivity:Activity(){
   }
   web.addJavascriptInterface(JsBridge(this),"EirdanNative")
   setContentView(web)
-  if(b==null)web.loadUrl(gameUrl)
+  if(b==null)loadRemoteGame()
  }
- fun reloadGame(){runOnUiThread{web.clearCache(true);web.loadUrl(gameUrl+"?reload="+System.currentTimeMillis())}}
- fun gameStatus():String="{\"mode\":\"remote\",\"source\":\"github\",\"url\":\"$gameUrl\"}"
+ private fun loadRemoteGame(){
+  Thread{
+   try{
+    val c=(URL(entryUrl+"?v="+System.currentTimeMillis()).openConnection() as HttpURLConnection).apply{
+     connectTimeout=15000;readTimeout=15000;requestMethod="GET"
+    }
+    val html=c.inputStream.bufferedReader(Charsets.UTF_8).use{it.readText()}
+    c.disconnect()
+    runOnUiThread{web.loadDataWithBaseURL(entryUrl,html,"text/html","UTF-8",null)}
+   }catch(e:Exception){
+    runOnUiThread{web.loadDataWithBaseURL(null,"<html><body style='background:#090d0c;color:#eee;font-family:sans-serif;padding:24px'><h2>Eirdan</h2><p>Не удалось загрузить игру.</p><pre>"+e.toString().replace("<","&lt;")+"</pre></body></html>","text/html","UTF-8",null)}
+   }
+  }.start()
+ }
+ fun reloadGame(){runOnUiThread{web.clearCache(true);loadRemoteGame()}}
+ fun gameStatus():String="{\"mode\":\"remote-html\",\"source\":\"github-cdn\",\"url\":\"$entryUrl\"}"
  override fun onBackPressed(){if(::web.isInitialized&&web.canGoBack())web.goBack() else super.onBackPressed()}
 }
