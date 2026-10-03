@@ -1,6 +1,6 @@
 EIRDAN FULL GAME DIAGNOSTIC
-Build: diagnostic-05
-Generated: 2026-10-03T22:38:29.493Z
+Build: diagnostic-07
+Generated: 2026-10-03T22:48:31.653Z
 Source code: NOT INCLUDED
 
 === AUTOMATED INTERACTION TESTS ===
@@ -31,7 +31,7 @@ PASS | Simulation: 1v1 x100 report generated
 
 --- 1v1 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-05
+BUILD: diagnostic-07
 MODE: 1v1 RANDOM EQUIPMENT
 BATTLES: 100
 SEED CALLS: 17315
@@ -9752,7 +9752,7 @@ PASS | Simulation: 3v3 x100 report generated
 
 --- 3v3 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-05
+BUILD: diagnostic-07
 MODE: 3v3 MIRROR EQUIPMENT
 BATTLES: 100
 SEED CALLS: 45028
