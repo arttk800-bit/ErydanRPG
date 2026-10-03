@@ -1,5 +1,5 @@
 import {COLS,ROWS,hexDistance,hexId,neighbors} from './hex-grid.js';
-function movementState(state){return state.movement??=( {events:[],backtracks:0,history:new Map()} );}
+function movementState(state){const m=state.movement??=( {events:[],backtracks:0} );m.events??=[];m.backtracks??=0;m.history??=new Map();return m;}
 export function occupied(state,q,r,except=null){return state.units.some(u=>u!==except&&u.alive&&!u.escaped&&u.q===q&&u.r===r);}
 export function legalSteps(state,u){return neighbors(u.q,u.r).filter(p=>p.q>=0&&p.q<COLS&&p.r>=0&&p.r<ROWS&&!occupied(state,p.q,p.r,u));}
 export function movementHistory(state,id){return movementState(state).history.get(id)??[];}
