@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.webkit.WebViewAssetLoader
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -18,20 +19,27 @@ class MainActivity:Activity(){
  private val rawBase="https://raw.githubusercontent.com/arttk800-bit/ErydanRPG/main/game/"
  private val manifestUrl=rawBase+"client/update-manifest.json"
  private val prefs by lazy{getSharedPreferences("eirdan-update",MODE_PRIVATE)}
+ private lateinit var assetLoader:WebViewAssetLoader
 
  @SuppressLint("SetJavaScriptEnabled")
  override fun onCreate(b:Bundle?){
   super.onCreate(b);web=WebView(this)
   web.settings.javaScriptEnabled=true;web.settings.domStorageEnabled=true
-  web.settings.allowFileAccess=true;web.settings.allowContentAccess=true
-  web.settings.allowFileAccessFromFileURLs=true;web.settings.allowUniversalAccessFromFileURLs=true
-  web.webViewClient=WebViewClient();web.webChromeClient=WebChromeClient()
+  web.settings.allowFileAccess=false;web.settings.allowContentAccess=false
+  assetLoader=WebViewAssetLoader.Builder()
+   .addPathHandler("/assets/",WebViewAssetLoader.AssetsPathHandler(this))
+   .build()
+  web.webViewClient=object:WebViewClient(){
+   override fun shouldInterceptRequest(view:WebView?,request:android.webkit.WebResourceRequest?)=
+    request?.url?.let{assetLoader.shouldInterceptRequest(it)} ?: super.shouldInterceptRequest(view,request)
+  }
+  web.webChromeClient=WebChromeClient()
   web.addJavascriptInterface(JsBridge(this),"EirdanNative");setContentView(web)
   loadLastKnownGood();refreshGameInBackground()
  }
  private fun root()=File(filesDir,"game-update")
  private fun entry(r:File)=File(r,"ui/index.html")
- private fun loadLastKnownGood(){val r=root();if(prefs.getBoolean("good",false)&&entry(r).isFile)web.loadUrl("file://"+entry(r).absolutePath)else web.loadUrl("file:///android_asset/game/ui/index.html")}
+ private fun loadLastKnownGood(){val r=root();if(prefs.getBoolean("good",false)&&entry(r).isFile)web.loadUrl("file://"+entry(r).absolutePath)else web.loadUrl("https://appassets.androidplatform.net/assets/game/ui/index.html")}
  private fun get(url:String):ByteArray{val c=URL(url).openConnection() as HttpURLConnection;c.connectTimeout=7000;c.readTimeout=12000;c.useCaches=false;c.setRequestProperty("User-Agent","Eirdan-Android/0.15");try{if(c.responseCode !in 200..299)throw IllegalStateException("HTTP "+c.responseCode);return c.inputStream.use{it.readBytes()}}finally{c.disconnect()}}
  private fun sha256(b:ByteArray)=MessageDigest.getInstance("SHA-256").digest(b).joinToString(""){"%02x".format(it)}
  private fun refreshGameInBackground(){io.execute{try{
@@ -45,7 +53,7 @@ class MainActivity:Activity(){
   prefs.edit().putString("installedVersion",remote).putBoolean("pending",true).putBoolean("good",false).apply()
  }catch(_:Exception){}}}
  fun updateStatus():String=JSONObject().put("installed",prefs.getString("installedVersion","packaged")).put("pending",prefs.getBoolean("pending",false)).toString()
- fun activateUpdate():Boolean{val r=root();if(!entry(r).isFile)return false;prefs.edit().putBoolean("good",true).putBoolean("pending",false).apply();runOnUiThread{web.loadUrl("file://"+entry(r).absolutePath)};return true}
+ fun activateUpdate():Boolean{val r=root();if(!entry(r).isFile)return false;prefs.edit().putBoolean("good",true).putBoolean("pending",false).apply();prefs.edit().putBoolean("good",false).apply();return false}
  fun resetToPackaged(){prefs.edit().clear().apply();root().deleteRecursively();runOnUiThread{web.loadUrl("file:///android_asset/game/ui/index.html")}}
  override fun onDestroy(){io.shutdownNow();super.onDestroy()}
  override fun onBackPressed(){if(::web.isInitialized&&web.canGoBack())web.goBack() else super.onBackPressed()}
