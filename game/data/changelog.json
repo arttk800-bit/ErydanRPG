@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.73.0-alpha",
+      "build": "local-diagnostic-zip-1",
+      "stage": "Local Diagnostic Archive",
+      "date": "2026-10-04",
+      "changes": [
+        "Отправка диагностики через Worker/GitHub временно убрана из интерфейса.",
+        "Кнопка диагностики теперь создаёт и скачивает локальный ZIP без сети и внешних библиотек.",
+        "Архив содержит summary.json, shell-diagnostic.txt, runtime-trace.json, actions.json, travel-diagnostics.json и ui-smoke-diagnostics.json.",
+        "Service Worker предзагружает модули ZIP-экспорта для офлайн-работы."
+      ]
+    },
+    {
       "version": "0.72.0-alpha",
       "build": "android-web-shell-1",
       "stage": "Canonical Android Web Shell",
