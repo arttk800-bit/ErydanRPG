@@ -1,5 +1,5 @@
 export const VELIGRAD={
- id:'veligrad',
+ id:'veligrad',\n metrics:{widthMeters:2500,heightMeters:1667},
  map:'../assets/locations/city-01-central-lands.png',
  description:'Крупный укреплённый город Центральных земель.',
  points:[
