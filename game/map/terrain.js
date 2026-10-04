@@ -16,7 +16,7 @@ export const TerrainSystem={
  segmentSpans(zones,a,b){
   const cuts=[0,1];for(const z of zones||[]){const p=z?.polygon||[];for(let i=0;i<p.length;i++){const t=crossT(a,b,p[i],p[(i+1)%p.length]);if(t!=null)cuts.push(t)}}
   cuts.sort((x,y)=>x-y);const uniq=cuts.filter((v,i)=>!i||Math.abs(v-cuts[i-1])>1e-7),out=[];
-  for(let i=1;i<uniq.length;i++){const t0=uniq[i-1],t1=uniq[i],m=(t0+t1)/2,p={x:a.x+(b.x-a.x)*m,y:a.y+(b.y-a.y)*m},terrain:this.at(zones,p);out.push({terrain,fraction:t1-t0,passable:this.type(terrain).passable})}
+  for(let i=1;i<uniq.length;i++){const t0=uniq[i-1],t1=uniq[i],m=(t0+t1)/2,p={x:a.x+(b.x-a.x)*m,y:a.y+(b.y-a.y)*m},terrain=this.at(zones,p);out.push({terrain,fraction:t1-t0,passable:this.type(terrain).passable})}
   return out;
  },
  pathPassable(zones,path){for(let i=1;i<(path?.length||0);i++)if(this.segmentSpans(zones,path[i-1],path[i]).some(s=>!s.passable))return false;return true}
