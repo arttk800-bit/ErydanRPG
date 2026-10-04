@@ -127,8 +127,8 @@ $('random').onclick=()=>['a0','a1','a2'].forEach(id=>$(id).value=pick(TEST_POOL)
 function updateModeUI(){let duel=$('battleMode').value==='1v1';$('enemyCountLabel').classList.toggle('hidden',duel);$('ally1Label').classList.toggle('hidden',duel);$('ally2Label').classList.toggle('hidden',duel);$('random').classList.toggle('hidden',duel);$('start').textContent=duel?'Подготовить бой 1 vs 1':'Начать бой';$('modeHint').textContent=duel?'ГГ против одного Стража. Сначала настрой экипировку, затем нажми «Вступить в бой».':'Тестовый режим 3 vs 3. Временно доступен только Страж.'}
 $('battleMode').onchange=updateModeUI;updateModeUI();
 $('start').onclick=()=>{
- if($('battleMode').value==='1v1'){pendingDuel=true;$('prepFight').classList.remove('hidden');openInventory();return}
- pendingDuel=false;$('prepFight').classList.add('hidden');beginBattle(false)
+ if($('battleMode').value==='1v1'){pendingDuel=true;$('prepFight')?.classList.remove('hidden');openInventory();return}
+ pendingDuel=false;$('prepFight')?.classList.add('hidden');beginBattle(false)
 };
 function beginBattle(duel=false){
  cfg.allies=duel?[$('a0').value]:['a0','a1','a2'].map(id=>$(id).value);cfg.enemies=duel?1:Math.max(1,Math.min(6,+$('enemies').value||3));cfg.terrain=$('terrain').value;
@@ -137,7 +137,7 @@ function beginBattle(duel=false){
  for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));
  syncPlayerInventoryToCombat(units[0]);units[0].loadout=structuredClone(playerInventory.equip);order=[...units];idx=0;round=1;over=false;auto=false;combatLog=[];fullLog=[];genTerrain();fullLog.push('=== START ===','Режим: '+(duel?'1v1':'3v3')+' · местность '+cfg.terrain,...units.map(u=>u.name+' ['+u.q+','+u.r+'] · '+unitDerivedText(u)+(u.loadout?'\n'+loadoutText(u.loadout):'')));render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden');ensureBattleControls()
 }
-$('prepFight').onclick=()=>{if(!pendingDuel)return;pendingDuel=false;$('prepFight').classList.add('hidden');closeInventory();beginBattle(true)};
+$('prepFight')?.addEventListener('click',=()=>{if(!pendingDuel)return;pendingDuel=false;$('prepFight')?.classList.add('hidden');closeInventory();beginBattle(true)};
 
 function canvasLayout(){
  let cv=$('battleCanvas'),box=$('grid').getBoundingClientRect(),dpr=Math.max(1,window.devicePixelRatio||1);
@@ -163,7 +163,7 @@ function drawField(){
  window.__isoLayout=L
 }
 function render(){drawField();$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+(u.id==='a0'?(u.helmetName+' · '+u.armorName+' · '+u.bootsName):u.armorName)+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'/'+(u.maxSt||100)+' · DEF '+u.def+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.prepared?' · ПРИГОТОВЛЕН':'')+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
-$('back').onclick=()=>{hideResultOverlay();$('resultOverlay').dataset.kind='';$('resultNew').textContent='Новый бой';$('sim1v1').disabled=false;$('sim3v3').disabled=false;window.lastSimulationReport=null;window.lastSimulationFile=null;pendingDuel=false;$('prepFight').classList.add('hidden');$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
+$('back').onclick=()=>{hideResultOverlay();$('resultOverlay').dataset.kind='';$('resultNew').textContent='Новый бой';$('sim1v1').disabled=false;$('sim3v3').disabled=false;window.lastSimulationReport=null;window.lastSimulationFile=null;pendingDuel=false;$('prepFight')?.classList.add('hidden');$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
 
 const dirs=()=>[[1,0],[-1,0],[0,1],[0,-1]];
 const neigh=(q,r)=>dirs().map(d=>[q+d[0],r+d[1]]).filter(p=>p[0]>=0&&p[0]<GRID.C&&p[1]>=0&&p[1]<GRID.R);
@@ -378,7 +378,7 @@ function renderDistrict(id){const d=DISTRICTS[id];if(!d)return;const list=id==='
 function visitDistrictPlace(district,id){let p=EIRDAN_PLACES[id];if(!p){const names={house_smith:['Дом кузнеца','Дом семьи городского кузнеца.'],house_merchant:['Дом торговца','Дом зажиточного торговца.'],inn_rooms:['Съёмные комнаты','Жильё для приезжих и работников.']};p={name:names[id]?.[0]||id,desc:names[id]?.[1]||'',minutes:10}}openTownPlaceData(p)}
 function openDirectPlace(id){if(id==='arena')return openArena();openTownPlaceData(CITY_DIRECT[id])}
 function openArena(){const p=CITY_DIRECT.arena;const ov=document.createElement('div');ov.className='placeOverlay';ov.innerHTML='<section class="placeCard"><h3>Арена Эйрдана</h3><div class="note">'+p.desc+'</div><div class="placeActions"><button class="primary" data-fight>Выйти на арену</button><button data-watch>Осмотреть арену · ~10 мин</button><button data-cancel>Уйти</button></div></section>';document.body.appendChild(ov);ov.querySelector('[data-cancel]').onclick=()=>ov.remove();ov.querySelector('[data-watch]').onclick=()=>{ov.remove();passTime(10);renderRpgStatsOnly();$('townEvent').innerHTML='<div class="eventBox"><b>Арена</b><p>На песке идёт тренировочный бой. Трибуны пока полупусты.</p></div>'};ov.querySelector('[data-fight]').onclick=()=>{ov.remove();startArenaCombat()}}
-function startArenaCombat(){passTime(15);applyTravelNeeds(15,'horse');combatContext={type:'arena',returnTo:'rpgShell'};combatLabReturn='rpgShell';showOnly('combatLab');$('battleMode').value='1v1';updateModeUI();pendingDuel=false;$('prepFight').classList.add('hidden');$('setup').classList.add('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden');beginBattle(true)}
+function startArenaCombat(){passTime(15);applyTravelNeeds(15,'horse');combatContext={type:'arena',returnTo:'rpgShell'};combatLabReturn='rpgShell';showOnly('combatLab');$('battleMode').value='1v1';updateModeUI();pendingDuel=false;$('prepFight')?.classList.add('hidden');$('setup').classList.add('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden');beginBattle(true)}
 function returnFromArenaCombat(A,E){hideResultOverlay();$('resultOverlay').dataset.kind='';combatContext=null;showOnly('rpgShell');rpgScreen='town';renderRpg();setTimeout(()=>{let box=$('townEvent');if(box)box.innerHTML='<div class="eventBox"><b>Арена · '+(A&&!E?'Победа':'Поражение')+'</b><p>'+(A&&!E?'Вы выиграли пробный бой на арене.':'Пробный бой окончен поражением.')+'</p><p class="note">Раунд '+round+'. Награды и рейтинг арены добавим следующим слоем.</p></div>'},0)}
 function openTownPlace(id){const p=EIRDAN_PLACES[id];if(p)openTownPlaceData(p)}
 function openTownPlaceData(p){const ov=document.createElement('div');ov.className='placeOverlay';ov.innerHTML='<section class="placeCard"><h3>'+p.name+'</h3><div class="note">'+p.desc+'</div><div class="placeActions"><button class="primary" data-enter>Войти · ~'+(p.minutes||15)+' мин</button><button data-cancel>Отмена</button></div></section>';document.body.appendChild(ov);ov.querySelector('[data-cancel]').onclick=()=>ov.remove();ov.querySelector('[data-enter]').onclick=()=>{ov.remove();passTime(p.minutes||15);applyTravelNeeds(p.minutes||15,'horse');renderRpgStatsOnly();$('townEvent').innerHTML='<div class="eventBox"><b>'+p.name+'</b><p>'+p.desc+'</p><p class="note">Интерьер и действия будут добавлены позже.</p></div>'}}
