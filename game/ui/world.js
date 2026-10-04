@@ -30,6 +30,18 @@ function loadPoi(regionId){
 function savePoi(regionId,items){let all={};try{all=JSON.parse(localStorage.getItem(POI_KEY)||'{}')}catch{}all[regionId]=items;localStorage.setItem(POI_KEY,JSON.stringify(all))}
 function slug(s){return String(s||'poi').toLowerCase().trim().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48)||'poi'}
 function downloadJson(filename,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),0)}
+function exportAllMaps(){
+ let stored={};try{stored=JSON.parse(localStorage.getItem(POI_KEY)||'{}')}catch{}
+ const maps={...stored};
+ if(!Array.isArray(maps.forest))maps.forest=CENTRAL_LANDS.points.map(p=>({...p}));
+ if(!Array.isArray(maps['location:veligrad']))maps['location:veligrad']=VELIGRAD.points.map(p=>({...p}));
+ return {format:'eirdan-map-editor',version:1,exportedAt:new Date().toISOString(),maps:{
+  forest:{kind:'region',id:'forest',map:CENTRAL_LANDS.map,points:maps.forest},
+  'location:veligrad':{kind:'location',id:'veligrad',map:VELIGRAD.map,points:maps['location:veligrad']},
+  ...Object.fromEntries(Object.entries(maps).filter(([key])=>key!=='forest'&&key!=='location:veligrad').map(([key,points])=>[key,{kind:key.startsWith('location:')?'location':'region',id:key.replace(/^location:/,''),map:null,points}]))
+ }}
+}
+function exportAllButton(){const b=el('button','Экспорт всех карт');b.onclick=()=>downloadJson('eirdan-map-editor-all.json',exportAllMaps());return b}
 function clampPin(pin,frame,item){requestAnimationFrame(()=>{const fr=frame.getBoundingClientRect(),pr=pin.getBoundingClientRect();let dx=0,dy=0;if(pr.left<fr.left)dx=fr.left-pr.left;if(pr.right>fr.right)dx=fr.right-pr.right;if(pr.top<fr.top)dy=fr.top-pr.top;if(pr.bottom>fr.bottom)dy=fr.bottom-pr.bottom;if(dx||dy){pin.style.transform='translate(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px))'}else pin.style.transform='translate(-50%,-50%)'})}
 function pointDescription(item){return item.description||({location:'Отдельная локация. Её можно посетить и исследовать.',district:'Район внутри текущей локации.',place:'Отдельное место на карте.',transition:'Переход к другой области карты.'}[item.class]||'Место на карте.')}
 function actionPanel(item,state,onTravel,onFavorite){const box=el('section');box.className='map-point-card';const top=el('div');top.className='map-point-card-head';top.append(el('h3',item.name||CLASSES[item.class]||'Место'));const desc=el('p',pointDescription(item));const actions=el('div');actions.className='map-point-actions';const walk=el('button','Идти пешком');const horse=el('button','На лошади');const fav=el('button',WorldSystem.isFavorite(state,item)?'★ В избранном':'☆ В избранное');walk.onclick=()=>onTravel(item,'walk');horse.onclick=()=>onTravel(item,'horse');fav.onclick=()=>onFavorite(item,fav);actions.append(walk,horse,fav);box.append(top,desc,actions);if(item.class==='location'&&item.map){const enter=el('button','Открыть карту локации');enter.className='map-point-enter';enter.onclick=()=>onTravel(item,'enter');box.append(enter)}return box}
@@ -76,7 +88,7 @@ export const WorldUI={
    const hint=el('p','Выберите тип и нажмите на карту. Метку можно перетаскивать.');hint.className='quiet';
    const exportBtn=el('button','Экспортировать JSON');
    const clearBtn=el('button','Сбросить к штатным');
-   panel.append(type,name,hint,exportBtn,clearBtn);root.append(panel);
+   panel.append(type,name,hint,exportBtn,exportAllButton(),clearBtn);root.append(panel);
    let editing=false,items=loadPoi('forest'),drag=null,selected=current.placeId||current.districtId||current.locationId||null;
 
    function paint(){
@@ -116,7 +128,7 @@ export const WorldUI={
    const cls=el('select');for(const [v,label] of Object.entries({district:'Район',place:'Место',transition:'Переход'})){const o=el('option',label);o.value=v;cls.append(o)}
    const name=el('input');name.placeholder='Название';
    const hint=el('p','Расставьте районы, отдельные места и переходы. Поселения внутри города недоступны.');hint.className='quiet';
-   const exportBtn=el('button','Экспортировать JSON');const clearBtn=el('button','Удалить все локальные метки');panel.append(cls,name,hint,exportBtn,clearBtn);root.append(panel);
+   const exportBtn=el('button','Экспортировать JSON');const clearBtn=el('button','Удалить все локальные метки');panel.append(cls,name,hint,exportBtn,exportAllButton(),clearBtn);root.append(panel);
    const key='location:'+location.id;let editing=false,items=loadPoi(key),selected=current.placeId||current.districtId||null,drag=null;
    if(location.id==='veligrad'&&!items.length)items=VELIGRAD.points.map(p=>({...p}));
    function persist(){savePoi(key,items);paint()}
