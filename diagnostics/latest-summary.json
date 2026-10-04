@@ -1,14 +1,14 @@
 {
-  "run_id": "eirdan_shell_1791145678864",
+  "run_id": "eirdan_shell_1791145686663",
   "build": "local-diagnostic-zip-1",
-  "generated_at": "2026-10-04T20:27:58.864Z",
-  "received_at": "2026-10-04T20:28:01.928Z",
+  "generated_at": "2026-10-04T20:28:06.663Z",
+  "received_at": "2026-10-04T20:28:08.961Z",
   "source": "shell-action-diagnostics",
   "summary": {
     "ok": false,
     "checks": 44,
-    "actions": 6,
+    "actions": 11,
     "version": "0.73.0-alpha"
   },
-  "log_characters": 87573
+  "log_characters": 95658
 }
