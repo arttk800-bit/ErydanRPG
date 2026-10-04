@@ -1,0 +1,2 @@
+import {validate} from './validate-domain.mjs';
+validate({required:['game/app/bootstrap.js','game/core/state.js','game/core/modules/registry.js','game/modules/index.js','game/systems/world.js','game/systems/travel.js','game/systems/roads.js','game/systems/route-planner.js','game/map/terrain.js','game/ui/world.js'],roots:['game/app','game/client','game/core','game/map','game/modules','game/systems','game/diagnostics','game/data','game/ui']});
