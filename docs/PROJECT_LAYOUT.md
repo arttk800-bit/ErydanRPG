@@ -11,7 +11,7 @@
 ## Gameplay domains
 - `game/combat/` — combat rules, legal actions, damage, body parts, status, resolve and retreat semantics.
 - `game/ai/` — targeting and class/role decision policies.
-- `game/systems/` — world/inventory/travel/roads/pause/game-speed domain services. Split a system into its own domain folder when its responsibility grows enough to justify it.
+- `game/systems/world/` — world state and world-domain API.\n- `game/systems/travel/` — roads, route planning, travel conditions and travel simulation.\n- `game/systems/` root currently contains smaller domains such as inventory, pause and game speed; they move into dedicated folders as their responsibilities grow.\n- `game/tools/map-editor/` — development-only map/road/terrain authoring tools; not gameplay-rule ownership.
 - `game/simulation/` — headless battle runners, mirror/parity analysis and telemetry.
 - `game/data/` — static content, balance and world/map definitions.
 - `game/ui/` — presentation and interaction adapters; no gameplay-rule ownership.
