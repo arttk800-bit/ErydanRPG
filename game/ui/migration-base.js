@@ -515,6 +515,7 @@ $('invEquip').onclick=equipSelected;
 $('invUnequip').onclick=unequipSelected;
 $('statsToggle').onclick=()=>{$('statsDrawer').classList.toggle('hidden')};
 $('invPick').ondblclick=rotateSelected;
+$('invRotate').onclick=rotateSelected;
 function closeTopOverlay(){
  const overlays=[...document.querySelectorAll('.placeOverlay,.travelOverlay')].filter(x=>!x.classList.contains('hidden'));if(overlays.length){overlays.at(-1).remove();return true}
  if(!$('versionOverlay')?.classList.contains('hidden')){$('versionOverlay').classList.add('hidden');return true}
