@@ -3,9 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/core-regression.mjs && node tests/movement-regression.mjs && node tests/travel-routing.mjs && node tests/damage-regression.mjs && node tests/actions-regression.mjs && node tests/ai-smoke.mjs && node tests/skill-policy.mjs && node tests/timing-diagnostics.mjs && node tests/action-registry.mjs && node tests/parity-reference.mjs && node tests/view-model.mjs && node tests/settings.mjs && node tests/headless-battle.mjs && node tests/seed-regression.mjs && node tests/update.mjs && node tests/retreat-policy.mjs && node tests/opportunity.mjs && node tests/combat-movement.mjs && node tests/parity-gate.mjs && node tests/mirror-symmetry.mjs",
-    "validate": "node scripts/validate.mjs && npm test",
+    "test": "npm run test:campaign && npm run test:combat",
+    "validate": "npm run validate:campaign",
     "parity": "node scripts/parity-report.mjs",
-    "mirror:3000": "node scripts/run-mirror3000.mjs"
+    "mirror:3000": "node scripts/run-mirror3000.mjs",
+    "test:campaign": "node tests/core-regression.mjs && node tests/movement-regression.mjs && node tests/travel-routing.mjs && node tests/settings.mjs && node tests/update.mjs",
+    "test:combat": "node tests/damage-regression.mjs && node tests/actions-regression.mjs && node tests/ai-smoke.mjs && node tests/skill-policy.mjs && node tests/action-registry.mjs && node tests/parity-reference.mjs && node tests/view-model.mjs && node tests/headless-battle.mjs && node tests/seed-regression.mjs && node tests/retreat-policy.mjs && node tests/opportunity.mjs && node tests/combat-movement.mjs && node tests/parity-gate.mjs && node tests/mirror-symmetry.mjs",
+    "validate:campaign": "node scripts/validate-campaign.mjs && npm run test:campaign",
+    "validate:combat": "node scripts/validate-combat.mjs && npm run test:combat"
   }
 }
