@@ -580,8 +580,6 @@ let handlingSystemBack=false;
 window.addEventListener('popstate',()=>{if(handlingSystemBack)return;handlingSystemBack=true;logicalBack();try{history.pushState({eirdanGuard:Date.now()},'',location.href)}catch(_){}setTimeout(()=>handlingSystemBack=false,0)});
 armHistoryBack();
 
-$('tabBag').onclick=()=>{playerInventory.view='bag';playerInventory.selectedSlot=null;renderInventory()};
-$('tabChar').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;renderInventory()};
 
 $('resultNew').onclick=()=>{
  let sim=$('resultOverlay').dataset.kind==='simulation';
