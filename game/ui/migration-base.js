@@ -108,12 +108,13 @@ function canvasLayout(){
  if(cv.width!==Math.round(box.width*dpr)||cv.height!==Math.round(box.height*dpr)){cv.width=Math.round(box.width*dpr);cv.height=Math.round(box.height*dpr)}
  let ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
  let tileW=Math.min(box.width/(GRID.C+GRID.R)*1.72,box.height/(GRID.C+GRID.R)*3.15),tileH=tileW*.5;
- tileW=Math.max(30,tileW);tileH=tileW*.5;
+ tileW=Math.max(34,tileW*1.14);tileH=tileW*.5;
  let fieldW=(GRID.C+GRID.R)*tileW/2,fieldH=(GRID.C+GRID.R)*tileH/2;
  let ox=box.width/2+(GRID.R-GRID.C)*tileW/4,oy=Math.max(tileH*1.8,(box.height-fieldH)/2+tileH);
  return{cv,ctx,tileW,tileH,ox,oy,w:box.width,h:box.height}
 }
-function isoCenter(q,r,L){return{x:L.ox+(q-r)*L.tileW/2,y:L.oy+(q+r)*L.tileH/2}}
+function cellHeight(q,r){return terrain[q+','+r+'#z']||0}
+function isoCenter(q,r,L,z=cellHeight(q,r)){return{x:L.ox+(q-r)*L.tileW/2,y:L.oy+(q+r)*L.tileH/2-z*L.tileH*.72}}
 function isoTile(ctx,x,y,L){let hw=L.tileW/2,hh=L.tileH/2;ctx.beginPath();ctx.moveTo(x,y-hh);ctx.lineTo(x+hw,y);ctx.lineTo(x,y+hh);ctx.lineTo(x-hw,y);ctx.closePath()}
 function requestFieldFrame(){if(fieldAnimFrame)return;fieldAnimFrame=requestAnimationFrame(()=>{fieldAnimFrame=0;drawField()})}
 function drawField(){
@@ -121,7 +122,7 @@ function drawField(){
  let cells=[];for(let q=0;q<GRID.C;q++)for(let r=0;r<GRID.R;r++)cells.push([q,r]);cells.sort((a,b)=>(a[0]+a[1])-(b[0]+b[1]));
  for(const [q,r] of cells){let {x,y}=isoCenter(q,r,L),u=by.get(q+','+r),t=terrain[q+','+r],reachable=!!reachableSet&&!u&&!blocked(q,r)&&reachableSet.has(q+','+r);isoTile(ctx,x,y,L);let movingHere=u&&moveAnimations.has(u.id);ctx.fillStyle=reachable?'#244a3d':u&&!movingHere?(u.team==='ally'?'#183c58':'#522027'):t==='bush'?'#234331':t==='rock'||t==='tree'?'#343b37':((q+r)&1?'#18221e':'#151e1b');ctx.fill();ctx.strokeStyle=reachable?'#79d6b8':'#46534f';ctx.lineWidth=reachable?2:1;ctx.stroke();if(t&&!u){ctx.fillStyle='#b6c3bd';ctx.font='bold '+Math.max(10,L.tileH*.45)+'px system-ui';ctx.textAlign='center';ctx.fillText(t==='rock'?'◆':t==='tree'?'♠':'✦',x,y+3)}}
  let actors=units.filter(u=>u.alive).map(u=>({u,p:isoCenter(u.q,u.r,L)})).sort((a,b)=>a.p.y-b.p.y);
- for(const {u,p:baseP} of actors){let anim=moveAnimations.get(u.id),p=baseP;if(anim){let age=performance.now()-anim.start,seg=Math.min(anim.path.length-1,Math.floor(age/anim.stepMs)),t=Math.min(1,(age-seg*anim.stepMs)/anim.stepMs),a=isoCenter(anim.path[seg][0],anim.path[seg][1],L),b=isoCenter(anim.path[Math.min(seg+1,anim.path.length-1)][0],anim.path[Math.min(seg+1,anim.path.length-1)][1],L);p={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};if(age>=anim.stepMs*(anim.path.length-1)){moveAnimations.delete(u.id);p=baseP}else requestFieldFrame()}let h=L.tileH*2.25,footY=p.y+L.tileH*.15;ctx.save();ctx.fillStyle=u.team==='ally'?'rgba(60,140,255,.42)':'rgba(225,70,85,.42)';ctx.beginPath();ctx.ellipse(p.x,footY,L.tileW*.25,L.tileH*.18,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.team==='ally'?'#79b9ff':'#ff7582';ctx.font='900 '+Math.max(14,L.tileH*.72)+'px system-ui';ctx.textAlign='center';ctx.strokeStyle='#07100d';ctx.lineWidth=4;ctx.strokeText(String(Number(u.id.slice(1))+1),p.x,p.y-L.tileH*.22);ctx.fillText(String(Number(u.id.slice(1))+1),p.x,p.y-L.tileH*.22);ctx.restore()}
+ for(const {u,p:baseP} of actors){let anim=moveAnimations.get(u.id),p=baseP;if(anim){let age=performance.now()-anim.start,seg=Math.min(anim.path.length-1,Math.floor(age/anim.stepMs)),t=Math.min(1,(age-seg*anim.stepMs)/anim.stepMs),a=isoCenter(anim.path[seg][0],anim.path[seg][1],L),b=isoCenter(anim.path[Math.min(seg+1,anim.path.length-1)][0],anim.path[Math.min(seg+1,anim.path.length-1)][1],L);let hop=Math.sin(Math.PI*t)*L.tileH*.62;p={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t-hop};if(age>=anim.stepMs*(anim.path.length-1)){moveAnimations.delete(u.id);p=baseP}else requestFieldFrame()}let h=L.tileH*2.25,footY=p.y+L.tileH*.15;ctx.save();ctx.fillStyle=u.team==='ally'?'rgba(60,140,255,.42)':'rgba(225,70,85,.42)';ctx.beginPath();ctx.ellipse(p.x,footY,L.tileW*.29,L.tileH*.21,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.team==='ally'?'#79b9ff':'#ff7582';ctx.font='900 '+Math.max(16,L.tileH*.82)+'px system-ui';ctx.textAlign='center';ctx.strokeStyle='#07100d';ctx.lineWidth=4;ctx.strokeText(String(Number(u.id.slice(1))+1),p.x,p.y-L.tileH*.22);ctx.fillText(String(Number(u.id.slice(1))+1),p.x,p.y-L.tileH*.22);ctx.restore()}
  let now=performance.now();combatFloats=combatFloats.filter(f=>now-f.born<950);for(const f of combatFloats){let p=isoCenter(f.q,f.r,L),age=(now-f.born)/950;ctx.save();ctx.globalAlpha=Math.max(0,1-age);ctx.font='900 '+Math.max(14,L.tileH*.65)+'px system-ui';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#07100d';ctx.fillStyle=f.kind==='miss'?'#d7ddd9':f.kind==='block'?'#8fd4ff':'#ff707b';let yy=p.y-L.tileH-age*L.tileH*1.5;ctx.strokeText(f.text,p.x,yy);ctx.fillText(f.text,p.x,yy);ctx.restore()}if(combatFloats.length)requestFieldFrame();
  window.__isoLayout=L
 }
