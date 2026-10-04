@@ -7,7 +7,7 @@ import {loadInstalledRelease,loadCurrentRelease,releaseChangesHtml} from '../cli
 import {mountGameScreen} from './game-screen.js';
 import {UpdateManager} from '../client/update-manager.js';
 import {actionDiagnostics} from '../diagnostics/action-diagnostics.js';
-import {uploadDiagnostic} from '../diagnostics/uploader.js';
+import {uploadDiagnostic,checkDiagnosticDelivery} from '../diagnostics/uploader.js';
 import {formatDiagnosticLog} from '../diagnostics/format.js';
 
 const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
@@ -56,12 +56,19 @@ function confirmDelete(worldId){modal('Удалить сохранение?','<p
 async function debug(){
  const d=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration});
  const actionTail=d.actions.slice(-12).map(x=>'<p>#'+x.id+' '+x.action+' → '+x.phase+'</p>').join('');
+ let deliveryRunId=null;
  const body='<p><b>'+(d.ok?'PASS':'CHECK')+'</b></p>'+d.checks.map(([n,ok])=>'<p>'+(ok?'✓':'×')+' '+n+'</p>').join('')+'<hr><p><b>Actions</b></p>'+actionTail+'<hr><div id="diagnosticDelivery" class="diagnostic-delivery hidden"><p id="diagnosticDeliveryTitle"><b>Подготовка диагностики…</b></p><progress id="diagnosticDeliveryProgress" max="100" value="0"></progress><p id="diagnosticDeliveryDetail" class="muted">Ожидание</p></div>';
  modal('Диагностика Shell',body,[['Отправить диагностику',async function(){
   const sendButton=this,box=$('#diagnosticDelivery'),title=$('#diagnosticDeliveryTitle'),bar=$('#diagnosticDeliveryProgress'),detail=$('#diagnosticDeliveryDetail');
   sendButton.disabled=true;box?.classList.remove('hidden');
   const setDelivery=(text,progress,info='')=>{if(title)title.innerHTML='<b>'+text+'</b>';if(bar)bar.value=progress;if(detail)detail.textContent=info};
   try{
+   if(deliveryRunId){
+    setDelivery('Проверяю существующую отправку…',85,'run_id: '+deliveryRunId);
+    const check=await checkDiagnosticDelivery(deliveryRunId);
+    if(check.confirmed){setDelivery('✓ Диагностика доставлена в GitHub',100,'run_id: '+deliveryRunId);sendButton.textContent='Доставлено';sendButton.disabled=true;return}
+    setDelivery('GitHub пока не подтвердил доставку',75,'Worker хранит лог · run_id: '+deliveryRunId);sendButton.textContent='Проверить повторно';sendButton.disabled=false;return
+   }
    actionDiagnostics.record('diagnostics-upload','start');
    setDelivery('Подготовка диагностики…',10,'Формирование диагностического пакета');
    const log=formatDiagnosticLog(d);
@@ -77,6 +84,7 @@ async function debug(){
      if(phase==='pending')setDelivery('Ожидается подтверждение GitHub',75,'Лог сохранён Worker, но GitHub ещё не подтвердил доставку · '+data.runId);
     }
    });
+   deliveryRunId=result.runId;
    if(result.confirmed){
     actionDiagnostics.record('diagnostics-upload','success',{runId:result.runId});
     setDelivery('✓ Диагностика доставлена в GitHub',100,'run_id: '+result.runId);
