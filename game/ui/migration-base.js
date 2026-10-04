@@ -354,7 +354,7 @@ async function runFullDiagnostic(){
  const err=(name,e)=>{out.push('FAIL | '+name+' | '+(e?.message||e));fail++};
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const snap={screen:rpgScreen,settingsReturn,combatLabReturn,world:structuredClone(WORLD),inv:structuredClone(playerInventory),ui:document.body.dataset.ui||'',vol:window.EIRDAN_MASTER_VOLUME};
- const hiddenIds=['mainMenu','rpgShell','combatLab','gameMenu','invOverlay','resultOverlay','debugPanel'];
+ const hiddenIds=['mainMenu','rpgShell','combatLab','gameMenu','invOverlay','resultOverlay','debugPanel','versionOverlay'];
  const hiddenState=Object.fromEntries(hiddenIds.map(id=>[id,$(id).classList.contains('hidden')]));
  try{
   status.textContent='Проверка кнопок и переходов...';await sleep(20);
@@ -387,6 +387,27 @@ async function runFullDiagnostic(){
   ok('World: travel function exists',typeof travelTo==='function');
   ok('World: render functions exist',[renderRpg,renderLocation,renderTown,showGateEvent].every(fn=>typeof fn==='function'));
   ok('World: place IDs unique',new Set(Object.keys(WORLD.places)).size===Object.keys(WORLD.places).length);
+
+  status.textContent='Проверка города, районов и арены...';await sleep(20);
+  ok('City: hierarchy functions exist',[renderCityHub,openCityNode,renderDistrict,openArena,startArenaCombat,returnFromArenaCombat].every(fn=>typeof fn==='function'));
+  ok('City: hub nodes valid',Object.values(CITY_HUB).every(p=>p&&p.name&&['district','location'].includes(p.type)));
+  ok('City: trade district exists',!!DISTRICTS.trade&&DISTRICTS.trade.places.every(id=>!!EIRDAN_PLACES[id]));
+  ok('City: residential district exists',!!DISTRICTS.homes);
+  ok('City: arena is direct location',CITY_HUB.arena?.type==='location'&&!!CITY_DIRECT.arena);
+  rpgScreen='town';renderRpg();
+  ok('City: hub renders',!!document.querySelector('[data-city-node="arena"]')&&!!document.querySelector('[data-city-node="trade"]')&&!!document.querySelector('[data-city-node="homes"]'));
+  renderDistrict('trade');ok('City: trade district renders',document.querySelectorAll('[data-district-place]').length===3);
+  renderDistrict('homes');ok('City: residential district renders',document.querySelectorAll('[data-district-place]').length>=3);
+  renderCityHub();openArena();let arenaOverlay=document.querySelector('.placeOverlay:not(#versionOverlay)');
+  ok('Arena: interaction overlay opens',!!arenaOverlay);
+  ok('Arena: fight action exists',!!arenaOverlay?.querySelector('[data-fight]'));
+  ok('Arena: watch action exists',!!arenaOverlay?.querySelector('[data-watch]'));
+  arenaOverlay?.remove();
+  ok('Arena: combat context initially clear',combatContext===null);
+  ok('Versions: badge exists and wired',!!$('versionBadge')&&typeof $('versionBadge').onclick==='function');
+  ok('Versions: overlay exists and wired',!!$('versionOverlay')&&typeof $('versionClose').onclick==='function');
+  ok('Build: displayed version matches runtime',$('versionBadge')?.textContent.includes(window.EIRDAN_BUILD||'__missing__'),$('versionBadge')?.textContent||'missing');
+  ok('Startup: boot screen exists',!!$('bootScreen')&&!!$('bootBar')&&!!$('bootStatus'));
 
   status.textContent='Проверка инвентаря и предметов...';await sleep(20);
   playerInventory=structuredClone(snap.inv);openInventory();ok('Inventory: opens',!$('invOverlay').classList.contains('hidden'));
