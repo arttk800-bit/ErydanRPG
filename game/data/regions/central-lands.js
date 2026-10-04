@@ -1,5 +1,6 @@
 export const CENTRAL_LANDS={
- id:'forest',\n map:'../assets/regions/region-central-lands.png',
+ id:'forest',
+ map:'../assets/regions/region-central-lands.png',
  points:[
   {id:'veligrad',name:'Велиград',class:'location',type:'city',map:'../assets/locations/city-01-central-lands.png',x:0.5195247751035993,y:0.4638938823788101},
   {id:'berezovka',name:'Берёзовка',class:'location',type:'village',x:0.7030598663171498,y:0.5952342993205261},
