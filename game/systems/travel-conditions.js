@@ -23,7 +23,7 @@ export const TravelConditions={
  },
  routeFactor(route,method='walk'){
   const seg=route?.segments||[];if(!seg.length)return 1;let distance=0,weighted=0;
-  for(const s of seg){const d=Math.max(0,s.distance||0),f=this.segmentFactor(s,method);if(!f)return 0;distance+=d;weighted+=d/f}
+  for(const s of seg){const d=Math.max(0,s.distance||0);distance+=d;if(Number.isFinite(s.cost))weighted+=s.cost;else{const f=this.segmentFactor(s,method);if(!f)return 0;weighted+=d/f}}
   return distance&&weighted?distance/weighted:1;
  }
 };
