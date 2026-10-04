@@ -43,6 +43,16 @@ body,button,select,input{font-family:'PT Sans',system-ui,sans-serif}.mainTitle,.
 <div id="debugItemsWindow" class="floatWindow debugItemsWindow hidden"><div class="invHead" id="debugItemsDrag"><h2>Отладка · предметы</h2><button id="debugItemsClose">×</button></div><div class="note">Добавляет выбранный предмет в первый контейнер со свободным местом.</div><div id="debugItemList" class="debugItemList"></div></div>
 <div id="itemTip" class="itemTip hidden"></div><div id="actionHint" class="actionHint hidden"></div>
 </section><section id="resultOverlay" class="invOverlay hidden"><div class="invPanel" style="max-width:430px"><div class="invHead"><h2 id="resultTitle">Бой завершён</h2></div><div id="resultBrief" class="pick"></div><div class="invActions"><button id="resultNew">Новый бой</button><button id="resultDownload">Скачать лог</button></div></div></section></main><script>
+(function(){
+ const $=id=>document.getElementById(id);
+ const showOnly=id=>{['mainMenu','settingsMenu','rpgShell','combatLab'].forEach(x=>$(x)?.classList.toggle('hidden',x!==id))};
+ $('newGame')?.addEventListener('click',()=>showOnly('rpgShell'));
+ $('openSettings')?.addEventListener('click',()=>showOnly('settingsMenu'));
+ $('settingsBack')?.addEventListener('click',()=>showOnly('mainMenu'));
+ $('quitGame')?.addEventListener('click',()=>$('quitOverlay')?.classList.remove('hidden'));
+ $('quitCancel')?.addEventListener('click',()=>$('quitOverlay')?.classList.add('hidden'));
+})();
+</script><script>
 (async()=>{
  const badge=document.getElementById('versionBadge');
  let meta={build:'unknown',version:'unknown'};
