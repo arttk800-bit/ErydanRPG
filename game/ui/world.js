@@ -1,6 +1,7 @@
 import {WORLD_DATA} from '../data/world.js';
 import {WorldSystem} from '../systems/world.js';
 import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
+import {VELIGRAD} from '../data/locations/veligrad.js';
 
 function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n}
 const POI_KEY='eirdan.region-poi.v1';
@@ -24,10 +25,14 @@ function loadPoi(regionId){
    return local;
   }
  }catch{}
- return regionId==='forest'?CENTRAL_LANDS.points.map(p=>({...p})):[];
+ return regionId==='forest'?CENTRAL_LANDS.points.map(p=>({...p})):regionId==='location:veligrad'?VELIGRAD.points.map(p=>({...p})):[];
 }
 function savePoi(regionId,items){let all={};try{all=JSON.parse(localStorage.getItem(POI_KEY)||'{}')}catch{}all[regionId]=items;localStorage.setItem(POI_KEY,JSON.stringify(all))}
 function slug(s){return String(s||'poi').toLowerCase().trim().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48)||'poi'}
+function downloadJson(filename,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),0)}
+function clampPin(pin,frame,item){requestAnimationFrame(()=>{const fr=frame.getBoundingClientRect(),pr=pin.getBoundingClientRect();let dx=0,dy=0;if(pr.left<fr.left)dx=fr.left-pr.left;if(pr.right>fr.right)dx=fr.right-pr.right;if(pr.top<fr.top)dy=fr.top-pr.top;if(pr.bottom>fr.bottom)dy=fr.bottom-pr.bottom;if(dx||dy){pin.style.transform='translate(calc(-50% + '+dx+'px),calc(-50% + '+dy+'px))'}else pin.style.transform='translate(-50%,-50%)'})}
+function pointDescription(item){return item.description||({location:'Отдельная локация. Её можно посетить и исследовать.',district:'Район внутри текущей локации.',place:'Отдельное место на карте.',transition:'Переход к другой области карты.'}[item.class]||'Место на карте.')}
+function actionPanel(item,state,onTravel,onFavorite){const box=el('section');box.className='map-point-card';const top=el('div');top.className='map-point-card-head';top.append(el('h3',item.name||CLASSES[item.class]||'Место'));const desc=el('p',pointDescription(item));const actions=el('div');actions.className='map-point-actions';const walk=el('button','Идти пешком');const horse=el('button','На лошади');const fav=el('button',WorldSystem.isFavorite(state,item)?'★ В избранном':'☆ В избранное');walk.onclick=()=>onTravel(item,'walk');horse.onclick=()=>onTravel(item,'horse');fav.onclick=()=>onFavorite(item,fav);actions.append(walk,horse,fav);box.append(top,desc,actions);if(item.class==='location'&&item.map){const enter=el('button','Открыть карту локации');enter.className='map-point-enter';enter.onclick=()=>onTravel(item,'enter');box.append(enter)}return box}
 
 export const WorldUI={
  ready:true,
@@ -64,6 +69,7 @@ export const WorldUI={
    const frame=el('div');frame.className='region-map-frame';
    const img=el('img');img.className='region-map-image';img.src=region.map.asset;img.alt=region.name;frame.append(img);
    const layer=el('div');layer.className='region-poi-layer';frame.append(layer);root.append(frame);
+   const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
    const panel=el('div');panel.className='region-editor hidden';
    const type=el('select');for(const [v,label] of Object.entries(CLASSES)){const o=el('option',label);o.value=v;type.append(o)}
    const name=el('input');name.placeholder='Название локации';
@@ -76,19 +82,20 @@ export const WorldUI={
    function paint(){
     layer.replaceChildren();
     for(const item of items){
-     const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.id=item.id;pin.dataset.type=item.type;pin.dataset.class=item.class||'place';pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';pin.title=item.name||TYPES[item.type];
-     const dot=el('span','●');const label=el('span',item.name||TYPES[item.type]);pin.append(dot,label);layer.append(pin);
-     pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;WorldSystem.enterMapPoint(state,item);onChange?.(state);paint();if(item.class==='location'&&item.map){mode='location';renderLocation(item)}};
+     const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.id=item.id;pin.dataset.type=item.type;pin.dataset.class=item.class||'place';pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';pin.title=item.name||TYPES[item.type];if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');
+     const dot=el('span',WorldSystem.isFavorite(state,item)?'★':'●');const label=el('span',item.name||TYPES[item.type]);pin.append(dot,label);layer.append(pin);clampPin(pin,frame,item);
+     pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;paint();showActions(item)};
      pin.onpointerdown=e=>{if(!editing)return;e.preventDefault();e.stopPropagation();drag=item;pin.setPointerCapture?.(e.pointerId)};
      pin.onpointermove=e=>{if(!drag)return;const r=frame.getBoundingClientRect();drag.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));drag.y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
      pin.onpointerup=e=>{if(!drag)return;drag=null;persist()};
     }
    }
    function persist(){savePoi('forest',items);paint()}
-   frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));const cls=type.value,label=name.value.trim()||CLASSES[cls];items.push({id:'forest-'+slug(label)+'-'+Date.now().toString(36),name:label,class:cls,type:cls,x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
+   function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{if(method==='enter'&&p.map){WorldSystem.enterMapPoint(state,p);onChange?.(state);mode='location';renderLocation(p);return}WorldSystem.enterMapPoint(state,p);onChange?.(state);actionHost.querySelector('p')?.insertAdjacentHTML('afterend','<p class="quiet">Маршрут выбран: '+(method==='horse'?'на лошади':'пешком')+'. Расчёт пути будет подключён позже.</p>')},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
+   frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;actionHost.replaceChildren();WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));const cls=type.value,label=name.value.trim()||CLASSES[cls];items.push({id:'forest-'+slug(label)+'-'+Date.now().toString(36),name:label,class:cls,type:cls,x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
    edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);edit.textContent=editing?'Готово':'Редактор';paint()};
    back.onclick=()=>{mode='world';renderWorld()};
-   exportBtn.onclick=async()=>{const data=JSON.stringify({region:'forest',map:region.map.asset,points:items},null,2);try{await navigator.clipboard.writeText(data);exportBtn.textContent='JSON скопирован'}catch{const blob=new Blob([data],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='region-central-lands-poi.json';a.click();URL.revokeObjectURL(a.href)}};
+   exportBtn.onclick=()=>downloadJson('region-central-lands-poi.json',{region:'forest',map:region.map.asset,points:items});
    clearBtn.onclick=()=>{if(confirm('Сбросить локальные изменения и вернуть штатные метки Центральных земель?')){items=CENTRAL_LANDS.points.map(p=>({...p}));persist()}};
    paint();
    cleanup=()=>{frame.onclick=null;back.onclick=null;edit.onclick=null};
@@ -103,22 +110,25 @@ export const WorldUI={
    const frame=el('div');frame.className='region-map-frame';
    const img=el('img');img.className='region-map-image';img.src=location.map;img.alt=location.name;frame.append(img);
    const layer=el('div');layer.className='region-poi-layer';frame.append(layer);root.append(frame);
+   const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
    const panel=el('div');panel.className='region-editor hidden';
    const cls=el('select');for(const [v,label] of Object.entries({district:'Район',place:'Место',transition:'Переход'})){const o=el('option',label);o.value=v;cls.append(o)}
    const name=el('input');name.placeholder='Название';
    const hint=el('p','Расставьте районы, отдельные места и переходы. Поселения внутри города недоступны.');hint.className='quiet';
    const exportBtn=el('button','Экспортировать JSON');const clearBtn=el('button','Удалить все локальные метки');panel.append(cls,name,hint,exportBtn,clearBtn);root.append(panel);
    const key='location:'+location.id;let editing=false,items=loadPoi(key),selected=current.placeId||current.districtId||null,drag=null;
+   if(location.id==='veligrad'&&!items.length)items=VELIGRAD.points.map(p=>({...p}));
    function persist(){savePoi(key,items);paint()}
-   function paint(){layer.replaceChildren();for(const item of items){const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.class=item.class;pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';pin.append(el('span','●'),el('span',item.name));layer.append(pin);
-    pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;WorldSystem.enterMapPoint(state,item);onChange?.(state);paint()};
+   function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{WorldSystem.enterMapPoint(state,p);onChange?.(state);actionHost.querySelector('p')?.insertAdjacentHTML('afterend','<p class="quiet">Маршрут выбран: '+(method==='horse'?'на лошади':'пешком')+'. Расчёт пути будет подключён позже.</p>')},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
+   function paint(){layer.replaceChildren();for(const item of items){const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.class=item.class;pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');pin.append(el('span',WorldSystem.isFavorite(state,item)?'★':'●'),el('span',item.name||CLASSES[item.class]||'Место'));layer.append(pin);clampPin(pin,frame,item);
+    pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;paint();showActions(item)};
     pin.onpointerdown=e=>{if(!editing)return;e.preventDefault();e.stopPropagation();drag=item;pin.setPointerCapture?.(e.pointerId)};
     pin.onpointermove=e=>{if(!drag)return;const r=frame.getBoundingClientRect();drag.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));drag.y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
     pin.onpointerup=()=>{if(drag){drag=null;persist()}}}}
    frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const r=frame.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height,c=cls.value,label=name.value.trim()||({district:'Район',place:'Место',transition:'Переход'}[c]);items.push({id:location.id+'-'+slug(label)+'-'+Date.now().toString(36),name:label,class:c,type:c,x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
    edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);edit.textContent=editing?'Готово':'Редактор';paint()};
    back.onclick=()=>{current.locationId=null;current.districtId=null;current.placeId=null;onChange?.(state);mode='region';renderRegion()};
-   exportBtn.onclick=async()=>{const data=JSON.stringify({location:location.id,map:location.map,points:items},null,2);try{await navigator.clipboard.writeText(data);exportBtn.textContent='JSON скопирован'}catch{}};
+   exportBtn.onclick=()=>downloadJson('location-'+location.id+'-poi.json',{location:location.id,map:location.map,points:items});
    clearBtn.onclick=()=>{if(confirm('Удалить все локальные метки этой локации?')){items=[];persist()}};paint();
    cleanup=()=>{frame.onclick=null;back.onclick=null;edit.onclick=null};
   }
