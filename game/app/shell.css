@@ -32,3 +32,5 @@
 .road-editor-node.road-terrain-swamp{fill:#78958a}
 .road-editor-node.road-terrain-mountain{fill:#aaa39a}
 .road-editor-node.road-terrain-river{fill:#71aeca}
+
+.region-map-frame.editing[data-editor-mode="road"] .region-poi{pointer-events:none}
