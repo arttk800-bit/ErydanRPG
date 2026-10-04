@@ -1,6 +1,6 @@
 EIRDAN FULL GAME DIAGNOSTIC
-Build: diagnostic-25
-Generated: 2026-10-04T00:04:15.701Z
+Build: diagnostic-26
+Generated: 2026-10-04T00:05:31.440Z
 Source code: NOT INCLUDED
 
 === AUTOMATED INTERACTION TESTS ===
@@ -41,7 +41,7 @@ PASS | Arena: watch action exists
 PASS | Arena: combat context initially clear
 PASS | Versions: badge exists and wired
 PASS | Versions: overlay exists and wired
-PASS | Build: displayed version matches runtime | v0.15 · diagnostic-25
+PASS | Build: displayed version matches runtime | v0.15 · diagnostic-26
 PASS | Startup: boot screen exists
 PASS | Inventory: opens
 PASS | Inventory: Рюкзак tab
@@ -62,7 +62,7 @@ PASS | Simulation: 1v1 x100 report generated
 
 --- 1v1 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-25
+BUILD: diagnostic-26
 MODE: 1v1 RANDOM EQUIPMENT
 BATTLES: 100
 SEED CALLS: 17315
@@ -9783,7 +9783,7 @@ PASS | Simulation: 3v3 x100 report generated
 
 --- 3v3 x100 REPORT ---
 EIRDAN 0.15 · DIAGNOSTIC
-BUILD: diagnostic-25
+BUILD: diagnostic-26
 MODE: 3v3 MIRROR EQUIPMENT
 BATTLES: 100
 SEED CALLS: 45028
