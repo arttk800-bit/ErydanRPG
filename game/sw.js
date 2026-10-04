@@ -1,4 +1,4 @@
-const BUILD_ID='map-interaction-fix-1';
+const BUILD_ID='update-flow-fix-1';
 const CACHE='eirdan-shell-v6-'+BUILD_ID;
 const CORE=['./','./app/index.html','./app/shell.css','./app/bootstrap.js','./app/navigation.js','./app/lifecycle.js','./app/game-screen.js','./client/release.js','./client/update-manager.js','./diagnostics/action-diagnostics.js','./diagnostics/uploader.js','./diagnostics/format.js','./ui/world.js','./systems/world.js','./data/world.js','./data/regions/central-lands.js','./core/session.js','./core/persistence.js','./diagnostics/shell-diagnostics.js','./manifest.webmanifest'];
 const OPTIONAL=['./assets/world/eirdan-world-map-regions-final.png','./assets/world/eirdan-world-region-index-final.png','./assets/regions/region-central-lands.png','./assets/locations/city-01-central-lands.png'];
