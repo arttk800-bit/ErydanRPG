@@ -92,7 +92,7 @@ export const WorldUI={
    const layer=el('div');layer.className='region-poi-layer';frame.append(layer);
    const party=el('div');party.className='party-marker';party.title='Ваш отряд';frame.append(party);root.append(frame);
    const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
-   let editing=false,items=loadPoi('forest'),roads=loadEditableRoads('forest',CENTRAL_LANDS_ROADS);roads.metrics={...CENTRAL_LANDS.metrics};roads.regionId='forest';let,roadEditor=null,editorMode='poi',editorLabels=false,drag=null,selected=current.placeId||current.districtId||current.locationId||null,travelTimer=null,lastTravelAt=0;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);const disablePinch=enablePinch(frame);
+   let editing=false,items=loadPoi('forest'),roads=loadEditableRoads('forest',CENTRAL_LANDS_ROADS);roads.metrics={...CENTRAL_LANDS.metrics};roads.regionId='forest';let roadEditor=null,editorMode='poi',editorLabels=false,drag=null,selected=current.placeId||current.districtId||current.locationId||null,travelTimer=null,lastTravelAt=0;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);const disablePinch=enablePinch(frame);
    const panel=el('div');panel.className='region-editor hidden';
    const type=el('select');for(const [v,label] of [['location-map','Локация с картой'],['location','Локация без карты'],['place','Конечное место']]){const o=el('option',label);o.value=v;type.append(o)}
    const name=el('input');name.placeholder='Название локации';
