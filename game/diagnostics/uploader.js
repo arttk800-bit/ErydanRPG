@@ -20,3 +20,13 @@ export async function uploadDiagnostic({build,log,summary=null,onStatus=()=>{}})
  onStatus('pending',{runId:accepted});
  return{runId:accepted,confirmed:false,response:body};
 }
+
+
+export async function checkDiagnosticDelivery(runId){
+ if(!runId) throw new Error('Missing diagnostic run id');
+ const url=ENDPOINT+'status?run_id='+encodeURIComponent(runId)+'&t='+Date.now();
+ const response=await fetch(url,{cache:'no-store'});
+ let status={}; try{status=await response.json()}catch{}
+ if(!response.ok) throw new Error(status.error||('HTTP '+response.status));
+ return {runId,confirmed:status.confirmed===true,status};
+}
