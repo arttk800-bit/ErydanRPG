@@ -1,4 +1,4 @@
-const BUILD_ID='runtime-trace-1';
+const BUILD_ID='runtime-trace-global-1';
 const CACHE='eirdan-shell-v6-'+BUILD_ID;
 const CORE=['./','./app/index.html','./app/shell.css','./app/bootstrap.js','./app/navigation.js','./app/lifecycle.js','./app/game-screen.js','./client/release.js','./client/update-manager.js','./diagnostics/action-diagnostics.js','./diagnostics/runtime-trace.js','./diagnostics/uploader.js','./diagnostics/format.js','./ui/world.js','./systems/world.js','./data/world.js','./data/regions/central-lands.js','./data/regions/central-lands-roads.js','./systems/roads.js','./systems/pause.js','./systems/travel.js','./data/locations/veligrad.js','./core/session.js','./core/persistence.js','./diagnostics/shell-diagnostics.js','./diagnostics/travel-diagnostics.js','./diagnostics/ui-smoke-diagnostics.js','./manifest.webmanifest'];
 const CRITICAL_ASSETS=['./assets/world/eirdan-world-map-regions-final.png','./assets/world/eirdan-world-region-index-final.png','./assets/regions/region-central-lands.png','./assets/locations/city-01-central-lands.png'];
