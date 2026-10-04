@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.69.1-alpha",
+      "build": "ui-smoke-diagnostics-2",
+      "stage": "UI Smoke Diagnostics",
+      "date": "2026-10-04",
+      "changes": [
+        "Исправлен конфликт обновлятора с обязательной предзагрузкой карт и ассетов: Service Worker получает до 120 секунд на install/precache.",
+        "Проверка активации нового Service Worker расширена до 60 секунд, чтобы мобильная сеть не давала ложную ошибку активации во время загрузки critical assets.",
+        "Повторно опубликован пакет UI Smoke Diagnostics после исправления update flow."
+      ]
+    },
+    {
       "version": "0.69.0-alpha",
       "build": "ui-smoke-diagnostics-1",
       "stage": "UI Smoke Diagnostics",
