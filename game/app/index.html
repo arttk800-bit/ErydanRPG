@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090d0c">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="stylesheet" href="./shell.css">
+<title>Eirdan</title>
+</head>
+<body>
+<div id="app" class="shell">
+  <main id="screen-main" class="screen menu-screen">
+    <section class="menu-card">
+      <p class="eyebrow">RPG EIRDAN</p><h1>EIRDAN</h1>
+      <div class="menu-actions">
+        <button data-action="new-game">Новая игра</button>
+        <button data-action="load-game">Загрузить игру</button>
+        <button data-action="settings">Настройки</button>
+        <button data-action="quit">Покинуть игру</button>
+      </div>
+    </section>
+    <button id="versionBadge" class="version-badge">Версия…</button>
+  </main>
+
+  <main id="screen-game" class="screen hidden">
+    <header class="topbar"><b>EIRDAN</b><button data-action="game-menu" aria-label="Меню">☰</button></header>
+    <section class="placeholder"><h2>Новая сессия создана</h2><p>Игровые системы будут подключаться к этой оболочке по мере готовности.</p><code id="sessionInfo"></code></section>
+  </main>
+
+  <main id="screen-settings" class="screen menu-screen hidden">
+    <section class="panel"><h2>Настройки</h2>
+      <label>Тема<select id="theme"><option value="dark">Тёмная</option><option value="warm">Тёплая</option></select></label>
+      <label>Громкость<input id="volume" type="range" min="0" max="100"></label>
+      <button id="fullscreen">Полный экран</button>
+      <button id="installPwa" class="hidden">Установить Eirdan</button>
+      <button data-action="back">← Назад</button>
+      <button data-action="debug" class="quiet">Отладка</button>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true"><section class="panel modal-card"><h3 id="modalTitle"></h3><div id="modalBody"></div><div id="modalActions" class="modal-actions"></div></section></div>
+  <div id="toast" class="toast hidden"></div>
+</div>
+<script type="module" src="./bootstrap.js"></script>
+</body></html>
