@@ -34,3 +34,20 @@
 .road-editor-node.road-terrain-river{fill:#71aeca}
 
 .region-map-frame.editing[data-editor-mode="road"] .region-poi{pointer-events:none}
+
+.road-editor-edge[data-from-terrain="normal"][data-to-terrain="normal"]{stroke:#e5c77a}
+.road-editor-edge[data-from-terrain="forest"][data-to-terrain="forest"]{stroke:#6fa66f}
+.road-editor-edge[data-from-terrain="swamp"][data-to-terrain="swamp"]{stroke:#78958a}
+.road-editor-edge[data-from-terrain="mountain"][data-to-terrain="mountain"]{stroke:#aaa39a}
+.road-editor-edge[data-from-terrain="river"][data-to-terrain="river"]{stroke:#71aeca}
+.road-editor-edge[data-from-terrain="normal"][data-to-terrain="forest"],.road-editor-edge[data-from-terrain="forest"][data-to-terrain="normal"]{stroke:#a9b775}
+.road-editor-edge[data-from-terrain="normal"][data-to-terrain="swamp"],.road-editor-edge[data-from-terrain="swamp"][data-to-terrain="normal"]{stroke:#9fae82}
+.road-editor-edge[data-from-terrain="normal"][data-to-terrain="mountain"],.road-editor-edge[data-from-terrain="mountain"][data-to-terrain="normal"]{stroke:#c7b58a}
+.road-editor-edge[data-from-terrain="normal"][data-to-terrain="river"],.road-editor-edge[data-from-terrain="river"][data-to-terrain="normal"]{stroke:#9dbbb1}
+.road-editor-edge[data-from-terrain="forest"][data-to-terrain="swamp"],.road-editor-edge[data-from-terrain="swamp"][data-to-terrain="forest"]{stroke:#739d7c}
+.road-editor-edge[data-from-terrain="forest"][data-to-terrain="mountain"],.road-editor-edge[data-from-terrain="mountain"][data-to-terrain="forest"]{stroke:#8fa083}
+.road-editor-edge[data-from-terrain="forest"][data-to-terrain="river"],.road-editor-edge[data-from-terrain="river"][data-to-terrain="forest"]{stroke:#70aa91}
+.road-editor-edge[data-from-terrain="swamp"][data-to-terrain="mountain"],.road-editor-edge[data-from-terrain="mountain"][data-to-terrain="swamp"]{stroke:#8f9c92}
+.road-editor-edge[data-from-terrain="swamp"][data-to-terrain="river"],.road-editor-edge[data-from-terrain="river"][data-to-terrain="swamp"]{stroke:#75a1a0}
+.road-editor-edge[data-from-terrain="mountain"][data-to-terrain="river"],.road-editor-edge[data-from-terrain="river"][data-to-terrain="mountain"]{stroke:#8fa9b1}
+.road-editor-edge.selected{filter:drop-shadow(0 0 .01px #fff)}
