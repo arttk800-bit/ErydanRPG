@@ -82,6 +82,7 @@ export const WorldUI={
    function paint(){
     layer.replaceChildren();
     for(const item of items){
+     if(!editing&&!WorldSystem.isDiscovered(state,item))continue;
      const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.id=item.id;pin.dataset.type=item.type;pin.dataset.class=item.class||'place';pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';pin.title=item.name||TYPES[item.type];if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');
      const dot=el('span',WorldSystem.isFavorite(state,item)?'★':'●');const label=el('span',item.name||TYPES[item.type]);pin.append(dot,label);layer.append(pin);clampPin(pin,frame,item);
      pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;paint();showActions(item)};
@@ -120,7 +121,7 @@ export const WorldUI={
    if(location.id==='veligrad'&&!items.length)items=VELIGRAD.points.map(p=>({...p}));
    function persist(){savePoi(key,items);paint()}
    function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{WorldSystem.enterMapPoint(state,p);onChange?.(state);actionHost.querySelector('p')?.insertAdjacentHTML('afterend','<p class="quiet">Маршрут выбран: '+(method==='horse'?'на лошади':'пешком')+'. Расчёт пути будет подключён позже.</p>')},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
-   function paint(){layer.replaceChildren();for(const item of items){const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.class=item.class;pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');pin.append(el('span',WorldSystem.isFavorite(state,item)?'★':'●'),el('span',item.name||CLASSES[item.class]||'Место'));layer.append(pin);clampPin(pin,frame,item);
+   function paint(){layer.replaceChildren();for(const item of items){if(!editing&&!WorldSystem.isDiscovered(state,item))continue;const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.class=item.class;pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');pin.append(el('span',WorldSystem.isFavorite(state,item)?'★':'●'),el('span',item.name||CLASSES[item.class]||'Место'));layer.append(pin);clampPin(pin,frame,item);
     pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;paint();showActions(item)};
     pin.onpointerdown=e=>{if(!editing)return;e.preventDefault();e.stopPropagation();drag=item;pin.setPointerCapture?.(e.pointerId)};
     pin.onpointermove=e=>{if(!drag)return;const r=frame.getBoundingClientRect();drag.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));drag.y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
