@@ -63,3 +63,14 @@
 - Global text selection and touch callout disabled to avoid interfering with drag/tap.
 - Item actions remain in a separate compact action window.
 - Removed visible build/version labels from gameplay screens; version remains in main menu.
+
+
+## 0.43.2-alpha · diagnostic-59 — Inventory interaction fixes
+- Removed the shared Actions window from inventory UX.
+- Container actions are local: Sort, Drop all with confirmation, Wear when applicable.
+- Character and Environment buttons no longer open inventory bags.
+- Fixed bag-window first-drag coordinate jump.
+- Drag ghost follows pointer and no longer blocks drop hit-testing.
+- Equipped items use the same tap/hold/drag binding.
+- Long-press tooltip closes on release.
+- Item actions open beside the selected item.
