@@ -7,16 +7,17 @@ function loadImage(src){return new Promise((resolve,reject)=>{const img=new Imag
 export const WorldUI={
  ready:true,
  mount(root,state,onChange){
-  let disposed=false,maskPixels=null,maskWidth=0,maskHeight=0,shadeCanvas=null;
+  let disposed=false,maskPixels=null,maskWidth=0,maskHeight=0,shadeCanvas=null,indexPixels=null;
   const indexToId=new Map(Object.entries(WORLD_DATA.regions).map(([id,r])=>[r.index,id]));
 
   function drawShade(){
    if(!shadeCanvas||!maskPixels)return;
    const ctx=shadeCanvas.getContext('2d'),out=ctx.createImageData(maskWidth,maskHeight),current=WorldSystem.ensure(state).regionId;
    for(let i=0;i<maskPixels.length;i+=4){
-    const index=maskPixels[i],id=indexToId.get(index);if(!id)continue;
-    const status=WorldSystem.regionStatus(state,id),alpha=id===current?0:status==='unknown'?205:72;
+    const p=i/4,index=indexPixels[p],id=indexToId.get(index);if(!id)continue;
+    const status=WorldSystem.regionStatus(state,id),alpha=id===current?0:status==='unknown'?220:118;
     out.data[i]=0;out.data[i+1]=0;out.data[i+2]=0;out.data[i+3]=alpha;
+    if(id===current){const x=p%maskWidth,y=Math.floor(p/maskWidth);let edge=false;for(let dy=-2;dy<=2&&!edge;dy++)for(let dx=-2;dx<=2;dx++){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=maskWidth||ny>=maskHeight||indexPixels[ny*maskWidth+nx]!==index){edge=true;break}}if(edge){out.data[i]=18;out.data[i+1]=12;out.data[i+2]=7;out.data[i+3]=235}}
    }
    ctx.putImageData(out,0,0);
   }
@@ -37,7 +38,7 @@ export const WorldUI={
    try{
     const mask=await loadImage(WORLD_DATA.map.mask);if(disposed)return;
     const c=document.createElement('canvas');c.width=mask.naturalWidth;c.height=mask.naturalHeight;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(mask,0,0);
-    const data=ctx.getImageData(0,0,c.width,c.height);maskPixels=data.data;maskWidth=c.width;maskHeight=c.height;
+    const data=ctx.getImageData(0,0,c.width,c.height);maskPixels=data.data;maskWidth=c.width;maskHeight=c.height;indexPixels=new Uint8Array(maskWidth*maskHeight);for(let p=0,i=0;p<indexPixels.length;p++,i+=4){const r=maskPixels[i],g=maskPixels[i+1],b=maskPixels[i+2],a=maskPixels[i+3];indexPixels[p]=a===0?0:(r===g&&g===b?r:Math.round((r+g+b)/3))}
     if(shadeCanvas.width!==maskWidth||shadeCanvas.height!==maskHeight){shadeCanvas.width=maskWidth;shadeCanvas.height=maskHeight}
     drawShade();
    }catch(err){console.error('World region mask failed',err)}
@@ -46,7 +47,7 @@ export const WorldUI={
   root.onclick=e=>{
    const frame=e.target.closest('.world-map-frame');if(!frame||!maskPixels)return;
    const rect=frame.getBoundingClientRect(),x=Math.max(0,Math.min(maskWidth-1,Math.floor((e.clientX-rect.left)/rect.width*maskWidth))),y=Math.max(0,Math.min(maskHeight-1,Math.floor((e.clientY-rect.top)/rect.height*maskHeight)));
-   const index=maskPixels[(y*maskWidth+x)*4],id=indexToId.get(index);if(!id)return;
+   const index=indexPixels[y*maskWidth+x],id=indexToId.get(index);if(!id)return;
    WorldSystem.enterRegion(state,id);const s=root.querySelector('.world-region-status');if(s)s.textContent=statusText();drawShade();if(onChange)onChange(state);
   };
   draw();return()=>{disposed=true;root.onclick=null};
