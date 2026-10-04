@@ -1,0 +1,8 @@
+const DB_NAME='eirdan';const DB_VERSION=1;const STORE='saves';
+function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'meta.worldId'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function tx(db,mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}
+export async function saveGame(state){if(!state?.meta?.worldId)throw new Error('Invalid game state');state.meta.updatedAt=new Date().toISOString();const db=await openDb();await new Promise((resolve,reject)=>{const r=tx(db,'readwrite').put(structuredClone(state));r.onsuccess=resolve;r.onerror=()=>reject(r.error)});db.close();return state.meta.worldId}
+export async function listSaves(){const db=await openDb();const rows=await new Promise((resolve,reject)=>{const r=tx(db).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});db.close();return rows.sort((a,b)=>String(b.meta.updatedAt||b.meta.createdAt).localeCompare(String(a.meta.updatedAt||a.meta.createdAt)))}
+export async function loadGame(worldId){const db=await openDb();const row=await new Promise((resolve,reject)=>{const r=tx(db).get(worldId);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)});db.close();return row}
+export async function deleteSave(worldId){const db=await openDb();await new Promise((resolve,reject)=>{const r=tx(db,'readwrite').delete(worldId);r.onsuccess=resolve;r.onerror=()=>reject(r.error)});db.close()}
+export function persistenceSupported(){return typeof indexedDB!=='undefined'}
