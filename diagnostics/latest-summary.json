@@ -1,14 +1,14 @@
 {
-  "run_id": "eirdan_shell_1791122430282",
-  "build": "diagnostics-6",
-  "generated_at": "2026-10-04T14:00:30.282Z",
-  "received_at": "2026-10-04T14:00:30.839Z",
+  "run_id": "eirdan_shell_1791143692181",
+  "build": "road-topology-v2-1",
+  "generated_at": "2026-10-04T19:54:52.181Z",
+  "received_at": "2026-10-04T19:55:03.718Z",
   "source": "shell-action-diagnostics",
   "summary": {
     "ok": true,
-    "checks": 13,
-    "actions": 5,
-    "version": "0.51.5-alpha"
+    "checks": 24,
+    "actions": 8,
+    "version": "0.68.0-alpha"
   },
-  "log_characters": 1526
+  "log_characters": 2132
 }

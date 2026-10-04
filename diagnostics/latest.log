@@ -1,5 +1,5 @@
 EIRDAN SHELL + ACTION DIAGNOSTIC
-Generated: 2026-10-04T14:00:29.368Z
+Generated: 2026-10-04T19:54:47.253Z
 
 === SHELL CHECKS ===
 PASS DOM shell
@@ -15,22 +15,33 @@ PASS Update lock idle
 PASS Installed build metadata
 PASS Remote build reachable
 PASS Session schema
+PASS Travel: Road endpoints exist
+PASS Travel: Route sweep has connected pairs
+PASS Travel: Route sweep integrity
+PASS Travel: Travel start
+PASS Travel: Travel advances
+PASS Travel: Pause freezes travel
+PASS Travel: Stop button state
+PASS Travel: Resume button state
+PASS Travel: Camp button state
+PASS Travel: Cancel preserves position
+PASS Travel: Restart from road position
 
 === UPDATE ===
 {
   "state": "current",
   "busy": false,
   "installed": {
-    "version": "0.51.5-alpha",
-    "build": "diagnostics-6",
+    "version": "0.68.0-alpha",
+    "build": "road-topology-v2-1",
     "channel": "development",
-    "stage": "Diagnostic Delivery Recheck",
+    "stage": "Road Topology V2",
     "schema": 1
   },
   "remote": {
-    "build": "diagnostics-6",
-    "version": "0.51.5-alpha",
-    "stage": "Diagnostic Delivery Recheck",
+    "build": "road-topology-v2-1",
+    "version": "0.68.0-alpha",
+    "stage": "Road Topology V2",
     "ready": true
   },
   "error": null,
@@ -43,8 +54,11 @@ PASS Session schema
 }
 
 === ACTION TRACE ===
-#1 [2026-10-04T14:00:27.534Z] update -> checking {"manual":false}
-#2 [2026-10-04T14:00:27.607Z] update -> compared {"installed":{"version":"0.51.5-alpha","build":"diagnostics-6","channel":"development","stage":"Diagnostic Delivery Recheck","schema":1},"remote":{"build":"diagnostics-6","version":"0.51.5-alpha","stage":"Diagnostic Delivery Recheck","ready":true}}
-#3 [2026-10-04T14:00:27.607Z] update -> current {"version":"0.51.5-alpha"}
-#4 [2026-10-04T14:00:27.753Z] settings -> click {"disabled":false,"screen":"main"}
-#5 [2026-10-04T14:00:29.277Z] debug -> click {"disabled":false,"screen":"settings"}
+#1 [2026-10-04T19:51:19.173Z] update -> checking {"manual":false}
+#2 [2026-10-04T19:51:19.305Z] update -> compared {"installed":{"version":"0.68.0-alpha","build":"road-topology-v2-1","channel":"development","stage":"Road Topology V2","schema":1},"remote":{"build":"road-topology-v2-1","version":"0.68.0-alpha","stage":"Road Topology V2","ready":true}}
+#3 [2026-10-04T19:51:19.305Z] update -> current {"version":"0.68.0-alpha"}
+#4 [2026-10-04T19:51:22.502Z] load-game -> click {"disabled":false,"screen":"main"}
+#5 [2026-10-04T19:53:53.368Z] game-menu -> click {"disabled":false,"screen":"game"}
+#6 [2026-10-04T19:54:42.848Z] game-menu -> click {"disabled":false,"screen":"game"}
+#7 [2026-10-04T19:54:45.600Z] debug -> click {"disabled":false,"screen":"settings"}
+#8 [2026-10-04T19:54:46.317Z] debug -> click {"disabled":false,"screen":"settings"}
