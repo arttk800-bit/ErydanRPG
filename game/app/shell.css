@@ -2,3 +2,7 @@
 .saveList{display:grid;gap:9px}.saveRow{display:grid;grid-template-columns:1fr auto;gap:8px}.saveChoice{text-align:left}.saveDelete{border-color:#744b4b;color:#e5b4b4}@media(max-width:480px){.saveRow{grid-template-columns:1fr}.saveDelete{min-height:40px}}
 
 #checkUpdates{position:relative;overflow:hidden;isolation:isolate;--update-progress:0%}#checkUpdates::before{content:"";position:absolute;z-index:-1;inset:0 auto 0 0;width:var(--update-progress);background:color-mix(in srgb,var(--accent) 28%,transparent);transition:width .28s ease}#checkUpdates[data-state="working"]{opacity:1}#checkUpdates[data-state="ready"]::before{background:color-mix(in srgb,var(--accent) 42%,transparent)}
+
+.diagnostic-delivery{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent)}
+.diagnostic-delivery progress{display:block;width:100%;height:12px;margin:8px 0;accent-color:var(--accent)}
+.diagnostic-delivery p{margin:5px 0}
