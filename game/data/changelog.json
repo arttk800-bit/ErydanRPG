@@ -2,6 +2,16 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.58.2-alpha",
+      "build": "region-poi-migration-1",
+      "stage": "Central Lands POI Migration",
+      "date": "2026-10-04",
+      "changes": [
+        "Добавлена миграция старых локальных POI Центральных земель: технические названия автоматически заменяются штатными без изменения координат.",
+        "Пользовательские точки, не совпадающие с исходным набором, миграция не изменяет."
+      ]
+    },
+    {
       "version": "0.58.1-alpha",
       "build": "region-poi-data-1",
       "stage": "Central Lands Canonical POIs",
