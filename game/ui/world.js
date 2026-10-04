@@ -15,12 +15,12 @@ export const WorldUI={
    status.className='world-region-status';head.append(status);root.append(head);
 
    const frame=el('div');frame.className='world-map-frame';
-   const img=el('img');img.className='world-map-image';img.src='../assets/eirdan-world-map.jpg';img.alt='Карта мира Эйрдан';
-   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 1152 1536');svg.classList.add('world-region-overlay');
+   const img=el('img');img.className='world-map-image';img.src=WORLD_DATA.map.asset;img.alt='Карта мира Эйрдан';
+   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox',WORLD_DATA.map.viewBox);svg.classList.add('world-region-overlay');
    for(const [id,region] of Object.entries(WORLD_DATA.regions)){
     for(const d of region.paths){
      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-     path.setAttribute('d',d);path.dataset.regionId=id;path.setAttribute('aria-label',region.name);
+     path.setAttribute('d',d);path.dataset.regionId=id;path.setAttribute('aria-label',region.name);path.dataset.regionStatus=WorldSystem.regionStatus(state,id);
      if(current.regionId===id)path.classList.add('selected');svg.append(path);
     }
    }
