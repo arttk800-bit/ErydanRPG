@@ -23,7 +23,7 @@ const INV_ITEMS={
  belt_pouch:{n:'Поясная сумка',type:'bag',slot:'belt',w:.35,ico:'▤',desc:'Малая сумка 4×3',grid:[4,3],size:[2,2],combat:{}},
  dagger:{n:'Кинжал',type:'weapon',slot:'main',w:.55,ico:'†',desc:'Одноручный кинжал',size:[1,2],combat:{weapon:'dagger'}}
 };
-const SLOT_NAMES={head:'Голова',neck:'Амулет',cloak:'Плащ',bodyInner:'Торс · низ',body:'Торс · верх',hands:'Кисти',belt:'Пояс / сумка',legsInner:'Ноги · низ',legs:'Ноги · верх',feet:'Обувь',main:'Правая рука',off:'Левая рука',ring1:'Кольцо I',ring2:'Кольцо II',back:'Рюкзак'};
+const SLOT_NAMES={head:'Голова',neck:'Амулет',cloak:'Плащ',bodyInner:'Торс · низ',body:'Торс · верх',hands:'Кисти',belt:'Пояс / сумка',legsInner:'Ноги · низ',legs:'Ноги · верх',pocket1:'Карман I',pocket2:'Карман II',pocket3:'Карман III',pocket4:'Карман IV',feet:'Обувь',main:'Правая рука',off:'Левая рука',ring1:'Кольцо I',ring2:'Кольцо II',back:'Рюкзак'};
 let uidSeq=1;
 const mk=(typeId,location)=>({uid:'itm_'+String(uidSeq++).padStart(6,'0'),typeId,location:{...location},rotation:0});
 let playerInventory={cap:30,instances:{},equip:Object.fromEntries(Object.keys(SLOT_NAMES).map(k=>[k,null])),containers:{},environment:[],selected:null,selectedSlot:null,collapsed:{},layouts:{}};
