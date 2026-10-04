@@ -1,4 +1,4 @@
-const BUILD="diagnostic-33";
+const BUILD="diagnostic-34";
 const VERSION_URL="https://raw.githubusercontent.com/arttk800-bit/ErydanRPG/main/game/ui/build.json";
 const bar=()=>document.getElementById("bootBar"),status=()=>document.getElementById("bootStatus"),boot=()=>document.getElementById("bootScreen");
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
