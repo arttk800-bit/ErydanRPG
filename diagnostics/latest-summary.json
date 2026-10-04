@@ -1,14 +1,14 @@
 {
-  "run_id": "eirdan_shell_1791145199629",
-  "build": "android-web-shell-1",
-  "generated_at": "2026-10-04T20:19:59.629Z",
-  "received_at": "2026-10-04T20:20:03.156Z",
+  "run_id": "eirdan_shell_1791145678864",
+  "build": "local-diagnostic-zip-1",
+  "generated_at": "2026-10-04T20:27:58.864Z",
+  "received_at": "2026-10-04T20:28:01.928Z",
   "source": "shell-action-diagnostics",
   "summary": {
     "ok": false,
-    "checks": 43,
+    "checks": 44,
     "actions": 6,
-    "version": "0.72.0-alpha"
+    "version": "0.73.0-alpha"
   },
-  "log_characters": 2628
+  "log_characters": 87573
 }
