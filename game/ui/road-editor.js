@@ -3,16 +3,17 @@ const clone=v=>JSON.parse(JSON.stringify(v));
 export function loadEditableRoads(regionId,fallback){try{const all=JSON.parse(localStorage.getItem(KEY)||'{}');if(all[regionId])return all[regionId]}catch{}return clone(fallback)}
 export function saveEditableRoads(regionId,roads){let all={};try{all=JSON.parse(localStorage.getItem(KEY)||'{}')}catch{}all[regionId]=roads;localStorage.setItem(KEY,JSON.stringify(all))}
 export class RoadEditor{
- constructor({frame,regionId,roads,getPois=()=>[],onChange,onSelection}){Object.assign(this,{frame,regionId,roads,getPois,onChange,onSelection});this.active=false;this.terrain='normal';this.selected=null;this.selectedEdge=null;this.drag=null;this.layer=document.createElementNS(NS,'svg');this.layer.classList.add('road-editor-layer','hidden');this.layer.setAttribute('viewBox','0 0 1 1');this.layer.setAttribute('preserveAspectRatio','none');this.layer.onclick=e=>{e.stopPropagation();if(!this.active||e.target!==this.layer)return;const p=this.point(e.clientX,e.clientY);this.addAt(p.x,p.y)};frame.append(this.layer);this.paint()}
+ constructor({frame,regionId,roads,getPois=()=>[],onChange,onSelection}){Object.assign(this,{frame,regionId,roads,getPois,onChange,onSelection});this.active=false;this.terrain='normal';this.roadType='road';this.selected=null;this.selectedEdge=null;this.drag=null;this.layer=document.createElementNS(NS,'svg');this.layer.classList.add('road-editor-layer','hidden');this.layer.setAttribute('viewBox','0 0 1 1');this.layer.setAttribute('preserveAspectRatio','none');this.layer.onclick=e=>{e.stopPropagation();if(!this.active||e.target!==this.layer)return;const p=this.point(e.clientX,e.clientY);this.addAt(p.x,p.y)};frame.append(this.layer);this.paint()}
  selection(){return{nodeId:this.selected,edge:this.selectedEdge,node:this.roads.nodes.find(n=>n.id===this.selected)||null}}
  notify(){this.onSelection?.(this.selection())}
  setActive(v){this.active=!!v;this.layer.classList.toggle('hidden',!this.active);if(!v)this.clearSelection();this.paint()}
  setTerrain(v){this.terrain=v||'normal'}
+ setRoadType(v){this.roadType=v||'road'}
  point(x,y){const r=this.frame.getBoundingClientRect(),u=(x-r.left)/r.width,v=(y-r.top)/r.height;return{x:Math.max(0,Math.min(1,u)),y:Math.max(0,Math.min(1,v))}}
  addAt(x,y){const id='r-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6),node={id,x:+x.toFixed(5),y:+y.toFixed(5),terrain:this.terrain,effects:['swamp','river'].includes(this.terrain)?['wet']:[]};this.roads.nodes.push(node);if(this.selected)this.connect(this.selected,id);this.selected=id;this.selectedEdge=null;this.commit();this.notify()}
  isAccessNode(id){return Object.values(this.roads.access||{}).some(a=>a.node===id)}
  degree(id){return(this.roads.edges||[]).filter(e=>e[0]===id||e[1]===id).length}
- connect(a,b){if(a===b)return false;if(this.isAccessNode(a)&&this.degree(a)>=1)return false;if(this.isAccessNode(b)&&this.degree(b)>=1)return false;if(this.roads.edges.some(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a)))return false;this.roads.edges.push([a,b]);return true}
+ connect(a,b){if(a===b)return false;if(this.isAccessNode(a)&&this.degree(a)>=1)return false;if(this.isAccessNode(b)&&this.degree(b)>=1)return false;if(this.roads.edges.some(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a)))return false;this.roads.edges.push([a,b,[],{roadType:this.roadType,terrain:this.terrain}]);return true}
  select(id){if(this.selected&&this.selected!==id)this.connect(this.selected,id);this.selected=id;this.selectedEdge=null;this.commit();this.notify()}
  selectEdge(e){this.selected=null;this.selectedEdge=e;this.paint();this.notify()}
  clearSelection(){this.selected=null;this.selectedEdge=null;this.paint();this.notify()}
