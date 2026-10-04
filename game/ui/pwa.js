@@ -1,4 +1,4 @@
-const BUILD="diagnostic-30";
+const BUILD="diagnostic-31";
 const bar=()=>document.getElementById("bootBar"),status=()=>document.getElementById("bootStatus"),boot=()=>document.getElementById("bootScreen");
 function progress(n,msg){if(bar())bar().style.width=n+"%";if(status())status().textContent=msg}
 function enterGame(msg){progress(100,msg||("Eirdan · "+BUILD));setTimeout(()=>boot()?.classList.add("hidden"),180)}
