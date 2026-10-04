@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.50.0-alpha",
+      "build": "world-shell-1",
+      "stage": "World Module Integration",
+      "date": "2026-10-04",
+      "changes": [
+        "Карта мира подключена к постоянному Shell и активной игровой сессии.",
+        "Данные мира вынесены в отдельный модуль data/world.js.",
+        "Переходы по миру и игровое время вынесены в systems/world.js.",
+        "Отображение карты и городских локаций вынесено в ui/world.js.",
+        "Изменения положения и времени сохраняются через Game State."
+      ]
+    },
+    {
       "version": "0.49.2-alpha",
       "build": "update-manager-4",
       "stage": "Verified Update Activation",
