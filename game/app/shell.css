@@ -27,5 +27,8 @@
 .road-editor-layer.hidden{display:none}
 .road-editor-edge{stroke:rgba(244,210,122,.82);stroke-width:8;stroke-linecap:round;pointer-events:stroke}.road-editor-edge.selected{stroke-width:14}
 .road-editor-node{fill:#e7d39a;stroke:#181a17;stroke-width:3;cursor:pointer}
-.road-editor-node.road-kind-junction{fill:#ffb95e}
-.road-editor-node.road-kind-bridge{fill:#76c9e8}
+.road-editor-node.bound{stroke-width:6}
+.road-editor-node.road-terrain-forest{fill:#6fa66f}
+.road-editor-node.road-terrain-swamp{fill:#78958a}
+.road-editor-node.road-terrain-mountain{fill:#aaa39a}
+.road-editor-node.road-terrain-river{fill:#71aeca}
