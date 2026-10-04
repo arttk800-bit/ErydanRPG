@@ -40,3 +40,15 @@
 - Начат оконный интерфейс: инвентарь перемещается, масштабируется браузерным resize, сворачивается и запоминает положение.
 - Персонаж и контейнеры разделены на режимы одного окна; следующий шаг — независимые одновременные окна и item sprites.
 - Рабочая область увеличена под мобильный экран.
+
+
+## 0.43.0-alpha · diagnostic-57 — Inventory 3.0 foundation
+- Unique runtime item instances (`itm_*`) with exactly one location.
+- Multiple equipped containers rendered simultaneously.
+- Separate movable Character and Environment windows.
+- Dropped equipment/items move to Environment instead of disappearing.
+- Atomic equipment replacement: old equipment needs valid container space first.
+- Touch Pointer Events drag-and-drop between inventory, equipment and environment.
+- Rotation couples footprint and visual orientation.
+- Minimal starter inventory; closable item debug spawner.
+- Larger temporary backpack grids for testing.
