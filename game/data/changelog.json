@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.51.1-alpha",
+      "build": "diagnostics-2",
+      "stage": "Remote Diagnostic Upload",
+      "date": "2026-10-04",
+      "changes": [
+        "Восстановлена отправка полной диагностики через существующий Cloudflare Worker.",
+        "Shell/action/update/SW диагностика формируется в единый журнал.",
+        "Добавлена отправка диагностического пакета из окна отладки.",
+        "GitHub Action продолжает автоматически зеркалировать последний пакет в diagnostics/latest.json и latest.log."
+      ]
+    },
+    {
       "version": "0.51.0-alpha",
       "build": "diagnostics-1",
       "stage": "Action Diagnostics Foundation",
