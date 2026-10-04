@@ -24,7 +24,7 @@ export const CombatRuntime={
  startBattle(options){current=build(options);window.dispatchEvent(new CustomEvent('eirdan:combat-start',{detail:current}));return current},
  getState(){return current},
  step(){if(!current)return null;step(current);window.dispatchEvent(new CustomEvent('eirdan:combat-update',{detail:current}));return current},
- endTurn(){if(current){advance(current);window.dispatchEvent(new CustomEvent('eirdan:combat-update',{detail:current})}return current},
+ endTurn(){if(current){advance(current);window.dispatchEvent(new CustomEvent('eirdan:combat-update',{detail:current}))}return current},
  async simulate(mode,n=100,options={}){let wins={ally:0,enemy:0,draw:0},rounds=0;for(let i=0;i<n;i++){let s=build({...options,mode}),guard=0;while(!s.over&&s.round<=250&&guard++<6000)step(s);let A=s.units.some(u=>u.alive&&u.team==='ally'),E=s.units.some(u=>u.alive&&u.team==='enemy'),r=A&&!E?'ally':E&&!A?'enemy':'draw';wins[r]++;rounds+=s.round;if(i%5===4)await new Promise(r=>setTimeout(r,0))}let result={mode,n,wins,averageRounds:rounds/n};window.dispatchEvent(new CustomEvent('eirdan:combat-simulation',{detail:result}));return result}
 };
 export {dirs,hd,distance,neighbors,isBlockedTerrain,movementCost} from './movement.js';
