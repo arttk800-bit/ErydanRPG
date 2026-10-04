@@ -72,7 +72,7 @@ async function debug(){
      actionDiagnostics.record('diagnostics-upload',phase,data);
      if(phase==='sending')setDelivery('Отправка в Eirdan Diagnostics…',25,'Передача пакета в Worker');
      if(phase==='accepted')setDelivery('Лог принят сервером',50,'GitHub получил команду на зеркалирование · '+data.runId);
-     if(phase==='waiting')setDelivery('GitHub обрабатывает диагностику…',75,'Следующая проверка подтверждения через '+data.seconds+' сек.');
+     if(phase==='waiting'){const pct=50+Math.round((data.elapsed/data.maxWaitSeconds)*45);setDelivery('GitHub обрабатывает диагностику…',pct,'Проверка '+data.attempt+' · прошло '+data.elapsed+' из '+data.maxWaitSeconds+' сек.');}
      if(phase==='confirmed')setDelivery('Доставлено в GitHub',100,'Подтверждено · '+data.runId);
      if(phase==='pending')setDelivery('Ожидается подтверждение GitHub',75,'Лог сохранён Worker, но GitHub ещё не подтвердил доставку · '+data.runId);
     }
