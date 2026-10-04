@@ -68,7 +68,7 @@ body,button,select,input{font-family:'PT Sans',system-ui,sans-serif}.mainTitle,.
  if(combatUI?.initCombatUI)combatUI.initCombatUI();
  const combatRuntime=await import('../systems/combat/combat.js?v='+encodeURIComponent(meta.build)).catch(e=>{console.error('combat runtime load',e);if(document.getElementById('modeHint'))document.getElementById('modeHint').textContent='Combat runtime ERROR: '+e.message;return null});
  if(combatUI?.attachCombatRuntime&&combatRuntime?.CombatRuntime){combatUI.attachCombatRuntime(combatRuntime.CombatRuntime);if(document.getElementById('modeHint'))document.getElementById('modeHint').textContent='Combat runtime подключён · '+meta.build}
- import('./migration-base.js?v='+encodeURIComponent(meta.build)).catch(e=>console.error('migration load',e));
+ // migration-base.js intentionally kept in repository as migration source; not loaded at runtime.
  import('./pwa.js?v='+encodeURIComponent(meta.build)).catch(e=>console.error('pwa load',e));
 })();
 </script></body></html>
