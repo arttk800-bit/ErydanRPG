@@ -18,10 +18,10 @@ export class UpdateManager{
    try{
     this.setState('downloading',{remote:meta,step:'service-worker-update'});
     await this.registration.update();
-    const worker=this.registration.installing||this.registration.waiting||this.registration.active;
+    const worker=this.registration.installing||this.registration.waiting;
     if(worker&&worker.state==='installing')await waitWorker(worker);
-    await waitForBuild(meta.build,this.registration,30000);
-    this.setState('ready',{remote:meta,workerState:(this.registration.active||this.registration.waiting)?.state||null});this.onReady?.(meta);return true;
+    const readyWorker=this.registration.waiting||this.registration.active;
+    this.setState('ready',{remote:meta,workerState:readyWorker?.state||null});this.onReady?.(meta);return true;
    }catch(error){this.setState('error',{step:'service-worker',message:errorMessage(error)});return false}
   });
  }
