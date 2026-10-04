@@ -11,5 +11,6 @@ const points=[{id:'from',x:.1,y:.5},{id:'to',x:.9,y:.5}];
 const horse=RoadSystem.route(roads,points,'from','to','horse');assert.ok(horse);assert.deepEqual(horse.roadNodeIds,['a','y','z','b']);assert.ok(horse.distance>8000);
 const alternatives=RoadSystem.routes(roads,points,'from','to','horse',3);assert.ok(alternatives.length>=2);assert.ok(alternatives[0].cost<=alternatives[1].cost);
 const blocked=[{id:'wall',type:'blocked',polygon:[{x:.45,y:.4},{x:.55,y:.4},{x:.55,y:.6},{x:.45,y:.6}]}];
+const blockedRoute=RoadSystem.route(roads,points,'from','to','horse',blocked);assert.ok(blockedRoute);assert.deepEqual(blockedRoute.roadNodeIds,['a','y','z','b']);
 const spans=TerrainSystem.segmentSpans(blocked,{x:.1,y:.5},{x:.9,y:.5});assert.ok(spans.some(s=>!s.passable));assert.equal(TerrainSystem.pathPassable(blocked,[{x:.1,y:.5},{x:.9,y:.5}]),false);
 console.log('travel routing regression: OK');
