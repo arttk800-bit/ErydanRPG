@@ -1,4 +1,4 @@
-const BUILD_ID='updater-6';
+const BUILD_ID='world-zones-1';
 const CACHE='eirdan-shell-v6-'+BUILD_ID;
 const CORE=['./','./app/index.html','./app/shell.css','./app/bootstrap.js','./app/navigation.js','./app/lifecycle.js','./app/game-screen.js','./client/release.js','./client/update-manager.js','./diagnostics/action-diagnostics.js','./diagnostics/uploader.js','./diagnostics/format.js','./ui/world.js','./systems/world.js','./data/world.js','./core/session.js','./core/persistence.js','./diagnostics/shell-diagnostics.js','./manifest.webmanifest'];
 const OPTIONAL=['./assets/eirdan-world-map-v2.png','./assets/world-region-index.png'];
