@@ -1,5 +1,5 @@
 import {W,CL,ARMORS,PD,CLASS_POOL,GRID,DEFAULT_BATTLE_CFG,mkbody} from '../alpha14p/data/constants.js';import {GameRNG,pick} from '../alpha14p/core/rng.js';
-import {dirs,hd,distance as combatDistance,neighbors,isBlockedTerrain,movementCost,hitChance,armorSlotForPart,armorCoverageForPart,COMBAT_MODULE_VERSION} from '../systems/combat/combat.js';
+import {hd,distance as combatDistance,neighbors,isBlockedTerrain,movementCost,hitChance,armorSlotForPart,armorCoverageForPart} from '../systems/combat/combat.js';
 const TEST_POOL=[...CLASS_POOL];
 
 const INV_ITEMS={
