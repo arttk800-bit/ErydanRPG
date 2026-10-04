@@ -1,4 +1,5 @@
 import {W,CL,ARMORS,PD,CLASS_POOL,GRID,DEFAULT_BATTLE_CFG,mkbody} from '../alpha14p/data/constants.js';import {GameRNG,pick} from '../alpha14p/core/rng.js';
+import {dirs,hd,distance as combatDistance,neighbors,isBlockedTerrain,movementCost,hitChance,armorSlotForPart,armorCoverageForPart,COMBAT_MODULE_VERSION} from '../systems/combat/combat.js';
 const TEST_POOL=['guardian'];
 
 const INV_ITEMS={
@@ -165,17 +166,16 @@ function drawField(){
 function render(){drawField();$('round').textContent='Раунд 1 · '+units.length+' бойцов · '+cfg.terrain;$('summary').innerHTML=units.map(u=>'<div class="card"><b>'+u.name+'</b><br>'+CL[u.cls].n+'<br>'+W[u.w].n+(u.w2?' + '+W[u.w2].n:'')+'<br>'+(u.id==='a0'?(u.helmetName+' · '+u.armorName+' · '+u.bootsName):u.armorName)+'<br>HP '+u.hp+' · AP '+u.ap+' · ST '+u.st+'/'+(u.maxSt||100)+' · DEF '+u.def+'<br>Щит '+u.shield+'/'+u.maxShield+' · Броня '+u.armorHead+'/'+u.armorBody+'<br>Кровотечение '+u.bleed+(u.prepared?' · ПРИГОТОВЛЕН':'')+(u.alive?'':' · ВЫБЫЛ')+'</div>').join('')}
 $('back').onclick=()=>{hideResultOverlay();$('resultOverlay').dataset.kind='';$('resultNew').textContent='Новый бой';$('sim1v1').disabled=false;$('sim3v3').disabled=false;window.lastSimulationReport=null;window.lastSimulationFile=null;pendingDuel=false;$('prepFight')?.classList.add('hidden');$('setup').classList.remove('hidden');$('battle').classList.add('hidden');$('hud').classList.add('hidden')};
 
-const dirs=()=>[[1,0],[-1,0],[0,1],[0,-1]];
-const neigh=(q,r)=>dirs().map(d=>[q+d[0],r+d[1]]).filter(p=>p[0]>=0&&p[0]<GRID.C&&p[1]>=0&&p[1]<GRID.R);
+const neigh=(q,r)=>neighbors(q,r,GRID);
 const at=(q,r)=>units.find(u=>u.alive&&u.q===q&&u.r===r);
-const blocked=(q,r)=>['rock','tree'].includes(terrain[q+','+r]);
-const dist=(a,b)=>hd(a.q,a.r,b.q,b.r);
+const blocked=(q,r)=>isBlockedTerrain(terrain[q+','+r]);
+const dist=(a,b)=>combatDistance(a,b);
 const activeWeapon=(a,t)=>(a.cls==='archer'&&dist(a,t)<=1&&a.w2)?a.w2:a.w;
-const moveCost=a=>{let legs=['lleg','rleg'].map(k=>a.body[k]),crip=legs.filter(x=>x.hp<=0).length;return crip?{ap:4,st:18}:{ap:a.st<25?3:2,st:8}};
+const moveCost=a=>movementCost(a);
 const partKeys=['head','torso','larm','rarm','lleg','rleg'];
 const rndPart=()=>{let x=GameRNG.random()*100;return x<10?'head':x<50?'torso':x<62?'larm':x<74?'rarm':x<87?'lleg':'rleg'};
 function coverPenalty(a,t){let pen=0,steps=Math.max(1,Math.ceil(dist(a,t)));for(let i=1;i<steps;i++){let q=Math.round(a.q+(t.q-a.q)*i/steps),r=Math.round(a.r+(t.r-a.r)*i/steps),z=terrain[q+','+r];if(z==='tree')pen+=25;else if(z==='bush')pen+=7;else if(z==='rock')pen+=35}if(terrain[t.q+','+t.r]==='bush')pen+=10;return Math.min(75,pen)}
-function chance(a,t,p=null,wk=null){let w=W[wk||activeWeapon(a,t)],pen=w.type==='bow'?Math.max(0,dist(a,t)-2)*8:0,fat=a.st<25?20:a.st<50?8:0,cov=w.type==='bow'?coverPenalty(a,t):0,ready=t.prepared?15:0;return Math.max(5,Math.min(95,a.skill+w.acc-t.def-pen-fat-cov-ready+(p?PD[p].mod:0)))}
+function chance(a,t,p=null,wk=null){let w=W[wk||activeWeapon(a,t)];return hitChance({attacker:a,target:t,weapon:w,part:p,partData:PD,distance:dist(a,t),coverPenalty:coverPenalty(a,t)})}
 function oneHit(a,t,p,wk,m=1){
  let w=W[wk],fat=a.st<25?.7:a.st<50?.88:1,raw=Math.max(1,Math.round((w.min+GameRNG.random()*(w.max-w.min))*fat*m));
  let pre={hp:t.hp,part:t.body[p].hp,shield:t.shield,ah:t.armorHead,ab:t.armorBody,bleed:t.bleed};
@@ -183,7 +183,7 @@ function oneHit(a,t,p,wk,m=1){
   let sd=Math.max(1,Math.round(raw*w.sd)),actual=Math.min(t.shield,sd);t.shield=Math.max(0,t.shield-sd);
   log('[АТАКА] '+a.name+' → '+t.name+' · '+W[wk].n+' · '+PD[p].n+' · сырой '+raw+' · ЩИТ поглотил '+actual+' ('+pre.shield+'→'+t.shield+')');combatFloat(t,'ЩИТ −'+actual,'block');return
  }
- let slot=p==='head'?'armorHead':p==='torso'||p.includes('arm')||p.includes('leg')?'armorBody':null,cover=p==='head'?1:p==='torso'?1:p.includes('arm')?t.armCover:t.legCover,bodyD=raw,armorHit=false,armorLoss=0,pen=1;
+ let slot=armorSlotForPart(p),cover=armorCoverageForPart(t,p),bodyD=raw,armorHit=false,armorLoss=0,pen=1;
  if(slot&&t[slot]>0&&GameRNG.random()<cover){
   armorHit=true;let max='max'+slot[0].toUpperCase()+slot.slice(1),ratio=t[slot]/Math.max(1,t[max]);pen=Math.min(.7,(w.pen||.1)+(1-ratio)*.45);bodyD=Math.max(1,Math.round(raw*pen));armorLoss=Math.min(t[slot],Math.max(1,Math.round(raw*(w.ad||.5))));t[slot]=Math.max(0,t[slot]-Math.max(1,Math.round(raw*(w.ad||.5))))
  }
