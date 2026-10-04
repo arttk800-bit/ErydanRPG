@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.49.2-alpha",
+      "build": "update-manager-4",
+      "stage": "Verified Update Activation",
+      "date": "2026-10-04",
+      "changes": [
+        "Исправлено применение загруженного обновления без принудительного обновления браузера.",
+        "Service Worker теперь подтверждает идентификатор реально активированной сборки.",
+        "Файлы приложения переведены на network-first с офлайн-резервом из кэша.",
+        "Устранена гонка между публикацией GitHub Pages и наполнением кэша Service Worker."
+      ]
+    },
+    {
       "version": "0.49.1-alpha",
       "build": "update-manager-3",
       "stage": "Modular Release Metadata",
