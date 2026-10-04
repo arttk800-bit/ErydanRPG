@@ -1,4 +1,4 @@
-const BUILD="diagnostic-42";
+const BUILD="diagnostic-43";
 const VERSION_URL=new URL("./build.json",import.meta.url).href;
 const bar=()=>document.getElementById("bootBar"),status=()=>document.getElementById("bootStatus"),boot=()=>document.getElementById("bootScreen");
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
