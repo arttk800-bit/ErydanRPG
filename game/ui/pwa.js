@@ -1,5 +1,5 @@
 const BUILD="diagnostic-34";
-const VERSION_URL="https://raw.githubusercontent.com/arttk800-bit/ErydanRPG/main/game/ui/build.json";
+const VERSION_URL=new URL("./build.json",import.meta.url).href;
 const bar=()=>document.getElementById("bootBar"),status=()=>document.getElementById("bootStatus"),boot=()=>document.getElementById("bootScreen");
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function progress(n,msg){if(bar())bar().style.width=n+"%";if(status())status().textContent=msg}
@@ -9,7 +9,7 @@ async function removeDevelopmentCaches(){
  if("caches" in window){const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)))}
 }
 async function remoteBuild(){
- const r=await fetch(VERSION_URL+"?t="+Date.now(),{cache:"no-store"});
+ const sep=VERSION_URL.includes("?")?"&":"?";const r=await fetch(VERSION_URL+sep+"t="+Date.now(),{cache:"no-store"});
  if(!r.ok)throw new Error("version HTTP "+r.status);
  const data=await r.json();if(!data.build)throw new Error("version marker missing");return data.build
 }
@@ -22,7 +22,7 @@ async function waitForDeployment(target){
  let attempt=0;
  while(true){
   attempt++;
-  progress(Math.min(88,45+attempt*3),"Обновление до "+target+" · ожидание сервера…");
+  progress(45,"Обновление до "+target+" · ожидание сервера…");
   try{if(await pageBuild()===target)return}catch(e){console.warn("deployment check",e)}
   await wait(Math.min(5000,1200+attempt*350))
  }
