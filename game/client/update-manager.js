@@ -20,35 +20,17 @@ export class UpdateManager{
   }catch(error){this.setState('error',{step:'manifest',message:errorMessage(error)});runtimeTrace.error('update.check',error);runtimeTrace.end(trace,{ok:false});this.busy=false;return null}
  }
  async update(){
-  const trace=runtimeTrace.begin('update.apply');
+  const trace=runtimeTrace.begin('update.reload');
   if(this.busy){actionDiagnostics.record('update','blocked',{state:this.state});return false}
   this.busy=true;
   try{
-   let remote=this.available;
-   if(!remote){
-    this.setState('checking',{manual:true});
-    const installed=await this.getInstalled();remote=await this.fetchRemote();
-    if(this.same(installed,remote)){this.available=null;this.setState('current',{version:installed.version});return true}
-    this.available=remote;
-   }
-   this.setState('downloading',{remote,step:'service-worker-update'});
-   await this.registration.update();
-   let worker=this.registration.installing||this.registration.waiting;
-   if(worker?.state==='installing')await waitWorker(worker,120000);
-   worker=this.registration.waiting||this.registration.installing;
-   if(worker?.state==='installing')await waitWorker(worker,120000);
-   if(worker&&worker.state==='installed')worker.postMessage({type:'SKIP_WAITING'});
-   this.setState('installing',{remote,step:'activate-and-verify'});
-   await waitForBuild(remote.build,this.registration,60000);
-   this.setState('applied',{remote});
-   await this.onApply?.(remote);
-   runtimeTrace.end(trace,{ok:true,remote});return true;
-  }catch(error){this.setState('error',{step:'activation',message:errorMessage(error)});runtimeTrace.error('update.apply',error);runtimeTrace.end(trace,{ok:false});return false}
+   const remote=this.available||await this.fetchRemote();
+   this.available=remote;this.setState('reloading',{remote});
+   await this.onApply?.(remote);runtimeTrace.end(trace,{ok:true,remote});return true;
+  }catch(error){this.setState('error',{step:'reload',message:errorMessage(error)});runtimeTrace.error('update.reload',error);runtimeTrace.end(trace,{ok:false});return false}
   finally{this.busy=false}
  }
  async download(){return this.update()}
  async apply(){return this.update()}
 }
 function errorMessage(error){return error instanceof Error?error.message:String(error)}
-function waitWorker(worker,timeout=120000){return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{cleanup();reject(new Error('worker install timeout'))},timeout);const done=()=>{if(worker.state==='installed'||worker.state==='activated'){cleanup();resolve()}else if(worker.state==='redundant'){cleanup();reject(new Error('worker became redundant'))}};const cleanup=()=>{clearTimeout(timer);worker.removeEventListener('statechange',done)};worker.addEventListener('statechange',done);done()})}
-function waitForBuild(expected,registration,timeout=20000){return new Promise((resolve,reject)=>{let done=false;const finish=(ok,reason)=>{if(done)return;done=true;clearInterval(poll);clearTimeout(timer);navigator.serviceWorker.removeEventListener('message',message);navigator.serviceWorker.removeEventListener('controllerchange',ask);ok?resolve():reject(new Error(reason||'active build mismatch'))};const message=e=>{if((e.data?.type==='SW_ACTIVATED'||e.data?.type==='SW_BUILD')&&e.data.build===expected)finish(true)};const ask=()=>{registration.active?.postMessage({type:'GET_BUILD'});navigator.serviceWorker.controller?.postMessage({type:'GET_BUILD'});registration.waiting?.postMessage({type:'SKIP_WAITING'})};navigator.serviceWorker.addEventListener('message',message);navigator.serviceWorker.addEventListener('controllerchange',ask);const poll=setInterval(ask,250);const timer=setTimeout(()=>finish(false,'expected service worker '+expected+' did not activate'),timeout);ask()})}
