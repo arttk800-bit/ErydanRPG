@@ -51,6 +51,9 @@ body,button,select,input{font-family:'PT Sans',system-ui,sans-serif}.mainTitle,.
  $('settingsBack')?.addEventListener('click',()=>showOnly('mainMenu'));
  $('quitGame')?.addEventListener('click',()=>$('quitOverlay')?.classList.remove('hidden'));
  $('quitCancel')?.addEventListener('click',()=>$('quitOverlay')?.classList.add('hidden'));
+ $('openDebug')?.addEventListener('click',()=>$('debugPanel')?.classList.toggle('hidden'));
+ $('enterCombatLab')?.addEventListener('click',()=>showOnly('combatLab'));
+ $('closeCombatLab')?.addEventListener('click',()=>showOnly('settingsMenu'));
 })();
 </script><script>
 (async()=>{
