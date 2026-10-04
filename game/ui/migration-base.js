@@ -488,7 +488,7 @@ $('gameMenuBtn').onclick=()=>$('gameMenu').classList.toggle('hidden');
 $('resumeGame').onclick=()=>$('gameMenu').classList.add('hidden');
 $('gameSettings').onclick=()=>{$('gameMenu').classList.add('hidden');openSettingsFrom('rpgShell')};
 $('toMainMenu').onclick=()=>{$('gameMenu').classList.add('hidden');showOnly('mainMenu')};
-$('refreshGame').onclick=()=>{try{localStorage.removeItem('eirdan-build')}catch(_){}let u=new URL(location.href);u.searchParams.set('_refresh',Date.now());location.replace(u.toString())};
+$('refreshGame').onclick=async()=>{await window.EirdanUpdater?.check()};$('applyUpdate').onclick=()=>window.EirdanUpdater?.reload();
 $('fullscreenGame').onclick=async()=>{try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen({navigationUI:'hide'});$('fullscreenGame').textContent='Выйти из полного экрана'}else{await document.exitFullscreen();$('fullscreenGame').textContent='Полный экран'}}catch(e){alert('Браузер не разрешил полноэкранный режим. Для полного скрытия адресной строки можно установить Eirdan на главный экран как веб-приложение.')}};
 document.addEventListener('fullscreenchange',()=>{if($('fullscreenGame'))$('fullscreenGame').textContent=document.fullscreenElement?'Выйти из полного экрана':'Полный экран'});
 $('quitGame').onclick=()=>{$('quitOverlay').classList.remove('hidden')};
