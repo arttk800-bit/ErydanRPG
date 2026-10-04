@@ -18,9 +18,11 @@ export const WorldUI={
    const img=el('img');img.className='world-map-image';img.src='../assets/eirdan-world-map.jpg';img.alt='Карта мира Эйрдан';
    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 1152 1536');svg.classList.add('world-region-overlay');
    for(const [id,region] of Object.entries(WORLD_DATA.regions)){
-    const poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');
-    poly.setAttribute('points',region.polygon);poly.dataset.regionId=id;poly.setAttribute('aria-label',region.name);
-    if(current.regionId===id)poly.classList.add('selected');svg.append(poly);
+    for(const d of region.paths){
+     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+     path.setAttribute('d',d);path.dataset.regionId=id;path.setAttribute('aria-label',region.name);
+     if(current.regionId===id)path.classList.add('selected');svg.append(path);
+    }
    }
    frame.append(img,svg);root.append(frame);
   }
