@@ -15,7 +15,7 @@ export const WorldSystem={
  enterMapPoint(state,point){runtimeTrace.system('world.enterMapPoint','invoke',{pointId:point?.id||null});const c=this.ensure(state);if(!point)return c;this.markVisited(state,point);if(point.class==='location'){c.locationId=point.id;c.districtId=null;c.placeId=null}else if(point.class==='district'){c.districtId=point.id;c.placeId=null}else if(point.class==='place'){c.placeId=point.id}else if(point.class==='transition'){c.placeId=point.id}return c},
  clearMapPoint(state){runtimeTrace.system('world.clearMapPoint','invoke',{});const c=this.ensure(state);c.placeId=null;c.districtId=null;return c},
  regionStatus(state,id){this.ensure(state);if(state.world.current.regionId===id)return'current';return state.world.regions[id]?.status||'locked'},
- isRegionAvailable(state,id){const s=this.regionStatus(state,id);return s==='current'||s==='visited'||s==='discovered'},
+ isRegionAvailable(state,id){const s=this.regionStatus(state,id);return WORLD_DATA.regions[id]?.available===true||s==='current'||s==='visited'||s==='discovered'},
  region(id){return WORLD_DATA.regions[id]||null},place(id){return WORLD_DATA.places[id]||null},city(id){return WORLD_DATA.cities[id]||null},
  advanceTime(state,minutes,reason='world'){runtimeTrace.system('world.advanceTime','invoke',{minutes,reason});const amount=Math.max(0,Math.trunc(minutes||0));state.clock.minute+=amount;normalizeClock(state.clock);state.history=state.history||[];state.history.push({type:'time',reason,minutes:amount,day:state.clock.day,minute:state.clock.minute});return state.clock},
  clockLabel(state){const h=Math.floor(state.clock.minute/60),m=state.clock.minute%60;return'День '+state.clock.day+' · '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
