@@ -1,33 +1,34 @@
 import {Navigation} from './navigation.js';
+import {Lifecycle} from './lifecycle.js';
 import {createSession} from '../core/session.js';
+import {saveGame,listSaves,loadGame,persistenceSupported} from '../core/persistence.js';
+import {runShellDiagnostics} from '../diagnostics/shell-diagnostics.js';
 
-const BUILD_URL='../ui/build.json';
-const SETTINGS_KEY='eirdan.shell.settings.v1';
-const nav=new Navigation(document);
-let session=null;
-let installPrompt=null;
-
+const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
+const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false;
 const $=s=>document.querySelector(s);
 function loadSettings(){try{return{theme:'dark',volume:70,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}}catch{return{theme:'dark',volume:70}}}
-function saveSettings(s){localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));}
+function saveSettings(s){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}catch{}}
 const settings=loadSettings();
-function applySettings(){document.querySelector('#app').dataset.theme=settings.theme;$('#theme').value=settings.theme;$('#volume').value=settings.volume;}
-function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.add('hidden'),2200);}
-function modal(title,body,actions=[['Закрыть',()=>closeModal()]]){ $('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden');}
-function closeModal(){$('#modal').classList.add('hidden');}
+function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').value=settings.theme;$('#volume').value=settings.volume}
+function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.add('hidden'),2200)}
+function closeModal(){modalOpen=false;$('#modal').classList.add('hidden')}
+function modal(title,body,actions=[['Закрыть',closeModal]]){modalOpen=true;$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden')}
 async function loadBuild(){try{const r=await fetch(BUILD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error();const m=await r.json();$('#versionBadge').textContent='Версия '+m.version+' · '+m.build;return m}catch{$('#versionBadge').textContent='Версия недоступна';return null}}
-async function registerPwa(){if(!('serviceWorker' in navigator))return;try{const reg=await navigator.serviceWorker.register('../sw.js',{scope:'../'});reg.addEventListener('updatefound',()=>{const w=reg.installing;w?.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)modal('Доступно обновление','<p>Новая версия Eirdan готова. Обновление применится после перезапуска.</p>',[['Обновить сейчас',()=>location.reload()],['Позже',closeModal]])})})}catch(e){console.warn('PWA registration failed',e)}}
-function newGame(){session=createSession();$('#sessionInfo').textContent=session.meta.worldId;nav.reset('game');}
-function openLoad(){modal('Загрузить игру','<p>Хранилище сохранений будет подключено на этапе Persistence. Оболочка уже имеет отдельную точку входа для загрузки.</p>');}
-function quit(){modal('Покинуть игру','<p>В браузерной/PWA-версии приложение не закрывает себя принудительно. Можно вернуться в главное меню или закрыть окно приложения.</p>');}
-function debug(){modal('Отладка',`<p>Shell: OK</p><p>PWA: ${'serviceWorker' in navigator?'поддерживается':'не поддерживается'}</p><p>Session: ${session?'active':'none'}</p>`);}
-document.addEventListener('click',e=>{const a=e.target.closest('[data-action]')?.dataset.action;if(!a)return;if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='quit')quit();if(a==='back')nav.back();if(a==='debug')debug();if(a==='game-menu')modal('Меню игры','<p>Текущая игровая сессия активна.</p>',[['Продолжить',closeModal],['Настройки',()=>{closeModal();nav.show('settings')}],['В главное меню',()=>{closeModal();nav.reset('main')}]]);});
+async function registerPwa(){if(!('serviceWorker' in navigator))return;try{const reg=await navigator.serviceWorker.register('../sw.js',{scope:'../'});reg.addEventListener('updatefound',()=>{const w=reg.installing;w?.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)modal('Доступно обновление','<p>Новая версия Eirdan готова.</p>',[['Обновить сейчас',()=>location.reload()],['Позже',closeModal]])})})}catch(e){console.warn('PWA registration failed',e)}}
+async function persist(){if(session&&persistenceSupported())try{await saveGame(session)}catch(e){console.warn('Save failed',e)}}
+async function newGame(){session=createSession();await persist();$('#sessionInfo').textContent=session.meta.worldId;nav.reset('game');toast('Новая игра создана')}
+async function openLoad(){if(!persistenceSupported())return modal('Загрузить игру','<p>IndexedDB недоступен в этом браузере.</p>');const saves=await listSaves();if(!saves.length)return modal('Загрузить игру','<p>Сохранений пока нет.</p>');const body=saves.map(s=>'<button class="saveChoice" data-save="'+s.meta.worldId+'">'+s.meta.worldId+' · день '+s.clock.day+'</button>').join('');modal('Загрузить игру','<div class="menu-actions">'+body+'</div>');document.querySelectorAll('.saveChoice').forEach(b=>b.onclick=async()=>{session=await loadGame(b.dataset.save);closeModal();$('#sessionInfo').textContent=session.meta.worldId;nav.reset('game');toast('Сохранение загружено')})}
+function quit(){modal('Покинуть игру','<p>Браузер не разрешает веб-приложению надёжно закрывать собственное окно. Текущая сессия сохраняется автоматически.</p>',[['В главное меню',async()=>{await persist();closeModal();nav.reset('main')}],['Отмена',closeModal]])}
+async function debug(){const d=await runShellDiagnostics({session,persistenceSupported:persistenceSupported()});modal('Диагностика Shell','<p><b>'+(d.ok?'PASS':'CHECK')+'</b></p>'+d.checks.map(([n,ok])=>'<p>'+(ok?'✓':'×')+' '+n+'</p>').join(''))}
+function handleBack(){if(modalOpen){closeModal();return true}if(nav.current()==='main')return false;nav.back();return true}
+const lifecycle=new Lifecycle({onBack:handleBack,onSuspend:persist});
+document.addEventListener('click',e=>{const a=e.target.closest('[data-action]')?.dataset.action;if(!a)return;if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='quit')quit();if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')modal('Меню игры','<p>Текущая игровая сессия активна.</p>',[['Продолжить',closeModal],['Сохранить',async()=>{await persist();closeModal();toast('Игра сохранена')}],['Настройки',()=>{closeModal();nav.show('settings')}],['В главное меню',async()=>{await persist();closeModal();nav.reset('main')}]]);});
 $('#theme').addEventListener('change',e=>{settings.theme=e.target.value;saveSettings(settings);applySettings()});
 $('#volume').addEventListener('input',e=>{settings.volume=Number(e.target.value);saveSettings(settings)});
 $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{toast('Полный экран недоступен на этом устройстве')}});
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installPwa').classList.remove('hidden')});
 $('#installPwa').addEventListener('click',async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('#installPwa').classList.add('hidden')});
 window.addEventListener('appinstalled',()=>toast('Eirdan установлен'));
-window.addEventListener('popstate',()=>nav.back());
-$('#versionBadge').addEventListener('click',()=>modal('Версия Eirdan','<p>Новая архитектурная ветка: Application Shell + PWA.</p>'));
-applySettings();loadBuild();registerPwa();nav.reset('main');
+$('#versionBadge').addEventListener('click',()=>modal('Версия Eirdan','<p>Application Shell 1.0: lifecycle, PWA, persistence и диагностика.</p>'));
+applySettings();nav.reset('main');lifecycle.start();loadBuild();registerPwa();
