@@ -9,11 +9,13 @@ export const WorldSystem={
  ensure(state){
   state.world=state.world||{};
   state.world.locations=state.world.locations||{};
+  state.world.regions=state.world.regions||{};
   state.world.current=state.world.current||{regionId:null,placeId:null,cityId:null,cityPlaceId:null};
   return state.world.current;
  },
  current(state){return this.ensure(state)},
- enterRegion(state,regionId){if(!this.region(regionId))throw new Error('Unknown world region');const current=this.ensure(state);current.regionId=regionId;current.placeId=null;current.cityId=null;current.cityPlaceId=null;return current},
+ enterRegion(state,regionId){if(!this.region(regionId))throw new Error('Unknown world region');const current=this.ensure(state);const previous=current.regionId;if(previous&&state.world.regions[previous]?.status==='current')state.world.regions[previous].status='visited';const known=state.world.regions[regionId]||{status:'discovered'};known.status='current';state.world.regions[regionId]=known;current.regionId=regionId;current.placeId=null;current.cityId=null;current.cityPlaceId=null;return current},
+ regionStatus(state,regionId){this.ensure(state);if(state.world.current.regionId===regionId)return 'current';return state.world.regions[regionId]?.status||'discovered'},
  region(id){return WORLD_DATA.regions[id]||null},
  place(id){return WORLD_DATA.places[id]||null},
  city(id){return WORLD_DATA.cities[id]||null},
