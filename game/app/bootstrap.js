@@ -9,6 +9,7 @@ import {UpdateManager} from '../client/update-manager.js';
 import {actionDiagnostics} from '../diagnostics/action-diagnostics.js';
 import {downloadDiagnosticArchive} from '../diagnostics/archive.js';
 import {runtimeTrace} from '../diagnostics/runtime-trace.js';
+import {preloadStartupAssets} from '../client/asset-loader.js';
 
 const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
 let buildMeta=null;
@@ -31,9 +32,9 @@ function updateButton(label='Проверить обновления',disabled=f
 function resetUpdateButton(delay=1800){clearTimeout(resetUpdateButton.t);resetUpdateButton.t=setTimeout(()=>{if(!updateManager?.busy)updateButton()},delay)}
 async function fetchRemoteBuild(){const r=await fetch(BUILD_URL+'?update='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('build '+r.status);return r.json()}
 function updateVisual(state,data={}){
- const map={checking:['Проверка версии…',30],downloading:['Загрузка обновления…',55],installing:['Проверка установки…',90],applied:['Запуск новой версии…',100],current:['Обновлений нет',100]};
+ const map={checking:['Проверка версии…',35],reloading:['Перезагрузка…',100],current:['Версия актуальна',100]};
  if(state==='error'){const step={manifest:'версия',metadata:'метаданные','service-worker':'загрузка',activation:'активация'}[data.step]||data.step||'обновление';updateButton('Ошибка: '+step,false,100,'error');console.error('Eirdan update error',data);resetUpdateButton(6000);return}
- if(map[state])updateButton(map[state][0],['checking','downloading','installing','applied'].includes(state),map[state][1],state);
+ if(map[state])updateButton(map[state][0],['checking','reloading'].includes(state),map[state][1],state);
  if(state==='current')resetUpdateButton(2200);
 }
 async function registerPwa(){
@@ -45,9 +46,9 @@ async function registerPwa(){
    getInstalled:()=>Promise.resolve(buildMeta),
    fetchRemote:fetchRemoteBuild,
    onState:updateVisual,
-   onAvailable:meta=>updateButton('Обновить до '+meta.version,false,100,'ready'),
+   onAvailable:meta=>updateButton('Перезагрузить до '+meta.version,false,100,'ready'),
    onReady:null,
-   onApply:async remote=>{await persist();const url=new URL(location.href);url.searchParams.set('build',remote.build);url.searchParams.set('t',Date.now().toString());location.replace(url.toString())}
+   onApply:async remote=>{await persist();const url=new URL(location.href);url.searchParams.set('build',remote.build||Date.now().toString());url.searchParams.set('reload',Date.now().toString());location.replace(url.toString())}
   });
   setInterval(()=>{if(!updateManager.busy)updateManager.check()},5*60*1000);
  }catch(e){console.warn('PWA registration failed',e)}
@@ -78,4 +79,11 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installProm
 $('#installPwa').addEventListener('click',async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('#installPwa').classList.add('hidden')});
 window.addEventListener('appinstalled',()=>toast('Eirdan установлен'));
 $('#versionBadge').addEventListener('click',async()=>{try{const meta=await loadCurrentRelease();modal('Версия Eirdan',releaseChangesHtml(meta))}catch(e){console.warn('Release metadata unavailable',e);modal('Версия Eirdan','<p><b>'+(buildMeta?.version||'Версия недоступна')+'</b></p><p>История изменений временно недоступна.</p>')}});
-applySettings();nav.reset('main');lifecycle.start();await loadBuild();await registerPwa();updateManager?.check();
+applySettings();nav.reset('main');lifecycle.start();await loadBuild();await registerPwa();
+const loader=$('#startupLoader'),loaderProgress=$('#startupLoaderProgress'),loaderText=$('#startupLoaderText'),loaderDetail=$('#startupLoaderDetail');
+try{
+ await preloadStartupAssets({onProgress:({loaded,total,ratio})=>{loaderProgress.value=ratio;loaderText.textContent='Подготовка игры… '+Math.round(ratio*100)+'%';loaderDetail.textContent='Ресурсы '+loaded+' / '+total}});
+ loaderText.textContent='Готово';loaderProgress.value=1;
+}catch(e){console.warn('Startup asset preload failed',e);runtimeTrace.error('asset.preload',e);loaderText.textContent='Часть ресурсов загрузится по мере игры';loaderDetail.textContent='Можно продолжать'}
+setTimeout(()=>{loader.classList.add('done');setTimeout(()=>loader.remove(),220)},120);
+updateManager?.check();
