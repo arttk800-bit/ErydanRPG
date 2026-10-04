@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.60.3-alpha",
+      "build": "update-flow-fix-1",
+      "stage": "Atomic Update Flow",
+      "date": "2026-10-04",
+      "changes": [
+        "Обновлятор переведён на атомарный цикл: загрузка, активация Service Worker, проверка build и перезапуск выполняются как одна операция.",
+        "Кнопка обновления остаётся disabled на протяжении всего активного update-flow и повторные нажатия блокируются.",
+        "После установки явно инициируется SKIP_WAITING и ожидается подтверждение нового build через SW_ACTIVATED/SW_BUILD/controllerchange.",
+        "Убрано промежуточное окно «Применить»: после нажатия «Обновить» новая сборка применяется автоматически после проверки."
+      ]
+    },
+    {
       "version": "0.60.2-alpha",
       "build": "map-interaction-fix-1",
       "stage": "Map Interaction Fix",
