@@ -82,7 +82,7 @@ $('#versionBadge').addEventListener('click',async()=>{try{const meta=await loadC
 applySettings();nav.reset('main');lifecycle.start();await loadBuild();await registerPwa();
 const loader=$('#startupLoader'),loaderProgress=$('#startupLoaderProgress'),loaderText=$('#startupLoaderText'),loaderDetail=$('#startupLoaderDetail');
 try{
- await preloadStartupAssets({onProgress:({loaded,total,ratio})=>{loaderProgress.value=ratio;loaderText.textContent='Подготовка игры… '+Math.round(ratio*100)+'%';loaderDetail.textContent='Ресурсы '+loaded+' / '+total}});
+ await preloadStartupAssets({build:buildMeta?.build,onProgress:({loaded,total,ratio})=>{loaderProgress.value=ratio;loaderText.textContent='Подготовка игры… '+Math.round(ratio*100)+'%';loaderDetail.textContent='Ресурсы '+loaded+' / '+total}});
  loaderText.textContent='Готово';loaderProgress.value=1;
 }catch(e){console.warn('Startup asset preload failed',e);runtimeTrace.error('asset.preload',e);loaderText.textContent='Часть ресурсов загрузится по мере игры';loaderDetail.textContent='Можно продолжать'}
 setTimeout(()=>{loader.classList.add('done');setTimeout(()=>loader.remove(),220)},120);
