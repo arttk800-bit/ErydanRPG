@@ -491,6 +491,10 @@ async function runFullDiagnostic(){
  out.push('','SUMMARY','PASS: '+pass,'FAIL: '+fail,'WARN: '+warn,'RESULT: '+(fail?'FAILED':'PASSED'));
  fullDiagnosticLog=out.join('\n');window.lastFullDiagnosticLog=fullDiagnosticLog;$('downloadFullDiagnostic').disabled=false;$('uploadFullDiagnostic').disabled=false;btn.disabled=false;status.textContent='Готово: PASS '+pass+' · FAIL '+fail+' · WARN '+warn+' · отправка...';setTimeout(()=>uploadFullDiagnosticLog(true),0);
 }
+// Critical shell handlers are bound before optional subsystems so the main menu survives later module errors.
+if($('newGame'))$('newGame').onclick=()=>{showOnly('rpgShell');rpgScreen='world';renderRpg()};
+if($('openSettings'))$('openSettings').onclick=()=>openSettingsFrom('mainMenu');
+if($('quitGame'))$('quitGame').onclick=()=>{$('quitOverlay')?.classList.remove('hidden')};
 $('newGame').onclick=()=>{showOnly('rpgShell');rpgScreen='world';renderRpg()};
 $('openSettings').onclick=()=>openSettingsFrom('mainMenu');
 $('settingsBack').onclick=()=>showOnly(settingsReturn);
@@ -553,7 +557,7 @@ showOnly('mainMenu');
 $('versionBadge').onclick=()=>{$('versionOverlay').classList.remove('hidden')};
 $('versionClose').onclick=()=>{$('versionOverlay').classList.add('hidden')};
 $('versionOverlay').onclick=e=>{if(e.target===$('versionOverlay'))$('versionOverlay').classList.add('hidden')};
-$('inventory').onclick=openInventory;
+$('inventory')?.addEventListener('click',openInventory);
 $('statsToggle').onclick=()=>{$('statsDrawer').classList.toggle('hidden')};
 initInvWindow();
 
