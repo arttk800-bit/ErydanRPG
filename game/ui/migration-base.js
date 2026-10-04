@@ -74,7 +74,9 @@ const SPRITE_SRC={
 };
 const SPRITES={};for(const[k,v]of Object.entries(SPRITE_SRC)){let im=new Image();im.onload=()=>{SPRITES[k]=im;if(!$('battle')?.classList.contains('hidden'))drawField()};im.src=v}
 
-let cfg=structuredClone(DEFAULT_BATTLE_CFG),units=[],terrain={},order=[],idx=0,round=1,over=false,auto=false,combatLog=[],fullLog=[];
+let cfg=structuredClone(DEFAULT_BATTLE_CFG),units=[],terrain={},order=[],idx=0,round=1,over=false,auto=false,combatSpeed=1,combatTimer=null,combatLog=[],fullLog=[];
+const combatDelay=()=>Math.max(35,Math.round(260/combatSpeed));
+function queueAi(fn=aiTurn){clearTimeout(combatTimer);combatTimer=setTimeout(fn,combatDelay())}
 const log=s=>{let line='R'+round+' · '+s;combatLog.unshift(line);if(combatLog.length>80)combatLog.length=80;fullLog.push(line)};
 const $=id=>document.getElementById(id);
 function gear(cls){if(cls==='guardian')return{w:pick(['sword','axe']),w2:null,shield:55};if(cls==='berserker')return{w:pick(['greatsword','greataxe']),w2:null,shield:0};if(['priest','firemage','wizard'].includes(cls))return{w:pick(['staff','wand']),w2:null,shield:0};if(cls==='archer')return{w:'bow',w2:'dagger',shield:0};if(cls==='crossbowman')return{w:'crossbow',w2:'dagger',shield:0};if(cls==='assassin')return{w:'dagger',w2:'dagger',shield:0};if(cls==='rogue')return{w:'throwknife',w2:'dagger',shield:0};return{w:'sword',w2:null,shield:0}}
@@ -186,7 +188,7 @@ function advanceTurnCore(){
  if(c.bleed){let hp0=c.hp;log('[СОСТОЯНИЕ] '+c.name+': кровотечение −'+c.bleed+' · HP '+hp0+'→'+Math.max(0,hp0-c.bleed));c.hp=Math.max(0,c.hp-c.bleed);if(c.hp<=0)c.alive=false;if(checkEnd())return false}
  let st0=c.st;c.ap=9;c.st=Math.min(c.maxSt||100,c.st+12);log('[ХОД] '+c.name+' · позиция ['+c.q+','+c.r+'] · AP=9 · ST '+st0+'→'+c.st+' · HP '+c.hp+'/'+c.maxHp+' · bleed '+c.bleed+(c.prepared?' · ПРИГОТОВЛЕН':''));return true
 }
-function nextTurn(){if(!advanceTurnCore())return nextRender();nextRender();let c=order[idx];if(auto||c.id!=='a0')setTimeout(aiTurn,60)}
+function nextTurn(){if(!advanceTurnCore())return nextRender();nextRender();let c=order[idx];if(auto||c.id!=='a0')queueAi()}
 function pathStep(a,t,range=1){
  const start=a.q+','+a.r,queue=[[a.q,a.r]],seen=new Set([start]),parent=new Map(),key=(q,r)=>q+','+r;
  let goal=null,limit=GRID.C*GRID.R+20;
@@ -233,8 +235,8 @@ function combatStepSync(){
 function aiTurn(){
  if(over)return;let a=order[idx];if(!a.alive)return nextTurn();
  let action=chooseCombatAction(a);nextRender();if(over)return;
- if(action==='end'||action==='none')return setTimeout(nextTurn,60);
- setTimeout(()=>{if(over)return;let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let w=W[activeWeapon(a,t)],mc=moveCost(a),canAttack=dist(a,t)<=w.r&&a.ap>=w.ap,canMove=dist(a,t)>w.r&&a.ap>=mc.ap&&!!pathStep(a,t,w.r),canRest=a.st<25&&a.ap>=4&&a.st<(a.maxSt||100),canPrep=dist(a,t)<=w.r&&a.ap>=4&&!a.prepared;if(canAttack||canMove||canRest||canPrep)aiTurn();else nextTurn()},60)
+ if(action==='end'||action==='none')return queueAi(nextTurn);
+ queueAi(()=>{if(over)return;let foes=units.filter(x=>x.alive&&x.team!==a.team).sort((x,y)=>dist(a,x)-dist(a,y)),t=foes[0];if(!t)return;let w=W[activeWeapon(a,t)],mc=moveCost(a),canAttack=dist(a,t)<=w.r&&a.ap>=w.ap,canMove=dist(a,t)>w.r&&a.ap>=mc.ap&&!!pathStep(a,t,w.r),canRest=a.st<25&&a.ap>=4&&a.st<(a.maxSt||100),canPrep=dist(a,t)<=w.r&&a.ap>=4&&!a.prepared;if(canAttack||canMove||canRest||canPrep)aiTurn();else nextTurn()})
 }
 function nextRender(){render();$('round').textContent=(over?$('round').textContent:'Раунд '+round+' · ход '+(order[idx]?.name||''));let l=$('combatLog');if(l)l.textContent=combatLog.slice(0,18).join('\n');}
 
@@ -266,8 +268,10 @@ async function simulateDiagnostic(mode,n=100){
 }
 $('sim1v1').onclick=()=>simulateDiagnostic('1v1',100);
 $('sim3v3').onclick=()=>simulateDiagnostic('3v3',100);
-function ensureBattleControls(){['combatLog','auto','endTurn','restSkill','prepareSkill'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.disabled=false;b.textContent='Автобой';b.onclick=()=>{auto=true;if(order[idx].id==='a0')aiTurn()};$('hud').querySelector('.actions').append(b);let r=document.createElement('button');r.id='restSkill';r.textContent='Передышка (+30 ST, 4 AP)';r.onclick=()=>{if(!auto&&order[idx]?.id==='a0'&&restSkill(order[idx]))nextRender()};$('hud').querySelector('.actions').append(r);let p=document.createElement('button');p.id='prepareSkill';p.textContent='Приготовиться (4 AP)';p.onclick=()=>{if(!auto&&order[idx]?.id==='a0'&&prepareSkill(order[idx]))nextRender()};$('hud').querySelector('.actions').append(p);let e=document.createElement('button');e.id='endTurn';e.disabled=false;e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender();}
-$('grid').onclick=e=>{let cells=[...$('grid').children],i=cells.indexOf(e.target.closest('.hex'));if(i<0||over||auto||order[idx]?.id!=='a0')return;let h=e.target.closest('.hex'),q=+h.dataset.q,r=+h.dataset.r,a=order[idx],u=at(q,r);if(u&&u.team!==a.team){attack(a,u);nextRender();return}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+q+','+r+'] · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st);nextRender()}};
+function manualHexAction(q,r){if(over||auto||order[idx]?.id!=='a0')return false;let a=order[idx],u=at(q,r);if(u&&u.team!==a.team){let done=attack(a,u);nextRender();return done}let mc=moveCost(a);if(!u&&!blocked(q,r)&&a.ap>=mc.ap&&neigh(a.q,a.r).some(p=>p[0]===q&&p[1]===r)){let q0=a.q,r0=a.r,ap0=a.ap,st0=a.st;a.q=q;a.r=r;a.ap-=mc.ap;a.st=Math.max(0,a.st-mc.st);log('[ДВИЖЕНИЕ] '+a.name+' ['+q0+','+r0+']→['+q+','+r+'] · AP '+ap0+'→'+a.ap+' · ST '+st0+'→'+a.st);nextRender();return true}return false}
+function canvasHexFromEvent(e){let L=window.__hexLayout;if(!L)return null,rect=$('battleCanvas').getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,best=null,bd=Infinity;for(let q=0;q<GRID.C;q++)for(let r=0;r<GRID.R;r++){let p=hexCenter(q,r,L),d=Math.hypot(x-p.x,y-p.y);if(d<bd){bd=d;best=[q,r]}}return best&&bd<=L.s?best:null}
+function ensureBattleControls(){['combatLog','auto','combatSpeed','endTurn','restSkill','prepareSkill'].forEach(id=>$(id)?.remove());let lg=document.createElement('div');lg.id='combatLog';lg.style='margin-top:10px;max-height:180px;overflow:auto;font-size:12px;line-height:1.5;white-space:pre-line';$('hud').append(lg);let b=document.createElement('button');b.id='auto';b.textContent='Автобой: ВЫКЛ';b.onclick=()=>{auto=!auto;b.textContent='Автобой: '+(auto?'ВКЛ':'ВЫКЛ');if(!auto){clearTimeout(combatTimer);nextRender();return}if(order[idx]?.id==='a0')aiTurn();else queueAi()};$('hud').querySelector('.actions').append(b);let sp=document.createElement('select');sp.id='combatSpeed';sp.innerHTML='<option value="0.5">Скорость ×0.5</option><option value="1" selected>Скорость ×1</option><option value="2">Скорость ×2</option><option value="4">Скорость ×4</option>';sp.onchange=()=>{combatSpeed=+sp.value||1};$('hud').querySelector('.actions').append(sp);let r=document.createElement('button');r.id='restSkill';r.textContent='Передышка (+30 ST, 4 AP)';r.onclick=()=>{if(!auto&&order[idx]?.id==='a0'&&restSkill(order[idx]))nextRender()};$('hud').querySelector('.actions').append(r);let p=document.createElement('button');p.id='prepareSkill';p.textContent='Приготовиться (4 AP)';p.onclick=()=>{if(!auto&&order[idx]?.id==='a0'&&prepareSkill(order[idx]))nextRender()};$('hud').querySelector('.actions').append(p);let e=document.createElement('button');e.id='endTurn';e.textContent='Конец хода';e.onclick=()=>{if(!auto&&order[idx]?.id==='a0')nextTurn()};$('hud').querySelector('.actions').append(e);nextRender()}
+$('battleCanvas').onclick=e=>{let h=canvasHexFromEvent(e);if(h)manualHexAction(h[0],h[1])};
 
 
 document.body.appendChild($('invOverlay'));document.body.appendChild($('resultOverlay'));
