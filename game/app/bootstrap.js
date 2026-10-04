@@ -3,9 +3,10 @@ import {Lifecycle} from './lifecycle.js';
 import {createSession} from '../core/session.js';
 import {saveGame,listSaves,loadGame,deleteSave,persistenceSupported} from '../core/persistence.js';
 import {runShellDiagnostics} from '../diagnostics/shell-diagnostics.js';
+import {loadCurrentRelease,releaseChangesHtml} from '../client/release.js';
 
 const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
-const INSTALLED_BUILD={version:'0.49.0-alpha',build:'update-manager-2',stage:'Reliable Update Manager'};
+const INSTALLED_BUILD={version:'0.49.1-alpha',build:'update-manager-3',stage:'Modular Release Metadata'};
 let buildMeta=INSTALLED_BUILD;
 const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,swRegistration=null,updateAvailable=false,updateChecking=false;
 const $=s=>document.querySelector(s);
@@ -101,5 +102,5 @@ $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenE
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installPwa').classList.remove('hidden')});
 $('#installPwa').addEventListener('click',async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('#installPwa').classList.add('hidden')});
 window.addEventListener('appinstalled',()=>toast('Eirdan установлен'));
-$('#versionBadge').addEventListener('click',()=>{const version=INSTALLED_BUILD.version;const build=INSTALLED_BUILD.build?' · '+INSTALLED_BUILD.build:'';const stage=INSTALLED_BUILD.stage?'<p>'+INSTALLED_BUILD.stage+'</p>':'';modal('Версия Eirdan','<p><b>'+version+build+'</b></p>'+stage+'<p>Application Shell 1.0: lifecycle, PWA, persistence, управление сохранениями и диагностика.</p>')});
+$('#versionBadge').addEventListener('click',async()=>{try{const meta=await loadCurrentRelease();modal('Версия Eirdan',releaseChangesHtml(meta))}catch(e){console.warn('Release metadata unavailable',e);modal('Версия Eirdan','<p><b>'+INSTALLED_BUILD.version+'</b></p><p>История изменений временно недоступна.</p>')}});
 applySettings();nav.reset('main');lifecycle.start();loadBuild();await registerPwa();checkForUpdates();
