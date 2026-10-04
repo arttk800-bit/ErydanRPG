@@ -11,13 +11,21 @@ export const WorldUI={
   const indexToId=new Map(Object.entries(WORLD_DATA.regions).map(([id,r])=>[r.index,id]));
 
   function drawShade(){
-   if(!shadeCanvas||!maskPixels)return;
-   const ctx=shadeCanvas.getContext('2d'),out=ctx.createImageData(maskWidth,maskHeight),current=WorldSystem.ensure(state).regionId;
-   for(let i=0;i<maskPixels.length;i+=4){
-    const p=i/4,index=indexPixels[p],id=indexToId.get(index);if(!id)continue;
-    const status=WorldSystem.regionStatus(state,id),alpha=id===current?0:status==='unknown'?220:118;
+   if(!shadeCanvas||!indexPixels)return;
+   const ctx=shadeCanvas.getContext('2d'),out=ctx.createImageData(maskWidth,maskHeight),current=WorldSystem.ensure(state).regionId,currentIndex=current?WORLD_DATA.regions[current]?.index:0;
+   for(let p=0,i=0;p<indexPixels.length;p++,i+=4){
+    const index=indexPixels[p];
+    let alpha=150;
+    if(currentIndex&&index===currentIndex)alpha=0;
     out.data[i]=0;out.data[i+1]=0;out.data[i+2]=0;out.data[i+3]=alpha;
-    if(id===current){const x=p%maskWidth,y=Math.floor(p/maskWidth);let edge=false;for(let dy=-2;dy<=2&&!edge;dy++)for(let dx=-2;dx<=2;dx++){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=maskWidth||ny>=maskHeight||indexPixels[ny*maskWidth+nx]!==index){edge=true;break}}if(edge){out.data[i]=18;out.data[i+1]=12;out.data[i+2]=7;out.data[i+3]=235}}
+   }
+   if(currentIndex){
+    for(let y=1;y<maskHeight-1;y++)for(let x=1;x<maskWidth-1;x++){
+     const p=y*maskWidth+x;if(indexPixels[p]!==currentIndex)continue;
+     let edge=false;
+     for(let dy=-2;dy<=2&&!edge;dy++)for(let dx=-2;dx<=2;dx++)if(indexPixels[(y+dy)*maskWidth+x+dx]!==currentIndex){edge=true;break}
+     if(edge){const i=p*4;out.data[i]=16;out.data[i+1]=12;out.data[i+2]=8;out.data[i+3]=245}
+    }
    }
    ctx.putImageData(out,0,0);
   }
