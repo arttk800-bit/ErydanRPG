@@ -41,7 +41,7 @@ async function registerPwa(){
    fetchRemote:fetchRemoteBuild,
    onState:updateVisual,
    onAvailable:meta=>updateButton('Обновить до '+meta.version,false,100,'ready'),
-   onReady:meta=>modal('Обновление готово','<p>Версия <b>'+meta.version+'</b> загружена.</p>',[['Применить',()=>updateManager.apply()],['Позже',closeModal]]),
+   onReady:null,
    onApply:async remote=>{await persist();const url=new URL(location.href);url.searchParams.set('build',remote.build);url.searchParams.set('t',Date.now().toString());location.replace(url.toString())}
   });
   setInterval(()=>{if(!updateManager.busy)updateManager.check()},5*60*1000);
@@ -106,7 +106,7 @@ async function debug(){
 }
 function handleBack(){if(modalOpen){closeModal();return true}if(nav.current()==='main')return false;nav.back();return true}
 const lifecycle=new Lifecycle({onBack:handleBack,onSuspend:persist});
-document.addEventListener('click',e=>{const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.download();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')modal('Меню игры','<p>Текущая игровая сессия активна.</p>',[['Продолжить',closeModal],['Сохранить',async()=>{await persist();closeModal();toast('Игра сохранена')}],['Настройки',()=>{closeModal();nav.show('settings')}],['В главное меню',async()=>{await persist();closeModal();nav.reset('main')}]]);});
+document.addEventListener('click',e=>{const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')modal('Меню игры','<p>Текущая игровая сессия активна.</p>',[['Продолжить',closeModal],['Сохранить',async()=>{await persist();closeModal();toast('Игра сохранена')}],['Настройки',()=>{closeModal();nav.show('settings')}],['В главное меню',async()=>{await persist();closeModal();nav.reset('main')}]]);});
 $('#theme').addEventListener('change',e=>{settings.theme=e.target.value;saveSettings(settings);applySettings()});
 $('#volume').addEventListener('input',e=>{settings.volume=Number(e.target.value);saveSettings(settings)});
 $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{toast('Полный экран недоступен на этом устройстве')}});
