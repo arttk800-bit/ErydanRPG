@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.60.0-alpha",
+      "build": "nested-location-map-1",
+      "stage": "Nested Location Maps",
+      "date": "2026-10-04",
+      "changes": [
+        "К Велиграду подключена первая вложенная карта локации city-01-central-lands.png.",
+        "Нажатие на Велиград открывает карту города; возврат ведёт на карту Центральных земель.",
+        "Для карт локаций добавлен отдельный редактор, разрешающий только district, place и transition — вложенные поселения исключены.",
+        "Метки карты локации работают по той же модели свёрнутого/выбранного состояния и поддерживают локальное сохранение и экспорт JSON.",
+        "Зафиксирована целевая структура assets/world, assets/regions, assets/locations, assets/ui и assets/fonts; физический перенос больших PNG отложен до безопасного доступа к бинарным данным."
+      ]
+    },
+    {
       "version": "0.59.0-alpha",
       "build": "hierarchical-map-points-1",
       "stage": "Hierarchical Interactive Map",
