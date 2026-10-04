@@ -1,26 +1,35 @@
 # Eirdan project layout
 
-## Runtime
-- `game/app/` — shell, navigation, lifecycle and screen composition.
-- `game/core/` — session and persistence primitives.
-- `game/systems/` — gameplay/domain logic without rendering.
-- `game/ui/` — rendering and interaction layers.
-- `game/data/` — static game data.
-- `game/data/regions/` — one data module per world region.
-- `game/client/` — release/update client.
-- `game/diagnostics/` — runtime diagnostics and delivery.
+## Application and infrastructure
+- `game/app/` — PWA shell, navigation, lifecycle and game-screen composition.
+- `game/client/` — client/runtime infrastructure: release detection, forced reload updates, startup asset preloading and cache management.
+- `game/core/` — shared state/session/persistence and reusable engine primitives.
+- `game/diagnostics/` — runtime diagnostics, traces, smoke checks and export.
+- `scripts/` — repository-level validation, parity and simulation scripts.
+- `tests/` — automated regression tests.
 
-## Assets target layout
-- `game/assets/world/` — global world maps, masks and world-only overlays.
+## Gameplay domains
+- `game/combat/` — combat rules, legal actions, damage, body parts, status, resolve and retreat semantics.
+- `game/ai/` — targeting and class/role decision policies.
+- `game/systems/` — world/inventory/travel/roads/pause/game-speed domain services. Split a system into its own domain folder when its responsibility grows enough to justify it.
+- `game/simulation/` — headless battle runners, mirror/parity analysis and telemetry.
+- `game/data/` — static content, balance and world/map definitions.
+- `game/ui/` — presentation and interaction adapters; no gameplay-rule ownership.
+
+## Assets
+- `game/assets/world/` — global world maps and masks.
 - `game/assets/regions/` — regional maps.
-- `game/assets/locations/` — maps of cities, forests, dungeons and other nested locations.
-- `game/assets/ui/` — future interface art/icons.
-- `game/assets/fonts/` — future bundled fonts.
+- `game/assets/locations/` — city/location maps.
+- `game/assets/ui/` — interface art/icons.
+- `game/assets/audio/` — music/audio.
+- `game/assets/fonts/` — bundled fonts.
 
-Current map migration target:
-- `eirdan-world-map-regions-final.png` → `assets/world/eirdan-world-map-regions-final.png`
-- `eirdan-world-region-index-final.png` → `assets/world/eirdan-world-region-index-final.png`
-- `region-central-lands.png` → `assets/regions/region-central-lands.png`
-- `city-01-central-lands.png` → `assets/locations/city-01-central-lands.png`
+Startup-critical visual assets are preloaded by `game/client/asset-loader.js`. Cache lifetime is scoped to build ID so a new build cannot indefinitely reuse an old image under the same URL.
 
-Binary files remain at their existing paths until they can be moved without re-encoding or losing source bytes. Runtime references must be switched in the same release as the physical move.
+## Compatibility / migration
+- `game/runtime/`, `game/alpha14p/` and remaining compatibility wrappers exist for migration/reference purposes.
+- New systems must not be added to legacy areas merely because an older implementation already exists there.
+- Legacy removal is allowed only after equivalent behavior is covered by current regression/parity gates.
+
+## Current platform
+The active product target is the browser-installed PWA. Android/APK remnants and workflows may remain in the repository for historical/build compatibility, but they are not the architectural target for new client features.
