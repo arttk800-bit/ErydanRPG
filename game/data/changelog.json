@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.54.3-alpha",
+      "build": "world-mask-4",
+      "stage": "Corrected Region Master Mask",
+      "date": "2026-10-04",
+      "changes": [
+        "Заменена master-mask регионов с исправленным разделением территорий.",
+        "Море, рамка карты и пиксели вне игровых регионов больше не затемняются.",
+        "Затемнение применяется только к известным ID игровых регионов.",
+        "Service Worker обновлён для принудительного получения новой маски."
+      ]
+    },
+    {
       "version": "0.54.0-alpha",
       "build": "world-mask-1",
       "stage": "Pixel-perfect World Regions",
