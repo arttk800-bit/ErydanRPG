@@ -22,9 +22,69 @@ function resetUpdateButton(delay=1800){clearTimeout(resetUpdateButton.t);resetUp
 function sameBuild(a,b){return a?.version===b?.version&&a?.build===b?.build}
 async function fetchRemoteBuild(){const r=await fetch(BUILD_URL+'?update='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('build '+r.status);return r.json()}
 function offerUpdate(meta){updateAvailable=true;updateButton('Обновить до '+meta.version,false,100,'ready');if(nav.current()==='game'&&!modalOpen)modal('Доступно обновление','<p>Доступна версия <b>'+meta.version+'</b>. Можно обновить сейчас или продолжить игру.</p>',[['Обновить',()=>downloadUpdate(meta)],['Позже',closeModal]])}
-async function checkForUpdates({manual=false}={}){if(updateChecking)return;updateChecking=true;if(manual){updateButton('Проверяю…',true);if(!sameBuild(INSTALLED_BUILD,remote)){offerUpdate(remote);if(manual){}}else{updateAvailable=false;if(manual){updateButton('Обновлений нет',false,100,'ready');resetUpdateButton()}else updateButton();if(manual){updateButton('Ошибка проверки',false,100,'ready');resetUpdateButton(2500)}else updateButton();}finally{updateChecking=false;$('#checkUpdates')?.removeAttribute('disabled')}}
-async function downloadUpdate(meta){meta=await meta;closeModal();updateButton('Скачивание…',true,55,'working');try{if(!swRegistration)throw new Error('service worker unavailable');const before=swRegistration.installing||swRegistration.waiting;await swRegistration.update();const worker=swRegistration.installing||swRegistration.waiting;if(worker&&worker!==before){await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('update timeout')),30000);const done=()=>{if(worker.state==='installed'||worker.state==='activated'){clearTimeout(timer);resolve()}};worker.addEventListener('statechange',done);done()})}updateButton('Установка…',true,85,'working');modal('Обновление готово','<p>Версия <b>'+meta.version+'</b> загружена. Игра сохранится и перезапустится с новой сборкой.</p>',[['Применить',async()=>{await persist();location.reload()}],['Позже',closeModal]])}catch(e){console.warn('Update download failed',e);updateButton('Ошибка загрузки',false,100,'ready');resetUpdateButton(2500);}} 
-async function registerPwa(){if(!('serviceWorker' in navigator))return;try{swRegistration=await navigator.serviceWorker.register('../sw.js',{scope:'../'});navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='UPDATE_READY'&&updateAvailable)updateButton('Обновление готово',false,100,'ready');swRegistration.addEventListener('updatefound',()=>{const w=swRegistration.installing;w?.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller&&updateAvailable)updateButton('Обновление готово',false,100,'ready')})});setInterval(()=>checkForUpdates(),5*60*1000)}catch(e){console.warn('PWA registration failed',e)}}
+async function checkForUpdates({manual=false}={}){
+  if(updateChecking)return;
+  updateChecking=true;
+  if(manual)updateButton('Проверка версии…',true,30,'working');
+  try{
+    const remote=await fetchRemoteBuild();
+    if(!sameBuild(INSTALLED_BUILD,remote)){
+      offerUpdate(remote);
+    }else{
+      updateAvailable=false;
+      if(manual){updateButton('Обновлений нет',false,100,'ready');resetUpdateButton()}
+      else updateButton();
+    }
+  }catch(e){
+    console.warn('Update check failed',e);
+    if(manual){updateButton('Ошибка проверки',false,100,'ready');resetUpdateButton(2500)}
+  }finally{
+    updateChecking=false;
+    $('#checkUpdates')?.removeAttribute('disabled');
+  }
+}
+function waitForControllerChange(timeout=15000){return new Promise((resolve,reject)=>{let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);navigator.serviceWorker.removeEventListener('controllerchange',finish);resolve()};const timer=setTimeout(()=>{if(done)return;done=true;navigator.serviceWorker.removeEventListener('controllerchange',finish);reject(new Error('controller change timeout'))},timeout);navigator.serviceWorker.addEventListener('controllerchange',finish)})}
+async function applyUpdate(){
+  await persist();
+  updateButton('Установка…',true,90,'working');
+  const waiting=swRegistration?.waiting;
+  if(waiting){
+    const changed=waitForControllerChange().catch(()=>null);
+    waiting.postMessage({type:'SKIP_WAITING'});
+    await changed;
+  }
+  const url=new URL(location.href);
+  url.searchParams.set('v',Date.now().toString());
+  location.replace(url.toString());
+}
+async function downloadUpdate(meta){
+  meta=await meta;
+  closeModal();
+  updateButton('Скачивание…',true,55,'working');
+  try{
+    if(!swRegistration)throw new Error('service worker unavailable');
+    await swRegistration.update();
+    let worker=swRegistration.installing||swRegistration.waiting;
+    if(worker?.state==='installing'){
+      await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('update timeout')),30000);const done=()=>{if(worker.state==='installed'){clearTimeout(timer);resolve()}else if(worker.state==='redundant'){clearTimeout(timer);reject(new Error('worker redundant'))}};worker.addEventListener('statechange',done);done()});
+    }
+    updateButton('Обновление готово',false,100,'ready');
+    modal('Обновление готово','<p>Версия <b>'+meta.version+'</b> загружена.</p>',[['Применить',applyUpdate],['Позже',closeModal]]);
+  }catch(e){
+    console.warn('Update download failed',e);
+    updateButton('Ошибка загрузки',false,100,'ready');
+    resetUpdateButton(2500);
+  }
+}
+async function registerPwa(){
+  if(!('serviceWorker' in navigator))return;
+  try{
+    swRegistration=await navigator.serviceWorker.register('../sw.js',{scope:'../',updateViaCache:'none'});
+    navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='UPDATE_READY'&&updateAvailable)updateButton('Обновление готово',false,100,'ready')});
+    swRegistration.addEventListener('updatefound',()=>{const w=swRegistration.installing;w?.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller&&updateAvailable)updateButton('Обновление готово',false,100,'ready')})});
+    setInterval(()=>checkForUpdates(),5*60*1000);
+  }catch(e){console.warn('PWA registration failed',e)}
+}
 async function persist(){if(session&&persistenceSupported())try{await saveGame(session)}catch(e){console.warn('Save failed',e)}}
 function newGame(){modal('Новый мир','<label>Название мира<input id="worldNameInput" maxlength="48" autocomplete="off" placeholder="Например: Эйрдан"></label>',[['Создать',async()=>{const input=$('#worldNameInput');const name=input?.value.trim();if(!name){input?.focus();return}session=createSession({worldName:name});await persist();closeModal();$('#sessionInfo').textContent=session.meta.worldName;nav.reset('game');toast('Мир «'+session.meta.worldName+'» создан')}],['Отмена',closeModal]]);setTimeout(()=>$('#worldNameInput')?.focus(),0)}
 function worldName(s){return s.meta.worldName||'Старый мир'}
