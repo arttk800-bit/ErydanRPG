@@ -1,19 +1,19 @@
 export const WORLD_DATA={
- map:{asset:'../assets/eirdan-world-map-v2.png',viewBox:'0 0 1536 1536'},
+ map:{asset:'../assets/eirdan-world-map-v2.png',mask:'../assets/world-region-index.png',width:1458,height:1536},
  regions:{
-  north:{name:'Северные земли',paths:['M505 115 L1115 115 L1270 260 L1190 410 L940 430 L820 510 L700 430 L530 400 L410 315 Z']},
-  west:{name:'Западные земли',paths:['M180 300 L410 315 L530 400 L700 430 L680 610 L570 680 L400 650 L210 590 L145 455 Z']},
-  east:{name:'Восточные земли',paths:['M820 510 L940 430 L1190 410 L1370 500 L1360 680 L1240 770 L1060 740 L900 650 Z']},
-  highlands:{name:'Центральные высокогорья',paths:['M700 430 L820 510 L900 650 L875 820 L900 1010 L790 1110 L690 980 L680 800 L680 610 Z']},
-  forest:{name:'Лесные земли',paths:['M210 590 L400 650 L570 680 L680 610 L680 800 L610 900 L430 920 L250 830 L170 710 Z']},
-  steppe:{name:'Восточные степи',paths:['M900 650 L1060 740 L1240 770 L1360 680 L1400 860 L1310 1000 L1130 1010 L900 920 L875 820 Z']},
-  southwest:{name:'Юго-западные земли',paths:['M250 830 L430 920 L610 900 L690 980 L650 1100 L520 1190 L330 1140 L175 1020 L150 900 Z']},
-  south:{name:'Южные земли',paths:['M650 1100 L690 980 L790 1110 L900 1010 L1130 1010 L1190 1150 L1100 1320 L850 1400 L610 1320 L520 1190 Z']},
-  southeast:{name:'Юго-восточные земли',paths:['M900 920 L1130 1010 L1310 1000 L1380 1110 L1320 1250 L1190 1320 L1100 1320 L1190 1150 L1130 1010 L900 1010 Z']},
-  westernIsles:{name:'Западный архипелаг',paths:['M45 170 L230 145 L285 260 L235 390 L75 410 L25 300 Z','M40 430 L135 410 L165 520 L110 610 L25 565 Z']},
-  southwestIsles:{name:'Юго-западный архипелаг',paths:['M35 990 L230 950 L315 1070 L275 1240 L95 1290 L20 1160 Z','M60 1290 L300 1260 L380 1400 L270 1510 L75 1470 Z']},
-  southIsles:{name:'Южный архипелаг',paths:['M430 1370 L650 1330 L850 1400 L1080 1370 L1190 1460 L1080 1525 L520 1525 L390 1460 Z']},
-  eastIsles:{name:'Восточный архипелаг',paths:['M1400 780 L1510 800 L1525 1040 L1450 1120 L1380 1030 Z','M1260 1240 L1460 1160 L1525 1260 L1490 1450 L1320 1490 L1210 1380 Z']}
+  north:{name:'Северные земли',index:1},
+  west:{name:'Западные земли',index:2},
+  east:{name:'Восточные земли',index:3},
+  highlands:{name:'Центральные высокогорья',index:4},
+  forest:{name:'Лесные земли',index:6},
+  steppe:{name:'Восточные степи',index:5},
+  southwest:{name:'Юго-западные земли',index:7},
+  south:{name:'Южные земли',index:8},
+  southeast:{name:'Юго-восточные земли',index:9},
+  westernIsles:{name:'Западный архипелаг',index:12},
+  southwestIsles:{name:'Юго-западный архипелаг',index:13},
+  southIsles:{name:'Южный архипелаг',index:10},
+  eastIsles:{name:'Восточный архипелаг',index:11}
  },
  places:{},cities:{},
  travel:{localEventChance:.25,roadEventChance:.42,legMinutes:240,campFatigue:12,campMinutes:480}
