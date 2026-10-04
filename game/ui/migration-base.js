@@ -511,6 +511,25 @@ $('inventory').onclick=openInventory;
 $('invClose').onclick=closeInventory;
 $('invEquip').onclick=equipSelected;
 $('invUnequip').onclick=unequipSelected;
+function closeTopOverlay(){
+ const overlays=[...document.querySelectorAll('.placeOverlay,.travelOverlay')].filter(x=>!x.classList.contains('hidden'));if(overlays.length){overlays.at(-1).remove();return true}
+ if(!$('versionOverlay')?.classList.contains('hidden')){$('versionOverlay').classList.add('hidden');return true}
+ if(!$('invOverlay')?.classList.contains('hidden')){closeInventory();return true}
+ if(!$('debugPanel')?.classList.contains('hidden')){$('debugPanel').classList.add('hidden');return true}
+ if(!$('gameMenu')?.classList.contains('hidden')){$('gameMenu').classList.add('hidden');return true}
+ return false
+}
+function logicalBack(){
+ if(closeTopOverlay())return;
+ if(!$('resultOverlay')?.classList.contains('hidden')){let sim=$('resultOverlay').dataset.kind==='simulation';if(sim){$('resultNew').click();return}let A=units.some(u=>u.alive&&u.team==='ally'),E=units.some(u=>u.alive&&u.team==='enemy');hideResultOverlay();$('resultOverlay').dataset.kind='';combatContext=null;showOnly('rpgShell');rpgScreen='worldMap';renderRpg();return}
+ if(!$('settingsMenu')?.classList.contains('hidden')){showOnly(settingsReturn||'mainMenu');return}
+ if(!$('combatLab')?.classList.contains('hidden')){if(!$('setup').classList.contains('hidden')||over){showOnly(combatLabReturn||'settingsMenu');if(combatLabReturn==='rpgShell')renderRpg();return}$('gameMenu').classList.remove('hidden');return}
+ if(!$('rpgShell')?.classList.contains('hidden')){if(rpgScreen==='town'||rpgScreen==='location'){rpgScreen='region';renderRpg();return}if(rpgScreen==='region'){rpgScreen='worldMap';renderRpg();return}$('gameMenu').classList.remove('hidden');return}
+ // Main menu is the root: keep the app open instead of letting Android close it.
+}
+function armHistoryBack(){try{history.replaceState({eirdan:true},'',location.href);history.pushState({eirdanGuard:true},'',location.href)}catch(_){}}
+window.addEventListener('popstate',()=>{logicalBack();try{history.pushState({eirdanGuard:true},'',location.href)}catch(_){}});
+armHistoryBack();
 
 $('tabBag').onclick=()=>{playerInventory.view='bag';playerInventory.selectedSlot=null;renderInventory()};
 $('tabChar').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;renderInventory()};
