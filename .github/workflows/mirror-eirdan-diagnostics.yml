@@ -1,15 +1,9 @@
 name: Mirror Eirdan diagnostics
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/mirror-eirdan-diagnostics.yml"
   workflow_dispatch:
   repository_dispatch:
-    types:
-      - eirdan-diagnostic-ready
+    types: [eirdan-diagnostic-ready]
   schedule:
     - cron: "*/5 * * * *"
 
@@ -18,50 +12,51 @@ permissions:
 
 concurrency:
   group: eirdan-diagnostics-mirror
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   mirror:
-    name: Mirror latest KV diagnostic
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: main
-
-      - name: Fetch latest diagnostic from Cloudflare KV
+      - name: Fetch diagnostic
         shell: bash
+        env:
+          DISPATCH_RUN_ID: ${{ github.event.client_payload.run_id }}
         run: |
           set -euo pipefail
           mkdir -p diagnostics
-          curl --fail --silent --show-error --retry 3 \
-            "https://eirdan-diagnostics.arttk800.workers.dev/latest?mirror=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$(date +%s)" \
-            -H "Cache-Control: no-cache" \
-            -H "Pragma: no-cache" \
-            -o diagnostics/latest.json
-
-          test -s diagnostics/latest.json
-          jq -e '
-            (.run_id | type == "string" and length > 0) and
-            (.log | type == "string" and length > 10)
-          ' diagnostics/latest.json >/dev/null
-
+          if [ -n "${DISPATCH_RUN_ID:-}" ]; then
+            ENC="$(printf '%s' "$DISPATCH_RUN_ID" | jq -sRr @uri)"
+            URL="https://eirdan-diagnostics.arttk800.workers.dev/run?id=$ENC"
+          else
+            URL="https://eirdan-diagnostics.arttk800.workers.dev/latest"
+          fi
+          curl --fail --silent --show-error --retry 3 "$URL?mirror=${GITHUB_RUN_ID}-$(date +%s)" -H "Cache-Control: no-cache" -o diagnostics/latest.json
+          jq -e '(.run_id|type=="string" and length>0) and (.log|type=="string" and length>10)' diagnostics/latest.json >/dev/null
           jq -r '.log' diagnostics/latest.json > diagnostics/latest.log
-          jq '{run_id, build, generated_at, received_at, source, summary, log_characters: (.log | length)}' diagnostics/latest.json > diagnostics/latest-summary.json
-
-      - name: Commit latest diagnostic if changed
+          jq '{run_id,build,generated_at,received_at,source,summary,log_characters:(.log|length)}' diagnostics/latest.json > diagnostics/latest-summary.json
+      - name: Commit mirror
         shell: bash
         run: |
           set -euo pipefail
-
           git add diagnostics/latest.json diagnostics/latest.log diagnostics/latest-summary.json
-          if git diff --cached --quiet; then
-            echo "Diagnostic is already current."
-            exit 0
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "chore: mirror Eirdan diagnostic [skip ci]"
+            git push origin HEAD:main
           fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: mirror latest Eirdan diagnostic [skip ci]"
-          git push origin HEAD:main
+      - name: Confirm delivery
+        shell: bash
+        env:
+          CONFIRM_SECRET: ${{ secrets.EIRDAN_DIAGNOSTICS_CONFIRM_SECRET }}
+        run: |
+          set -euo pipefail
+          RUN_ID="$(jq -r '.run_id' diagnostics/latest.json)"
+          curl --fail --silent --show-error --retry 3 -X POST "https://eirdan-diagnostics.arttk800.workers.dev/confirm" \
+            -H "Content-Type: application/json" \
+            -H "X-Eirdan-Confirm: $CONFIRM_SECRET" \
+            --data "$(jq -nc --arg run_id "$RUN_ID" --arg sha "$GITHUB_SHA" '{run_id:$run_id,github_sha:$sha}')"
