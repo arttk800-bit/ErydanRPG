@@ -51,3 +51,6 @@
 .road-editor-edge[data-from-terrain="swamp"][data-to-terrain="river"],.road-editor-edge[data-from-terrain="river"][data-to-terrain="swamp"]{stroke:#75a1a0}
 .road-editor-edge[data-from-terrain="mountain"][data-to-terrain="river"],.road-editor-edge[data-from-terrain="river"][data-to-terrain="mountain"]{stroke:#8fa9b1}
 .road-editor-edge.selected{filter:drop-shadow(0 0 .01px #fff)}
+
+.road-editor-node.junction{stroke:#fff;stroke-width:.006;filter:drop-shadow(0 0 2px #000)}
+.game-speed{display:flex;gap:3px}.game-speed button{min-width:30px;min-height:30px;padding:3px 6px;font-size:10px}.game-speed button.active{border-color:var(--accent);color:var(--accent)}
