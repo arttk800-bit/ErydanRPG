@@ -66,3 +66,8 @@
 .map-choice-menu button:active{background:color-mix(in srgb,var(--accent) 18%,transparent)}
 .region-editor{align-items:start}.region-editor>.map-choice{min-height:44px}
 @media(max-width:520px){.world-fog-toggle{position:static;margin:5px auto 8px}.world-head{display:grid;justify-items:center}.map-choice-menu{position:fixed;z-index:50;left:12px;right:12px;top:auto;bottom:max(12px,env(safe-area-inset-bottom));max-height:55dvh;overflow:auto}}
+
+.road-editor-edge[data-road-type="trail"]{stroke-dasharray:.012 .009;stroke-width:.006}
+.road-editor-edge[data-road-type="road"]{stroke-width:.008}
+.road-editor-edge[data-road-type="highway"]{stroke-width:.012}
+.road-editor-edge[data-road-type="rough"]{stroke-dasharray:.004 .012;stroke-width:.005;opacity:.7}
