@@ -1,4 +1,6 @@
-// Battle-state factory. Existing runtime state is migrated here incrementally.
-export function createCombatState(defaultConfig){
- return {cfg:structuredClone(defaultConfig),units:[],terrain:{},order:[],idx:0,round:1,over:false,auto:false,speed:1,log:[],fullLog:[]};
-}
+import {DEFAULT_BATTLE_CFG,ARMORS,mkbody} from '../../alpha14p/data/constants.js';
+import {GameRNG,pick} from '../../alpha14p/core/rng.js';
+export function createCombatState(config=DEFAULT_BATTLE_CFG){return{cfg:structuredClone(config),units:[],terrain:{},order:[],idx:0,round:1,over:false,log:[],fullLog:[]}}
+export function gear(cls){if(cls==='guardian')return{w:pick(['sword','axe']),w2:null,shield:55};if(cls==='berserker')return{w:pick(['greatsword','greataxe']),w2:null,shield:0};if(['priest','firemage','wizard'].includes(cls))return{w:pick(['staff','wand']),w2:null,shield:0};if(cls==='archer')return{w:'bow',w2:'dagger',shield:0};if(cls==='crossbowman')return{w:'crossbow',w2:'dagger',shield:0};if(cls==='assassin')return{w:'dagger',w2:'dagger',shield:0};if(cls==='rogue')return{w:'throwknife',w2:'dagger',shield:0};return{w:'sword',w2:null,shield:0}}
+export function makeUnit(id,name,team,q,r,cls){let g=gear(cls),ak=pick(['light','medium','heavy']),ar=ARMORS[ak],magic=['priest','firemage','wizard'].includes(cls);return{id,name,team,q,r,cls,w:g.w,w2:g.w2,shield:g.shield,maxShield:g.shield,armorKind:ak,armorName:ar.n,armCover:ar.arm,legCover:ar.leg,body:mkbody(),hp:90,maxHp:90,bleed:0,armorHead:ar.head,maxArmorHead:ar.head,armorBody:ar.body,maxArmorBody:ar.body,ap:9,maxAp:9,st:100,maxSt:100,mana:magic?80:0,maxMana:magic?80:0,skill:63,def:6,alive:true,bandages:1,loaded:false,guarding:false,poison:0,shock:0,stun:0,buffs:{stone:0,rage:0}}}
+export function generateTerrain(state,grid,hd){state.terrain={};let density={open:.04,sparse:.11,normal:.18,dense:.28}[state.cfg.terrain]??.18,safe=[[1,4],[1,5],[1,6],[12,2],[12,3],[12,4],[12,5],[12,6],[11,7]];for(let q=0;q<grid.C;q++)for(let r=0;r<grid.R;r++){if(safe.some(p=>hd(q,r,p[0],p[1])<=1))continue;if(GameRNG.random()<density){let x=GameRNG.random();state.terrain[q+','+r]=x<.34?'rock':x<.68?'tree':'bush'}}return state.terrain}
