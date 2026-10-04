@@ -18,6 +18,7 @@ function loadSettings(){try{return{theme:'dark',volume:70,...JSON.parse(localSto
 function saveSettings(s){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}catch{}}
 const settings=loadSettings();
 function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').value=settings.theme;$('#volume').value=settings.volume}
+export function notifyDiscovery(name){toast('Вы узнали о новом месте: '+(name||'неизвестное место'))}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.add('hidden'),2200)}
 function closeModal(){modalOpen=false;$('#modal').classList.add('hidden')}
 function modal(title,body,actions=[['Закрыть',closeModal]]){modalOpen=true;$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden')}
