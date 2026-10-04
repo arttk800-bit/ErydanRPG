@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.60.1-alpha",
+      "build": "asset-layout-1",
+      "stage": "Structured Asset Layout",
+      "date": "2026-10-04",
+      "changes": [
+        "Картографические ассеты переведены на постоянную структуру assets/world, assets/regions и assets/locations.",
+        "Все runtime-ссылки глобальной карты, маски Центральных земель, региональной карты и карты Велиграда обновлены на новые пути.",
+        "Service Worker precache обновлён и больше не использует старые плоские пути assets/."
+      ]
+    },
+    {
       "version": "0.60.0-alpha",
       "build": "nested-location-map-1",
       "stage": "Nested Location Maps",
