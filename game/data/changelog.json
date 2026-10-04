@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.54.0-alpha",
+      "build": "world-mask-1",
+      "stage": "Pixel-perfect World Regions",
+      "date": "2026-10-04",
+      "changes": [
+        "SVG-полигоны регионов полностью удалены.",
+        "Клики определяются по пиксельному ID из world-region-index.png.",
+        "Затемнение регионов строится из той же master-mask, поэтому визуальная и интерактивная геометрия совпадают.",
+        "Исправлен реальный размер карты: 1458×1536.",
+        "Master-mask подготовлена как единый источник геометрии для будущего тумана войны."
+      ]
+    },
+    {
       "version": "0.53.0-alpha",
       "build": "world-canonical-1",
       "stage": "Canonical World Map",
