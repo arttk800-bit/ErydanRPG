@@ -1,4 +1,4 @@
-const BUILD="diagnostic-48";
+const BUILD=window.EIRDAN_BUILD||"diagnostic-49";
 const VERSION_URL=new URL("./build.json",import.meta.url).href;
 const bar=()=>document.getElementById("bootBar"),status=()=>document.getElementById("bootStatus"),boot=()=>document.getElementById("bootScreen");
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -13,8 +13,11 @@ async function startEirdan(){
   progress(25,"Проверка версии…");const latest=await remoteBuild();
   if(latest!==BUILD){
    progress(45,"Обновление до "+latest+" · ожидание сервера…");
-   let fresh=null;while(!fresh){try{const page=await fetchFreshPage(latest);if(page.build===latest)fresh=page}catch(e){console.warn("fresh page retry",e)}if(!fresh)await wait(2000)}
-   progress(70,'Сборка '+latest+' получена…');localStorage.setItem('eirdan-update-target',latest);location.replace(fresh.url.toString());return
+   let fresh=null,attempts=0;
+   while(!fresh&&attempts<15){attempts++;try{const page=await fetchFreshPage(latest);if(page.build===latest)fresh=page}catch(e){console.warn("fresh page retry",e)}if(!fresh){progress(45,"Ожидание "+latest+" · попытка "+attempts+"/15");await wait(2000)}}
+   if(!fresh)throw new Error("fresh build not propagated");
+   progress(70,'Сборка '+latest+' получена…');localStorage.setItem('eirdan-update-target',latest);
+   document.open();document.write(fresh.html);document.close();return
   }
   if(window.EIRDAN_BUILD!==BUILD)throw new Error("runtime build mismatch");
   localStorage.setItem('eirdan-build',BUILD);localStorage.removeItem('eirdan-update-target');enterGame('Eirdan · '+BUILD);return
