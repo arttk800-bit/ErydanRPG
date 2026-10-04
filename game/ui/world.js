@@ -2,62 +2,30 @@ import {WORLD_DATA} from '../data/world.js';
 import {WorldSystem} from '../systems/world.js';
 
 function el(tag,text){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;return node}
-function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
 
 export const WorldUI={
  ready:true,
  mount(root,state,onChange){
-  let disposed=false,maskPixels=null,maskWidth=0,maskHeight=0,shadeCanvas=null,indexPixels=null;
-  const indexToId=new Map(Object.entries(WORLD_DATA.regions).map(([id,r])=>[r.index,id]));
+  function statusText(){const current=WorldSystem.ensure(state);return current.regionId&&WORLD_DATA.regions[current.regionId]?'Вы находитесь в регионе: '+WORLD_DATA.regions[current.regionId].name:'Выберите регион'}
 
-  function drawShade(){
-   if(!shadeCanvas||!indexPixels)return;
-   const ctx=shadeCanvas.getContext('2d'),out=ctx.createImageData(maskWidth,maskHeight),current=WorldSystem.ensure(state).regionId,currentIndex=current?WORLD_DATA.regions[current]?.index:0;
-   for(let p=0,i=0;p<indexPixels.length;p++,i+=4){
-    const index=indexPixels[p];
-    let alpha=indexToId.has(index)?150:0;
-    if(currentIndex&&index===currentIndex)alpha=0;
-    out.data[i]=0;out.data[i+1]=0;out.data[i+2]=0;out.data[i+3]=alpha;
-   }
-   if(currentIndex){
-    for(let y=1;y<maskHeight-1;y++)for(let x=1;x<maskWidth-1;x++){
-     const p=y*maskWidth+x;if(indexPixels[p]!==currentIndex)continue;
-     let edge=false;
-     for(let dy=-2;dy<=2&&!edge;dy++)for(let dx=-2;dx<=2;dx++)if(indexPixels[(y+dy)*maskWidth+x+dx]!==currentIndex){edge=true;break}
-     if(edge){const i=p*4;out.data[i]=16;out.data[i+1]=12;out.data[i+2]=8;out.data[i+3]=245}
-    }
-   }
-   ctx.putImageData(out,0,0);
+  function renderSelection(){
+   const current=WorldSystem.ensure(state).regionId;
+   root.querySelectorAll('.world-zone').forEach(zone=>{const selected=zone.dataset.region===current;zone.classList.toggle('selected',selected);zone.setAttribute('aria-pressed',selected?'true':'false')});
+   const status=root.querySelector('.world-region-status');if(status)status.textContent=statusText();
   }
 
-  function statusText(){
-   const current=WorldSystem.ensure(state);
-   return current.regionId&&WORLD_DATA.regions[current.regionId]?'Вы находитесь в регионе: '+WORLD_DATA.regions[current.regionId].name:'Выберите регион';
+  root.replaceChildren();
+  const head=el('div');head.className='world-head';head.append(el('h2','Карта мира'));
+  const status=el('p',statusText());status.className='world-region-status';head.append(status);root.append(head);
+  const frame=el('div');frame.className='world-map-frame';
+  const img=el('img');img.className='world-map-image';img.src=WORLD_DATA.map.asset;img.alt='Карта мира Эйрдан';frame.append(img);
+  const layer=el('div');layer.className='world-zone-layer';
+  for(const [id,region] of Object.entries(WORLD_DATA.regions)){
+   const z=region.zone;if(!z)continue;const button=el('button',region.name);button.type='button';button.className='world-zone';button.dataset.region=id;button.setAttribute('aria-label',region.name);button.style.left=z.x+'%';button.style.top=z.y+'%';button.style.width=z.w+'%';button.style.height=z.h+'%';layer.append(button);
   }
+  frame.append(layer);root.append(frame);renderSelection();
 
-  async function draw(){
-   root.replaceChildren();
-   const head=el('div');head.className='world-head';head.append(el('h2','Карта мира'));
-   const status=el('p',statusText());status.className='world-region-status';head.append(status);root.append(head);
-   const frame=el('div');frame.className='world-map-frame';
-   const img=el('img');img.className='world-map-image';img.src=WORLD_DATA.map.asset;img.alt='Карта мира Эйрдан';
-   shadeCanvas=el('canvas');shadeCanvas.className='world-region-shade';shadeCanvas.width=WORLD_DATA.map.width;shadeCanvas.height=WORLD_DATA.map.height;
-   frame.append(img,shadeCanvas);root.append(frame);
-   try{
-    const mask=await loadImage(WORLD_DATA.map.mask);if(disposed)return;
-    const c=document.createElement('canvas');c.width=mask.naturalWidth;c.height=mask.naturalHeight;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(mask,0,0);
-    const data=ctx.getImageData(0,0,c.width,c.height);maskPixels=data.data;maskWidth=c.width;maskHeight=c.height;indexPixels=new Uint8Array(maskWidth*maskHeight);for(let p=0,i=0;p<indexPixels.length;p++,i+=4){const r=maskPixels[i],g=maskPixels[i+1],b=maskPixels[i+2],a=maskPixels[i+3];indexPixels[p]=a===0?0:(r===g&&g===b?r:Math.round((r+g+b)/3))}
-    if(shadeCanvas.width!==maskWidth||shadeCanvas.height!==maskHeight){shadeCanvas.width=maskWidth;shadeCanvas.height=maskHeight}
-    drawShade();
-   }catch(err){console.error('World region mask failed',err)}
-  }
-
-  root.onclick=e=>{
-   const frame=e.target.closest('.world-map-frame');if(!frame||!maskPixels)return;
-   const rect=frame.getBoundingClientRect(),x=Math.max(0,Math.min(maskWidth-1,Math.floor((e.clientX-rect.left)/rect.width*maskWidth))),y=Math.max(0,Math.min(maskHeight-1,Math.floor((e.clientY-rect.top)/rect.height*maskHeight)));
-   const index=indexPixels[y*maskWidth+x],id=indexToId.get(index);if(!id)return;
-   WorldSystem.enterRegion(state,id);const s=root.querySelector('.world-region-status');if(s)s.textContent=statusText();drawShade();if(onChange)onChange(state);
-  };
-  draw();return()=>{disposed=true;root.onclick=null};
+  root.onclick=e=>{const zone=e.target.closest('.world-zone');if(!zone)return;WorldSystem.enterRegion(state,zone.dataset.region);renderSelection();if(onChange)onChange(state)};
+  return()=>{root.onclick=null};
  }
 };
