@@ -1,5 +1,5 @@
 export const CENTRAL_LANDS={
- id:'forest',
+ id:'forest',\n metrics:{widthMeters:120000,heightMeters:80000},
  map:'../assets/regions/region-central-lands.png',
  points:[
   {id:'veligrad',name:'Велиград',class:'location',type:'city',map:'../assets/locations/city-01-central-lands.png',x:0.5195247751035993,y:0.4638938823788101},
