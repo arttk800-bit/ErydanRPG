@@ -66,6 +66,8 @@ body,button,select,input{font-family:'PT Sans',system-ui,sans-serif}.mainTitle,.
  await add('../data/world-data.js');await add('../assets/eirdan-building-sheet.js');
  const combatUI=await import('./combat.js?v='+encodeURIComponent(meta.build)).catch(e=>{console.error('combat ui load',e);return null});
  if(combatUI?.initCombatUI)combatUI.initCombatUI();
+ const combatRuntime=await import('../systems/combat/combat.js?v='+encodeURIComponent(meta.build)).catch(e=>{console.error('combat runtime load',e);return null});
+ if(combatUI?.attachCombatRuntime&&combatRuntime?.CombatRuntime)combatUI.attachCombatRuntime(combatRuntime.CombatRuntime);
  import('./migration-base.js?v='+encodeURIComponent(meta.build)).catch(e=>console.error('migration load',e));
  import('./pwa.js?v='+encodeURIComponent(meta.build)).catch(e=>console.error('pwa load',e));
 })();
