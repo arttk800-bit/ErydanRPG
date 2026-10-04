@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.52.2-alpha",
+      "build": "world-regions-3",
+      "stage": "Geographic SVG Regions",
+      "date": "2026-10-04",
+      "changes": [
+        "Грубые polygon-регионы заменены криволинейными SVG path.",
+        "Один regionId теперь поддерживает несколько раздельных контуров для островных групп.",
+        "Кликабельные области островов ограничены сушей вместо больших морских полигонов.",
+        "Подготовлена структура регионов, которую можно дальше уточнять без изменения Game State."
+      ]
+    },
+    {
       "version": "0.52.1-alpha",
       "build": "world-regions-2",
       "stage": "Natural World Regions",
