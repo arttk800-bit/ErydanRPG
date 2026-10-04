@@ -1,59 +1,31 @@
-name: validate
+name: validate campaign
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore:
-      - 'docs/diagnostics/mirror3000-latest.json'
-      - 'docs/builds/Eirdan-debug.apk'
+    paths:
+      - 'game/app/**'
+      - 'game/client/**'
+      - 'game/core/**'
+      - 'game/map/**'
+      - 'game/modules/**'
+      - 'game/systems/**'
+      - 'game/ui/**'
+      - 'game/data/**'
+      - 'game/diagnostics/**'
+      - 'scripts/validate-domain.mjs'
+      - 'scripts/validate-campaign.mjs'
+      - 'tests/**'
+      - 'package.json'
+      - '.github/workflows/validate.yml'
   pull_request:
-  workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: write
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm run validate
-      - name: Modular Mirror x3000
-        id: mirror
-        continue-on-error: true
-        run: npm run mirror:3000
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: mirror3000-modular
-          path: artifacts/mirror3000-modular.json
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-      - name: Build Android debug APK
-        id: apk
-        working-directory: android
-        run: gradle assembleDebug --stacktrace
-      - uses: actions/upload-artifact@v4
-        if: steps.apk.outcome == 'success'
-        with:
-          name: Eirdan-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-      - name: Publish latest Mirror report and APK
-        if: github.event_name != 'pull_request' && always()
-        run: |
-          mkdir -p docs/diagnostics docs/builds
-          test ! -f artifacts/mirror3000-modular.json || cp artifacts/mirror3000-modular.json docs/diagnostics/mirror3000-latest.json
-          test ! -f android/app/build/outputs/apk/debug/app-debug.apk || cp android/app/build/outputs/apk/debug/app-debug.apk docs/builds/Eirdan-debug.apk
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/diagnostics/mirror3000-latest.json docs/builds/Eirdan-debug.apk 2>/dev/null || true
-          git diff --cached --quiet && exit 0
-          git commit -m "chore: publish latest diagnostics and APK [skip ci]"
-          git push
-      - name: Enforce Mirror parity
-        if: steps.mirror.outcome == 'failure'
-        run: exit 1
+      - run: npm run validate:campaign
