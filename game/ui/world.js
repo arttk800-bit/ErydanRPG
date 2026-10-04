@@ -6,7 +6,11 @@ import {VELIGRAD} from '../data/locations/veligrad.js';
 function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n}
 const POI_KEY='eirdan.region-poi.v1';
 const CLASSES={location:'Локация',district:'Район',place:'Место',transition:'Переход'};
-const TYPES={location:'Локация',district:'Район',place:'Место',transition:'Переход'};
+const TYPES={city:'Город',village:'Поселение',fort:'Крепость',tower:'Башня',ruins:'Руины',mountain_pass:'Перевал',marsh:'Топи',landmark:'Ориентир',location:'Локация',district:'Район',place:'Место',transition:'Переход'};
+const TYPE_ICONS={city:'♜',village:'⌂',fort:'◆',tower:'▲',ruins:'✦',mountain_pass:'⌃',marsh:'≈',landmark:'◇',location:'○',district:'▦',place:'●',transition:'⇢'};
+function pointIcon(item){return TYPE_ICONS[item.type]||TYPE_ICONS[item.class]||'●'}
+function pointTypeLabel(item){return TYPES[item.type]||TYPES[item.class]||'Место'}
+function legendFor(items,state,editing){const visible=items.filter(p=>editing||WorldSystem.isDiscovered(state,p));const types=[...new Set(visible.map(p=>p.type||p.class))];const box=el('details');box.className='map-legend';const sum=el('summary','Легенда');box.append(sum);const body=el('div');body.className='map-legend-items';for(const t of types){const sample=visible.find(p=>(p.type||p.class)===t);const row=el('div');row.append(el('span',pointIcon(sample)),el('span',pointTypeLabel(sample)));body.append(row)}box.append(body);return box}
 function loadPoi(regionId){
  try{
   const all=JSON.parse(localStorage.getItem(POI_KEY)||'{}');let local=all[regionId];
@@ -83,20 +87,20 @@ export const WorldUI={
    const layer=el('div');layer.className='region-poi-layer';frame.append(layer);root.append(frame);
    const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
    const panel=el('div');panel.className='region-editor hidden';
-   const type=el('select');for(const [v,label] of Object.entries(CLASSES)){const o=el('option',label);o.value=v;type.append(o)}
+   const type=el('select');for(const [v,label] of [['location-map','Локация с картой'],['location','Локация без карты'],['place','Конечное место']]){const o=el('option',label);o.value=v;type.append(o)}
    const name=el('input');name.placeholder='Название локации';
-   const hint=el('p','Выберите тип и нажмите на карту. Метку можно перетаскивать.');hint.className='quiet';
+   const hint=el('p','Выберите функциональный класс и нажмите на карту. Конкретный тип и иконка задаются отдельно данными карты. Метку можно перетаскивать.');hint.className='quiet';
    const exportBtn=el('button','Экспортировать JSON');
    const clearBtn=el('button','Сбросить к штатным');
    panel.append(type,name,hint,exportBtn,exportAllButton(),clearBtn);root.append(panel);
-   let editing=false,items=loadPoi('forest'),drag=null,selected=current.placeId||current.districtId||current.locationId||null;
+   let editing=false,items=loadPoi('forest'),drag=null,selected=current.placeId||current.districtId||current.locationId||null;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);
 
    function paint(){
-    layer.replaceChildren();
+    layer.replaceChildren();legendHost.replaceChildren(legendFor(items,state,editing));
     for(const item of items){
      if(!editing&&!WorldSystem.isDiscovered(state,item))continue;
      const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.id=item.id;pin.dataset.type=item.type;pin.dataset.class=item.class||'place';pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';pin.title=item.name||TYPES[item.type];if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');
-     const dot=el('span',WorldSystem.isFavorite(state,item)?'★':'●');const label=el('span',item.name||TYPES[item.type]);pin.append(dot,label);layer.append(pin);clampPin(pin,frame,item);
+     const dot=el('span',WorldSystem.isFavorite(state,item)?'★':pointIcon(item));const label=el('span',item.name||TYPES[item.type]);pin.append(dot,label);layer.append(pin);clampPin(pin,frame,item);
      pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;paint();showActions(item)};
      pin.onpointerdown=e=>{if(!editing)return;e.preventDefault();e.stopPropagation();drag=item;pin.setPointerCapture?.(e.pointerId)};
      pin.onpointermove=e=>{if(!drag)return;const r=frame.getBoundingClientRect();drag.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));drag.y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
@@ -105,7 +109,7 @@ export const WorldUI={
    }
    function persist(){savePoi('forest',items);paint()}
    function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{if(method==='enter'&&p.map){WorldSystem.enterMapPoint(state,p);onChange?.(state);mode='location';renderLocation(p);return}WorldSystem.enterMapPoint(state,p);onChange?.(state);actionHost.querySelector('p')?.insertAdjacentHTML('afterend','<p class="quiet">Маршрут выбран: '+(method==='horse'?'на лошади':'пешком')+'. Расчёт пути будет подключён позже.</p>')},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
-   frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;actionHost.replaceChildren();WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));const cls=type.value,label=name.value.trim()||CLASSES[cls];items.push({id:'forest-'+slug(label)+'-'+Date.now().toString(36),name:label,class:cls,type:cls,x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
+   frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;actionHost.replaceChildren();WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));const choice=type.value,cls=choice==='location-map'?'location':choice,label=name.value.trim()||(choice==='location-map'?'Локация с картой':choice==='location'?'Локация':'Место');items.push({id:'forest-'+slug(label)+'-'+Date.now().toString(36),name:label,class:cls,type:cls,...(choice==='location-map'?{map:null}:{}),x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
    edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);edit.textContent=editing?'Готово':'Редактор';paint()};
    back.onclick=()=>{mode='world';renderWorld()};
    exportBtn.onclick=()=>downloadJson('region-central-lands-poi.json',{region:'forest',map:region.map.asset,points:items});
