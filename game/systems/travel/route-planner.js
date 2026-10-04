@@ -1,12 +1,12 @@
 import {TravelConditions} from './conditions.js';
 const key=(a,b)=>a<b?a+'|'+b:b+'|'+a;
-export function buildTravelGraph(roads,nodes,method='walk'){
+export function buildTravelGraph(roads,nodes,method='walk',terrainZones=[]){
  const graph=new Map();
  for(const edge of roads.edges||[]){
   const [a,b,via=[],meta={}]=edge,pa=nodes.get(a),pb=nodes.get(b);if(!pa||!pb)continue;
   const path=[pa,...via.map(([x,y])=>({x,y})),pb],roadType=meta.roadType||'road',terrain=meta.terrain||pa.terrain||pb.terrain||'plain';
   let distance=0;for(let i=1;i<path.length;i++){const m=roads.metrics||{widthMeters:1,heightMeters:1};distance+=Math.hypot((path[i].x-path[i-1].x)*m.widthMeters,(path[i].y-path[i-1].y)*m.heightMeters)}
-  const cost=TravelConditions.traversalSeconds(roads,path,{roadType,terrain},method,roads.terrainZones);if(!Number.isFinite(cost))continue;
+  const cost=TravelConditions.traversalSeconds(roads,path,{roadType,terrain},method,terrainZones);if(!Number.isFinite(cost))continue;
   for(const [from,to,reverse] of [[a,b,false],[b,a,true]]){if(!graph.has(from))graph.set(from,[]);graph.get(from).push({to,distance,cost,path:reverse?[...path].reverse():path,roadType,terrain,key:key(a,b)})}
  }
  return graph;
