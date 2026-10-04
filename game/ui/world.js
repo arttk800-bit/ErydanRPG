@@ -10,6 +10,7 @@ import {mapPoint} from './map-gestures.js';
 import {GameSpeedSystem} from '../systems/game-speed.js';
 
 function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n}
+function choiceMenu(options,initial=options[0]?.[0]){const box=el('details');box.className='map-choice';const summary=el('summary');const menu=el('div');menu.className='map-choice-menu';let value=initial;const label=()=>options.find(([v])=>v===value)?.[1]||value;summary.textContent=label();for(const [v,l] of options){const b=el('button',l);b.type='button';b.onclick=e=>{e.preventDefault();e.stopPropagation();value=v;summary.textContent=label();box.open=false;box.onchange?.({target:box})};menu.append(b)}box.append(summary,menu);Object.defineProperty(box,'value',{get:()=>value,set:v=>{value=v;summary.textContent=label()}});return box}
 const POI_KEY='eirdan.region-poi.v1';
 const CLASSES={location:'Локация',district:'Район',place:'Место',transition:'Переход'};
 const TYPES={city:'Город',village:'Поселение',fort:'Крепость',tower:'Башня',ruins:'Руины',mountain_pass:'Перевал',marsh:'Топи',landmark:'Ориентир',location:'Локация',district:'Район',place:'Место',transition:'Переход'};
@@ -95,11 +96,11 @@ export const WorldUI={
    const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
    let editing=false,items=loadPoi('forest'),roads=loadEditableRoads('forest',CENTRAL_LANDS_ROADS);roads.metrics={...mapMetrics('region','forest')};roads.regionId='forest';let roadEditor=null,editorMode='poi',editorLabels=false,drag=null,selected=current.placeId||current.districtId||current.locationId||null,travelTimer=null,lastTravelAt=0;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);
    const panel=el('div');panel.className='region-editor hidden';
-   const type=el('select');for(const [v,label] of [['location-map','Локация с картой'],['location','Локация без карты'],['place','Конечное место']]){const o=el('option',label);o.value=v;type.append(o)}
+   const type=choiceMenu([['location-map','Локация с картой'],['location','Локация без карты'],['place','Конечное место']],'location-map')
    const name=el('input');name.placeholder='Название локации';
    const hint=el('p','Выберите функциональный класс и нажмите на карту. Конкретный тип и иконка задаются отдельно данными карты. Метку можно перетаскивать.');hint.className='quiet';
-   const modeSelect=el('select');for(const [v,l] of [['poi','Метки'],['road','Дороги']]){const o=el('option',l);o.value=v;modeSelect.append(o)}
-   const roadKind=el('select');for(const [v,l] of [['normal','Обычный'],['forest','Лес'],['swamp','Болото'],['mountain','Горы'],['river','Река']]){const o=el('option',l);o.value=v;roadKind.append(o)}
+   const modeSelect=choiceMenu([['poi','Метки'],['road','Дороги']],'poi')
+   const roadKind=choiceMenu([['normal','Обычный'],['forest','Лес'],['swamp','Болото'],['mountain','Горы'],['river','Река']],'normal')
    const toggleLabels=el('button','Развернуть названия');const clearRoads=el('button','Удалить все узлы');const clearOptionalPoi=el('button','Удалить обычные метки');const bindRoadPoi=el('button','Привязать узел к метке');bindRoadPoi.disabled=true;
    const exportBtn=el('button','Экспортировать JSON');const roadExport=el('button','Экспорт дорог');const roadSelection=el('p','Ничего не выбрано');roadSelection.className='quiet';const deleteRoadNode=el('button','Удалить узел');const deleteRoadEdge=el('button','Удалить участок');const clearRoadSelection=el('button','Снять выбор');deleteRoadNode.disabled=true;deleteRoadEdge.disabled=true;
    const clearBtn=el('button','Сбросить к штатным');
@@ -127,7 +128,8 @@ export const WorldUI={
    function travelFrame(now){travelTimer=null;const t=TravelSystem.ensure(state);if(!['travelling','event','stopped','camp'].includes(t.status))return;const dt=Math.min(.1,Math.max(0,(now-(lastTravelAt||now))/1000));lastTravelAt=now;if(t.status==='travelling'){const gs=GameSpeedSystem.get(state),before=t.distanceDone||0;TravelSystem.tick(state,dt,roads,gs);if((t.distanceDone||0)>before){state.clock.minute+=dt*gs;while(state.clock.minute>=1440){state.clock.minute-=1440;state.clock.day++}}paintParty();routeStatus(t);if(t.status==='arrived'){const dest=items.find(p=>p.id===t.toId);state.world.position={regionId:'forest',pointId:t.toId};if(dest)WorldSystem.enterMapPoint(state,dest);onChange?.(state);paint();if(dest)showActions(dest);return}}travelTimer=requestAnimationFrame(travelFrame)}
    function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{if(method==='enter'&&p.map){const here=state.world?.position?.pointId||current.locationId||current.placeId||'veligrad';if(here!==p.id){startTravel(p,'walk');return}WorldSystem.enterMapPoint(state,p);onChange?.(state);mode='location';renderLocation(p);return}startTravel(p,method)},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
    frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;actionHost.replaceChildren();WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}if(editorMode==='road')return;const mp=mapPoint(frame,e.clientX,e.clientY),x=mp.x,y=mp.y;const choice=type.value,cls=choice==='location-map'?'location':choice,label=name.value.trim()||(choice==='location-map'?'Локация с картой':choice==='location'?'Локация':'Место');items.push({id:'forest-'+slug(label)+'-'+Date.now().toString(36),name:label,class:cls,type:cls,...(choice==='location-map'?{map:null}:{}),x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
-   modeSelect.onchange=()=>{editorMode=modeSelect.value;drag=null;roadEditor.setActive(editing&&editorMode==='road');frame.dataset.editorMode=editorMode;paint()};roadKind.onchange=()=>roadEditor.setTerrain(roadKind.value);roadExport.onclick=()=>downloadJson('region-central-lands-roads.json',roads);
+   function syncEditorTools(){const road=editorMode==='road';for(const x of [roadKind,roadSelection,deleteRoadNode,deleteRoadEdge,clearRoadSelection,bindRoadPoi,clearRoads,roadExport])x.classList.toggle('hidden',!road);for(const x of [type,name,toggleLabels,clearOptionalPoi,exportBtn])x.classList.toggle('hidden',road);hint.textContent=road?'Ставьте и соединяйте дорожные узлы. Узел, привязанный к месту, становится конечным и автоматически встаёт точно на метку.':'Создавайте и перемещайте метки. Дорожные инструменты скрыты, пока не выбран режим «Дороги».'}
+   modeSelect.onchange=()=>{editorMode=modeSelect.value;drag=null;roadEditor.setActive(editing&&editorMode==='road');frame.dataset.editorMode=editorMode;syncEditorTools();paint()};roadKind.onchange=()=>roadEditor.setTerrain(roadKind.value);syncEditorTools();roadExport.onclick=()=>downloadJson('region-central-lands-roads.json',roads);
    edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);frame.dataset.editorMode=editing?editorMode:'';edit.textContent=editing?'Готово':'Редактор';roadEditor.setActive(editing&&editorMode==='road');paint()};
    back.onclick=()=>{mode='world';renderWorld()};
    exportBtn.onclick=()=>downloadJson('region-central-lands-poi.json',{region:'forest',map:region.map.asset,points:items});
@@ -149,7 +151,7 @@ export const WorldUI={
    const layer=el('div');layer.className='region-poi-layer';frame.append(layer);root.append(frame);
    const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
    const panel=el('div');panel.className='region-editor hidden';
-   const cls=el('select');for(const [v,label] of Object.entries({district:'Район',place:'Место',transition:'Переход'})){const o=el('option',label);o.value=v;cls.append(o)}
+   const cls=choiceMenu([['district','Район'],['place','Место'],['transition','Переход']],'district')
    const name=el('input');name.placeholder='Название';
    const hint=el('p','Расставьте районы, отдельные места и переходы. Поселения внутри города недоступны.');hint.className='quiet';
    const exportBtn=el('button','Экспортировать JSON');const clearBtn=el('button','Удалить все локальные метки');panel.append(cls,name,hint,exportBtn,exportAllButton(),clearBtn);root.append(panel);
