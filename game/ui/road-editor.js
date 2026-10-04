@@ -8,7 +8,7 @@ export class RoadEditor{
  notify(){this.onSelection?.(this.selection())}
  setActive(v){this.active=!!v;this.layer.classList.toggle('hidden',!this.active);if(!v)this.clearSelection();this.paint()}
  setTerrain(v){this.terrain=v||'normal'}
- point(x,y){const r=this.frame.getBoundingClientRect();return{x:Math.max(0,Math.min(1,(x-r.left)/r.width)),y:Math.max(0,Math.min(1,(y-r.top)/r.height))}}
+ point(x,y){const r=this.frame.getBoundingClientRect(),z=+(this.frame.dataset.zoom||1),ox=+(this.frame.dataset.zoomX||.5),oy=+(this.frame.dataset.zoomY||.5),u=(x-r.left)/r.width,v=(y-r.top)/r.height;return{x:Math.max(0,Math.min(1,ox+(u-ox)/z)),y:Math.max(0,Math.min(1,oy+(v-oy)/z))}}
  addAt(x,y){const id='r-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6),node={id,x:+x.toFixed(5),y:+y.toFixed(5),terrain:this.terrain,effects:['swamp','river'].includes(this.terrain)?['wet']:[]};this.roads.nodes.push(node);if(this.selected)this.connect(this.selected,id);this.selected=id;this.selectedEdge=null;this.commit();this.notify()}
  connect(a,b){if(a!==b&&!this.roads.edges.some(e=>(e[0]===a&&e[1]===b)||(e[0]===b&&e[1]===a)))this.roads.edges.push([a,b])}
  select(id){if(this.selected&&this.selected!==id)this.connect(this.selected,id);this.selected=id;this.selectedEdge=null;this.commit();this.notify()}
