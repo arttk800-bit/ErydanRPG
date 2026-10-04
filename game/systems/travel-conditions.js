@@ -1,27 +1,29 @@
+import {TerrainSystem,TERRAIN_TYPES} from '../map/terrain.js';
 export const ROAD_TYPES={
- trail:{label:'Тропа',walk:0.92,horse:0.72},
- road:{label:'Дорога',walk:1.00,horse:1.05},
+ trail:{label:'Тропа',walk:.92,horse:.72},
+ road:{label:'Дорога',walk:1,horse:1.05},
  highway:{label:'Тракт',walk:1.06,horse:1.22},
- rough:{label:'Бездорожье',walk:0.78,horse:0.58}
+ rough:{label:'Бездорожье',walk:.78,horse:.58}
 };
-export const TERRAIN_TYPES={
- normal:{label:'Равнина',walk:1.00,horse:1.00},
- forest:{label:'Лес',walk:0.86,horse:0.68},
- swamp:{label:'Болото',walk:0.55,horse:0.32},
- mountain:{label:'Горы',walk:0.66,horse:0.48},
- river:{label:'Брод/вода',walk:0.62,horse:0.50}
-};
-function profile(table,key){return table[key]||table.normal||table.road}
+export {TERRAIN_TYPES};
 export const TravelConditions={
- segmentFactor(segment,method='walk'){
-  const road=ROAD_TYPES[segment?.roadType]||ROAD_TYPES.road;
-  const terrain=profile(TERRAIN_TYPES,segment?.terrain);
-  return Math.max(.15,(road[method]||road.walk)*(terrain[method]||terrain.walk));
+ factor(roadType='road',terrain='plain',method='walk'){
+  const road=ROAD_TYPES[roadType]||ROAD_TYPES.road,t=TerrainSystem.type(terrain);
+  if(!t.passable)return 0;return Math.max(.01,(road[method]??road.walk)*(t[method]??t.walk));
+ },
+ segmentFactor(segment,method='walk'){return this.factor(segment?.roadType,segment?.terrain||'plain',method)},
+ traversalSeconds(roads,path,{roadType='road',terrain='plain'}={},method='walk',zones=roads?.terrainZones||[]){
+  let seconds=0;
+  for(let i=1;i<(path?.length||0);i++){
+   const d=roads?.metrics?Math.hypot((path[i].x-path[i-1].x)*roads.metrics.widthMeters,(path[i].y-path[i-1].y)*roads.metrics.heightMeters):Math.hypot(path[i].x-path[i-1].x,path[i].y-path[i-1].y);
+   const spans=zones?.length?TerrainSystem.segmentSpans(zones,path[i-1],path[i]):[{terrain,fraction:1,passable:TerrainSystem.type(terrain).passable}];
+   for(const s of spans){const factor=this.factor(roadType,s.terrain,method);if(!factor)return Infinity;seconds+=d*s.fraction/factor}
+  }
+  return seconds;
  },
  routeFactor(route,method='walk'){
-  const seg=route?.segments||[];if(!seg.length)return 1;
-  let weighted=0,total=0;
-  for(const s of seg){const d=Math.max(0,s.distance||0);weighted+=d*this.segmentFactor(s,method);total+=d}
-  return total?weighted/total:1;
+  const seg=route?.segments||[];if(!seg.length)return 1;let distance=0,weighted=0;
+  for(const s of seg){const d=Math.max(0,s.distance||0),f=this.segmentFactor(s,method);if(!f)return 0;distance+=d;weighted+=d/f}
+  return distance&&weighted?distance/weighted:1;
  }
 };
