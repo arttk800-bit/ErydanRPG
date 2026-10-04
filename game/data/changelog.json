@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.72.0-alpha",
+      "build": "android-web-shell-1",
+      "stage": "Canonical Android Web Shell",
+      "date": "2026-10-04",
+      "changes": [
+        "Android-клиент больше не скачивает и не склеивает legacy game/ui/index.html, migration-base.js и старый alpha14p runtime.",
+        "APK запускает единую каноническую игру через game/index.html на GitHub Pages, поэтому использует тот же Shell, UI и механику, что веб/PWA.",
+        "Android-оболочка сведена к тонкому WebView-клиенту; reloadGame перезагружает текущую каноническую игру, а gameStatus сообщает web-shell/github-pages.",
+        "Версия Android-оболочки поднята до 0.16.0-web-shell.",
+        "Workflow сборки APK теперь падает, если MainActivity снова содержит legacy game/ui entrypoint."
+      ]
+    },
+    {
       "version": "0.71.0-alpha",
       "build": "runtime-trace-global-1",
       "stage": "Global Runtime Trace",
