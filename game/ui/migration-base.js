@@ -421,12 +421,12 @@ async function runFullDiagnostic(){
   ok('Button: В главное меню handler',typeof $('toMainMenu').onclick==='function');
 
   // Static UI contract: catches missing controls/IDs without navigating the visible game.
-  const requiredIds=['mainMenu','newGame','loadGame','openSettings','quitGame','settingsMenu','uiMode','masterVolume','settingsBack','openDebug','debugPanel','runFullDiagnostic','downloadFullDiagnostic','uploadFullDiagnostic','enterCombatLab','rpgShell','gameMenuBtn','gameMenu','resumeGame','gameSettings','toMainMenu','rpgCharacter','inventory','inventoryLayer','invClose','invEquip','invUnequip','tabBag','tabChar','combatLab','closeCombatLab','sim1v1','sim3v3','resultOverlay','resultNew','resultDownload'];
+  const requiredIds=['mainMenu','newGame','loadGame','openSettings','quitGame','settingsMenu','uiMode','masterVolume','settingsBack','openDebug','debugPanel','runFullDiagnostic','downloadFullDiagnostic','uploadFullDiagnostic','enterCombatLab','rpgShell','gameMenuBtn','gameMenu','resumeGame','gameSettings','toMainMenu','rpgCharacter','inventory','inventoryLayer','charWindow','environmentWindow','combatLab','closeCombatLab','sim1v1','sim3v3','resultOverlay','resultNew','resultDownload'];
   ok('UI: required controls exist',requiredIds.every(id=>!!$(id)),requiredIds.filter(id=>!$(id)).join(', '));
   ok('UI: Load Game intentionally disabled',$('loadGame').disabled===true);
   ok('Settings: interface control wired',typeof $('uiMode').onchange==='function');
   ok('Settings: volume control wired',typeof $('masterVolume').oninput==='function');
-  ok('Inventory: action handlers wired',[invClose,invEquip,invUnequip,tabBag,tabChar].every(el=>typeof $(el.id).onclick==='function'));
+  ok('Inventory: independent window handlers wired',[charClose,envClose].every(el=>typeof $(el.id).onclick==='function'));
   ok('Result: action handlers wired',typeof $('resultNew').onclick==='function'&&typeof $('resultDownload').onclick==='function');
   ok('Simulation: action handlers wired',typeof $('sim1v1').onclick==='function'&&typeof $('sim3v3').onclick==='function');
 
