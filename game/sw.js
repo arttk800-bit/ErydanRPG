@@ -1,4 +1,4 @@
-const CACHE='eirdan-shell-v2';
+const CACHE='eirdan-shell-v3';
 const CORE=['./','./app/index.html','./app/shell.css','./app/bootstrap.js','./app/navigation.js','./app/lifecycle.js','./core/session.js','./core/persistence.js','./diagnostics/shell-diagnostics.js','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(CORE);await self.skipWaiting()})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key!==CACHE)await caches.delete(key);await self.clients.claim()})()));
