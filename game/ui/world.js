@@ -1,10 +1,11 @@
 import {WORLD_DATA} from '../data/world.js';
 import {WorldSystem} from '../systems/world.js';
+import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
 
 function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n}
 const POI_KEY='eirdan.region-poi.v1';
 const TYPES={city:'Город',village:'Деревня',fort:'Крепость',ruin:'Руины',cave:'Пещера',camp:'Лагерь',special:'Особая',exit:'Переход'};
-function loadPoi(regionId){try{return JSON.parse(localStorage.getItem(POI_KEY)||'{}')[regionId]||[]}catch{return[]}}
+function loadPoi(regionId){try{const all=JSON.parse(localStorage.getItem(POI_KEY)||'{}');if(Array.isArray(all[regionId]))return all[regionId]}catch{}return regionId==='forest'?CENTRAL_LANDS.points.map(p=>({...p})):[]}
 function savePoi(regionId,items){let all={};try{all=JSON.parse(localStorage.getItem(POI_KEY)||'{}')}catch{}all[regionId]=items;localStorage.setItem(POI_KEY,JSON.stringify(all))}
 function slug(s){return String(s||'poi').toLowerCase().trim().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48)||'poi'}
 
@@ -48,7 +49,7 @@ export const WorldUI={
    const name=el('input');name.placeholder='Название локации';
    const hint=el('p','Выберите тип и нажмите на карту. Метку можно перетаскивать.');hint.className='quiet';
    const exportBtn=el('button','Экспортировать JSON');
-   const clearBtn=el('button','Удалить все метки');
+   const clearBtn=el('button','Сбросить к штатным');
    panel.append(type,name,hint,exportBtn,clearBtn);root.append(panel);
    let editing=false,items=loadPoi('forest'),drag=null;
 
@@ -68,7 +69,7 @@ export const WorldUI={
    edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);edit.textContent=editing?'Готово':'Редактор'};
    back.onclick=()=>{mode='world';renderWorld()};
    exportBtn.onclick=async()=>{const data=JSON.stringify({region:'forest',map:region.map.asset,points:items},null,2);try{await navigator.clipboard.writeText(data);exportBtn.textContent='JSON скопирован'}catch{const blob=new Blob([data],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='region-central-lands-poi.json';a.click();URL.revokeObjectURL(a.href)}};
-   clearBtn.onclick=()=>{if(confirm('Удалить все локальные метки Центральных земель?')){items=[];persist()}};
+   clearBtn.onclick=()=>{if(confirm('Сбросить локальные изменения и вернуть штатные метки Центральных земель?')){items=CENTRAL_LANDS.points.map(p=>({...p}));persist()}};
    paint();
    cleanup=()=>{frame.onclick=null;back.onclick=null;edit.onclick=null};
   }
