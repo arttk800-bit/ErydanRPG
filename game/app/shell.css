@@ -54,3 +54,5 @@
 
 .road-editor-node.junction{stroke:#fff;stroke-width:.006;filter:drop-shadow(0 0 2px #000)}
 .game-speed{display:flex;gap:3px}.game-speed button{min-width:30px;min-height:30px;padding:3px 6px;font-size:10px}.game-speed button.active{border-color:var(--accent);color:var(--accent)}
+
+.startup-loader{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 25%,#18231f,#090d0c 55%,#030504);transition:opacity .2s ease}.startup-loader.done{opacity:0;pointer-events:none}.startup-loader-card{width:min(88vw,440px);text-align:center}.startup-loader-card h1{font-size:clamp(46px,14vw,78px);letter-spacing:.12em;margin:.1em 0 .45em}.startup-loader-card progress{display:block;width:100%;height:12px;margin:14px 0;accent-color:var(--accent)}.startup-loader-card p{line-height:1.35}
