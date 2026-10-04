@@ -460,18 +460,16 @@ async function runFullDiagnostic(){
   ok('Startup: boot screen exists',!!$('bootScreen')&&!!$('bootBar')&&!!$('bootStatus'));
 
   status.textContent='Проверка инвентаря и предметов...';await sleep(20);
-  playerInventory=structuredClone(snap.inv);openInventory();ok('Inventory: opens',!$('inventoryLayer').classList.contains('hidden'));
-  $('tabBag').click();ok('Inventory: Рюкзак tab',playerInventory.view==='bag'&&!$('bagView').classList.contains('hidden'));
-  let gs=playerInventory.bag.indexOf('greatsword');playerInventory.selected=gs;playerInventory.selectedSlot=null;equipSelected();
-  ok('Inventory: equip two-handed weapon',playerInventory.equip.main==='greatsword');
-  ok('Inventory: two-handed clears off-hand',!playerInventory.equip.off);
-  let sh=playerInventory.bag.indexOf('shield_round');if(sh>=0){playerInventory.selected=sh;equipSelected();ok('Inventory: shield blocked with two-handed',playerInventory.equip.main==='greatsword'&&!playerInventory.equip.off)}else ok('Inventory: shield returned to bag',playerInventory.bag.includes('shield_round'));
-  let dag=playerInventory.bag.indexOf('dagger');playerInventory.selected=dag;equipSelected();ok('Inventory: equip one-handed weapon',playerInventory.equip.main==='dagger');
-  sh=playerInventory.bag.indexOf('shield_round');playerInventory.selected=sh;equipSelected();ok('Inventory: equip shield with one-handed',playerInventory.equip.off==='shield_round');
-  $('tabChar').click();ok('Inventory: Персонаж tab',playerInventory.view==='char'&&!$('charView').classList.contains('hidden'));
-  playerInventory.selected=null;playerInventory.selectedSlot='off';unequipSelected();ok('Inventory: unequip selected slot',!playerInventory.equip.off&&playerInventory.bag.includes('shield_round'));
-  closeInventory();ok('Inventory: closes',$('inventoryLayer').classList.contains('hidden'));
-  playerInventory=structuredClone(snap.inv);
+  playerInventory=structuredClone(snap.inv);openInventory();
+  ok('Inventory: layer opens',!$('inventoryLayer').classList.contains('hidden'));
+  ok('Inventory: container windows render',document.querySelectorAll('#inventoryLayer .containerCard').length===containerUids().length);
+  renderCharacter();$('charWindow').classList.remove('hidden');syncInventoryOverlay();
+  ok('Inventory: character window opens',!$('charWindow').classList.contains('hidden'));
+  $('charWindow').classList.add('hidden');syncInventoryOverlay();
+  renderEnvironment();$('environmentWindow').classList.remove('hidden');syncInventoryOverlay();
+  ok('Inventory: environment window opens',!$('environmentWindow').classList.contains('hidden'));
+  $('environmentWindow').classList.add('hidden');closeAllInventoryWindows();
+  ok('Inventory: independent layer closes',$('inventoryLayer').classList.contains('hidden'));
 
   status.textContent='Проверка боя и симуляций...';await sleep(20);
   ok('Combat: core functions exist',['attack','nextTurn','restSkill','prepareSkill','simulateDiagnostic'].every(n=>typeof eval(n)==='function'));
