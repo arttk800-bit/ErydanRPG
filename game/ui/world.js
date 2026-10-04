@@ -15,7 +15,7 @@ export const WorldUI={
    const ctx=shadeCanvas.getContext('2d'),out=ctx.createImageData(maskWidth,maskHeight),current=WorldSystem.ensure(state).regionId,currentIndex=current?WORLD_DATA.regions[current]?.index:0;
    for(let p=0,i=0;p<indexPixels.length;p++,i+=4){
     const index=indexPixels[p];
-    let alpha=150;
+    let alpha=indexToId.has(index)?150:0;
     if(currentIndex&&index===currentIndex)alpha=0;
     out.data[i]=0;out.data[i+1]=0;out.data[i+2]=0;out.data[i+3]=alpha;
    }
