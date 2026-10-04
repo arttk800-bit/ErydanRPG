@@ -54,12 +54,6 @@ body,button,select,input{font-family:'PT Sans',system-ui,sans-serif}.mainTitle,.
  $('openDebug')?.addEventListener('click',()=>$('debugPanel')?.classList.toggle('hidden'));
  $('enterCombatLab')?.addEventListener('click',()=>showOnly('combatLab'));
  $('closeCombatLab')?.addEventListener('click',()=>showOnly('settingsMenu'));
- // Combat Lab bootstrap is independent from the legacy game module.
- const classes={archer:'Лучник',crossbowman:'Арбалетчик',guardian:'Страж',berserker:'Берсеркер',priest:'Священник',firemage:'Маг огня',wizard:'Волшебник',assassin:'Ассасин',rogue:'Разбойник'};
- const fillCombat=()=>{const o=Object.entries(classes).map(([v,n])=>'<option value="'+v+'">'+n+'</option>').join('');['a0','a1','a2'].forEach((id,i)=>{const el=$(id);if(el&&!el.options.length){el.innerHTML=o;el.value=['guardian','archer','priest'][i]}})};
- fillCombat();
- $('random')?.addEventListener('click',()=>{const a=Object.keys(classes);['a0','a1','a2'].forEach(id=>{const el=$(id);if(el)el.value=a[Math.floor(Math.random()*a.length)]})});
- window.EIRDAN_COMBAT_SHELL_READY=true;
 })();
 </script><script>
 (async()=>{
@@ -70,6 +64,8 @@ body,button,select,input{font-family:'PT Sans',system-ui,sans-serif}.mainTitle,.
  if(badge)badge.textContent='Версия '+meta.version;
  const add=src=>new Promise(resolve=>{const s=document.createElement('script');s.src=src+'?v='+encodeURIComponent(meta.build);s.onload=resolve;s.onerror=resolve;document.body.append(s)});
  await add('../data/world-data.js');await add('../assets/eirdan-building-sheet.js');
+ const combatUI=await import('./combat.js?v='+encodeURIComponent(meta.build)).catch(e=>{console.error('combat ui load',e);return null});
+ if(combatUI?.initCombatUI)combatUI.initCombatUI();
  import('./migration-base.js?v='+encodeURIComponent(meta.build)).catch(e=>console.error('migration load',e));
  import('./pwa.js?v='+encodeURIComponent(meta.build)).catch(e=>console.error('pwa load',e));
 })();
