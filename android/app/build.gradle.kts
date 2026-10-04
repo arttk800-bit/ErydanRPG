@@ -9,8 +9,8 @@ android {
   applicationId="com.eirdan.client"
   minSdk=26
   targetSdk=35
-  versionCode=1509
-  versionName="0.15.9-shell"
+  versionCode=1600
+  versionName="0.16.0-web-shell"
  }
  compileOptions {
   sourceCompatibility=JavaVersion.VERSION_17
