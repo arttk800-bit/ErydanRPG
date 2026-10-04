@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.53.0-alpha",
+      "build": "world-canonical-1",
+      "stage": "Canonical World Map",
+      "date": "2026-10-04",
+      "changes": [
+        "Новая квадратная карта мира v2 принята как каноническая основа.",
+        "Региональная геометрия заново привязана к карте v2 в координатах 1536×1536.",
+        "Цветные границы заменены тёмными линиями, невыбранные регионы затемняются.",
+        "В Game State добавлены состояния регионов discovered, visited и current; unknown подготовлен для будущего тумана войны."
+      ]
+    },
+    {
       "version": "0.52.2-alpha",
       "build": "world-regions-3",
       "stage": "Geographic SVG Regions",
