@@ -9,10 +9,11 @@ export const WorldSystem={
  ensure(state){
   state.world=state.world||{};
   state.world.locations=state.world.locations||{};
-  state.world.current=state.world.current||{regionId:'ren',placeId:'road',cityId:null,cityPlaceId:null};
+  state.world.current=state.world.current||{regionId:null,placeId:null,cityId:null,cityPlaceId:null};
   return state.world.current;
  },
  current(state){return this.ensure(state)},
+ enterRegion(state,regionId){if(!this.region(regionId))throw new Error('Unknown world region');const current=this.ensure(state);current.regionId=regionId;current.placeId=null;current.cityId=null;current.cityPlaceId=null;return current},
  region(id){return WORLD_DATA.regions[id]||null},
  place(id){return WORLD_DATA.places[id]||null},
  city(id){return WORLD_DATA.cities[id]||null},
