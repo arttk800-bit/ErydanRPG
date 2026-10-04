@@ -2,6 +2,8 @@ import {WORLD_DATA} from '../data/world.js';
 import {WorldSystem} from '../systems/world.js';
 import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
 import {VELIGRAD} from '../data/locations/veligrad.js';
+import {CENTRAL_LANDS_ROADS} from '../data/regions/central-lands-roads.js';
+import {TravelSystem} from '../systems/travel.js';
 
 function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n}
 const POI_KEY='eirdan.region-poi.v1';
@@ -84,7 +86,8 @@ export const WorldUI={
    head.append(back,title,edit);root.append(head);
    const frame=el('div');frame.className='region-map-frame';
    const img=el('img');img.className='region-map-image';img.src=region.map.asset;img.alt=region.name;frame.append(img);
-   const layer=el('div');layer.className='region-poi-layer';frame.append(layer);root.append(frame);
+   const layer=el('div');layer.className='region-poi-layer';frame.append(layer);
+   const party=el('div');party.className='party-marker';party.title='Ваш отряд';frame.append(party);root.append(frame);
    const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
    const panel=el('div');panel.className='region-editor hidden';
    const type=el('select');for(const [v,label] of [['location-map','Локация с картой'],['location','Локация без карты'],['place','Конечное место']]){const o=el('option',label);o.value=v;type.append(o)}
@@ -93,10 +96,12 @@ export const WorldUI={
    const exportBtn=el('button','Экспортировать JSON');
    const clearBtn=el('button','Сбросить к штатным');
    panel.append(type,name,hint,exportBtn,exportAllButton(),clearBtn);root.append(panel);
-   let editing=false,items=loadPoi('forest'),drag=null,selected=current.placeId||current.districtId||current.locationId||null;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);
+   let editing=false,items=loadPoi('forest'),drag=null,selected=current.placeId||current.districtId||current.locationId||null,travelTimer=null,lastTravelAt=0;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);
 
+   function partyPoint(){const t=TravelSystem.ensure(state);if(t.regionId==='forest'&&t.position&&(t.status==='travelling'||t.status==='event'))return t.position;const id=state.world?.position?.pointId||current.locationId||current.placeId||'veligrad';return items.find(p=>p.id===id)||CENTRAL_LANDS.points.find(p=>p.id===id)||CENTRAL_LANDS.points.find(p=>p.id==='veligrad')}
+   function paintParty(){const p=partyPoint();party.classList.toggle('hidden',!p);if(p){party.style.left=(p.x*100)+'%';party.style.top=(p.y*100)+'%'}}
    function paint(){
-    layer.replaceChildren();legendHost.replaceChildren(legendFor(items,state,editing));
+    layer.replaceChildren();legendHost.replaceChildren(legendFor(items,state,editing));paintParty();
     for(const item of items){
      if(!editing&&!WorldSystem.isDiscovered(state,item))continue;
      const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.id=item.id;pin.dataset.type=item.type;pin.dataset.class=item.class||'place';pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';pin.title=item.name||TYPES[item.type];if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');
@@ -108,14 +113,18 @@ export const WorldUI={
     }
    }
    function persist(){savePoi('forest',items);paint()}
-   function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{if(method==='enter'&&p.map){WorldSystem.enterMapPoint(state,p);onChange?.(state);mode='location';renderLocation(p);return}WorldSystem.enterMapPoint(state,p);onChange?.(state);actionHost.querySelector('p')?.insertAdjacentHTML('afterend','<p class="quiet">Маршрут выбран: '+(method==='horse'?'на лошади':'пешком')+'. Расчёт пути будет подключён позже.</p>')},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
+   function startTravel(target,method){const active=TravelSystem.ensure(state);if(active.status==='travelling'||active.status==='event'){actionHost.querySelector('.map-route-status')?.remove();actionHost.append(Object.assign(el('p','Сначала завершите текущее путешествие.'),{className:'quiet map-route-status'}));return}const from=state.world?.position?.pointId||current.locationId||current.placeId||'veligrad';if(from===target.id){state.world.position={regionId:'forest',pointId:target.id};WorldSystem.enterMapPoint(state,target);onChange?.(state);paint();return}const t=TravelSystem.start(state,{roads:CENTRAL_LANDS_ROADS,points:items,fromId:from,toId:target.id,method});const old=actionHost.querySelector('.map-route-status');old?.remove();if(!t){const msg=el('p','К этой точке пока нет проложенной дороги.');msg.className='quiet map-route-status';actionHost.append(msg);return}const msg=el('p',(method==='horse'?'Верхом':'Пешком')+': '+(t.route.nodeIds.map(id=>items.find(x=>x.id===id)?.name||id).join(' → ')));msg.className='quiet map-route-status';actionHost.append(msg);lastTravelAt=performance.now();if(!travelTimer)travelTimer=requestAnimationFrame(travelFrame);onChange?.(state);paintParty()}
+   function travelFrame(now){travelTimer=null;const t=TravelSystem.ensure(state);if(t.status!=='travelling'&&t.status!=='event')return;const dt=Math.min(.1,Math.max(0,(now-(lastTravelAt||now))/1000));lastTravelAt=now;if(t.status==='travelling'){const speed=t.method==='horse'?.055:.028;const before=t.progress;TravelSystem.tick(state,dt,speed);const moved=t.progress-before;if(moved>0){state.clock.minute+=moved*(t.method==='horse'?180:300);while(state.clock.minute>=1440){state.clock.minute-=1440;state.clock.day++}}paintParty();if(t.status==='arrived'){const dest=items.find(p=>p.id===t.toId);state.world.position={regionId:'forest',pointId:t.toId};if(dest)WorldSystem.enterMapPoint(state,dest);onChange?.(state);paint();if(dest)showActions(dest);return}}travelTimer=requestAnimationFrame(travelFrame)}
+   function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{if(method==='enter'&&p.map){const here=state.world?.position?.pointId||current.locationId||current.placeId||'veligrad';if(here!==p.id){startTravel(p,'walk');return}WorldSystem.enterMapPoint(state,p);onChange?.(state);mode='location';renderLocation(p);return}startTravel(p,method)},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
    frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;actionHost.replaceChildren();WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));const choice=type.value,cls=choice==='location-map'?'location':choice,label=name.value.trim()||(choice==='location-map'?'Локация с картой':choice==='location'?'Локация':'Место');items.push({id:'forest-'+slug(label)+'-'+Date.now().toString(36),name:label,class:cls,type:cls,...(choice==='location-map'?{map:null}:{}),x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
    edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);edit.textContent=editing?'Готово':'Редактор';paint()};
    back.onclick=()=>{mode='world';renderWorld()};
    exportBtn.onclick=()=>downloadJson('region-central-lands-poi.json',{region:'forest',map:region.map.asset,points:items});
    clearBtn.onclick=()=>{if(confirm('Сбросить локальные изменения и вернуть штатные метки Центральных земель?')){items=CENTRAL_LANDS.points.map(p=>({...p}));persist()}};
+   if(!state.world.position?.pointId)state.world.position={regionId:'forest',pointId:'veligrad'};
+   const existingTravel=TravelSystem.ensure(state);if(existingTravel.status==='travelling'||existingTravel.status==='event'){lastTravelAt=performance.now();travelTimer=requestAnimationFrame(travelFrame)}
    paint();
-   cleanup=()=>{frame.onclick=null;back.onclick=null;edit.onclick=null};
+   cleanup=()=>{if(travelTimer)cancelAnimationFrame(travelTimer);travelTimer=null;frame.onclick=null;back.onclick=null;edit.onclick=null};
   }
 
   function renderLocation(location){
