@@ -3,12 +3,11 @@ import {Lifecycle} from './lifecycle.js';
 import {createSession} from '../core/session.js';
 import {saveGame,listSaves,loadGame,deleteSave,persistenceSupported} from '../core/persistence.js';
 import {runShellDiagnostics} from '../diagnostics/shell-diagnostics.js';
-import {loadCurrentRelease,releaseChangesHtml} from '../client/release.js';
+import {loadInstalledRelease,loadCurrentRelease,releaseChangesHtml} from '../client/release.js';
 import {mountGameScreen} from './game-screen.js';
 
 const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
-const INSTALLED_BUILD={version:'0.50.0-alpha',build:'world-shell-1',stage:'World Module Integration'};
-let buildMeta=INSTALLED_BUILD;
+let buildMeta=null;
 const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,swRegistration=null,updateAvailable=false,updateChecking=false;
 const $=s=>document.querySelector(s);
 function loadSettings(){try{return{theme:'dark',volume:70,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}}catch{return{theme:'dark',volume:70}}}
@@ -18,7 +17,7 @@ function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').valu
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.add('hidden'),2200)}
 function closeModal(){modalOpen=false;$('#modal').classList.add('hidden')}
 function modal(title,body,actions=[['Закрыть',closeModal]]){modalOpen=true;$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden')}
-function loadBuild(){buildMeta=INSTALLED_BUILD;$('#versionBadge').textContent='Версия '+buildMeta.version;return buildMeta}
+async function loadBuild(){buildMeta=await loadInstalledRelease();$('#versionBadge').textContent='Версия '+buildMeta.version;return buildMeta}
 function updateButton(label='Проверить обновления',disabled=false,progress=0,state='idle'){const b=$('#checkUpdates');if(!b)return;b.textContent=label;b.disabled=disabled;b.style.setProperty('--update-progress',Math.max(0,Math.min(100,progress))+'%');b.dataset.state=state}
 function resetUpdateButton(delay=1800){clearTimeout(resetUpdateButton.t);resetUpdateButton.t=setTimeout(()=>updateButton(),delay)}
 function sameBuild(a,b){return a?.version===b?.version&&a?.build===b?.build}
@@ -30,7 +29,7 @@ async function checkForUpdates({manual=false}={}){
   if(manual)updateButton('Проверка версии…',true,30,'working');
   try{
     const remote=await fetchRemoteBuild();
-    if(!sameBuild(INSTALLED_BUILD,remote)){
+    if(!sameBuild(buildMeta,remote)){
       offerUpdate(remote);
     }else{
       updateAvailable=false;
@@ -105,5 +104,5 @@ $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenE
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installPwa').classList.remove('hidden')});
 $('#installPwa').addEventListener('click',async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('#installPwa').classList.add('hidden')});
 window.addEventListener('appinstalled',()=>toast('Eirdan установлен'));
-$('#versionBadge').addEventListener('click',async()=>{try{const meta=await loadCurrentRelease();modal('Версия Eirdan',releaseChangesHtml(meta))}catch(e){console.warn('Release metadata unavailable',e);modal('Версия Eirdan','<p><b>'+INSTALLED_BUILD.version+'</b></p><p>История изменений временно недоступна.</p>')}});
-applySettings();nav.reset('main');lifecycle.start();loadBuild();await registerPwa();checkForUpdates();
+$('#versionBadge').addEventListener('click',async()=>{try{const meta=await loadCurrentRelease();modal('Версия Eirdan',releaseChangesHtml(meta))}catch(e){console.warn('Release metadata unavailable',e);modal('Версия Eirdan','<p><b>'+(buildMeta?.version||'Версия недоступна')+'</b></p><p>История изменений временно недоступна.</p>')}});
+applySettings();nav.reset('main');lifecycle.start();await loadBuild();await registerPwa();checkForUpdates();
