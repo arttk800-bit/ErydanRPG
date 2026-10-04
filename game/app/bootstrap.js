@@ -7,7 +7,7 @@ import {loadCurrentRelease,releaseChangesHtml} from '../client/release.js';
 import {mountGameScreen} from './game-screen.js';
 
 const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
-const INSTALLED_BUILD={version:'0.49.2-alpha',build:'update-manager-4',stage:'Verified Update Activation'};
+const INSTALLED_BUILD={version:'0.50.0-alpha',build:'world-shell-1',stage:'World Module Integration'};
 let buildMeta=INSTALLED_BUILD;
 const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,swRegistration=null,updateAvailable=false,updateChecking=false;
 const $=s=>document.querySelector(s);
