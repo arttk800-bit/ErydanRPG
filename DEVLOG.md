@@ -52,3 +52,14 @@
 - Rotation couples footprint and visual orientation.
 - Minimal starter inventory; closable item debug spawner.
 - Larger temporary backpack grids for testing.
+
+
+## 0.43.1-alpha · diagnostic-58 — Inventory window UX
+- Added bottom gameplay dock: Inventory / Character / Environment.
+- Every equipped bag renders as its own movable independent window.
+- Inventory cells use one fixed 46px size regardless of container capacity; large bags scroll instead of shrinking cells.
+- Environment is a fixed scrollable grid with fixed-size cells and dynamically expanding capacity.
+- Touch drag ghost follows the pointer continuously; Pointer Events remain the source of truth.
+- Global text selection and touch callout disabled to avoid interfering with drag/tap.
+- Item actions remain in a separate compact action window.
+- Removed visible build/version labels from gameplay screens; version remains in main menu.
