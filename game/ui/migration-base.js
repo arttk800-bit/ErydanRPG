@@ -65,14 +65,14 @@ function renderCharacter(){let eq=$('equip');if(!eq)return;eq.innerHTML=Object.e
 function renderSelectedActions(){}
 function renderEnvironment(){let root=$('environmentList');if(!root)return;let count=playerInventory.environment.length,cols=Math.max(6,Math.ceil(Math.sqrt(Math.max(36,count+18)))),rows=Math.max(6,Math.ceil((count+cols*3)/cols));root.style.setProperty('--env-cols',cols);root.innerHTML='';for(let i=0;i<rows*cols;i++){let uid=playerInventory.environment[i],cell=document.createElement('div');cell.className='envItem';if(uid){let it=itemOf(uid);cell.dataset.envUid=uid;cell.innerHTML='<span>'+it.ico+' '+it.n+'</span>';cell.onclick=e=>{e.stopPropagation();selectItem(uid,cell)}}else cell.onclick=e=>{if(!playerInventory.selected)return;let uid=playerInventory.selected,loc=playerInventory.instances[uid]?.location;if(loc?.type==='environment')return;let r=cell.getBoundingClientRect();confirmTarget('Выбросить',r.left,r.top,()=>dropItem(uid))};root.append(cell)}}
 function renderDebugItems(){let root=$('debugItemList');if(!root)return;root.innerHTML=Object.entries(INV_ITEMS).map(([id,it])=>'<span>'+it.ico+' '+it.n+'</span><button data-add="'+id+'">Добавить</button>').join('');root.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{let uid=addInst(b.dataset.add,{type:'environment'}),p=firstSpot(uid);if(p)moveToContainer(uid,p.cid,p.spot);else{playerInventory.environment.push(uid);playerInventory.instances[uid].location={type:'environment'};$('actionHint').textContent='Контейнеры заполнены: предмет добавлен в окружение.'}renderInventory()})}
-function syncInventoryOverlay(){let open=[...document.querySelectorAll('.containerCard')].length||!$('charWindow')?.classList.contains('hidden')||!$('environmentWindow')?.classList.contains('hidden')||!$('debugItemsWindow')?.classList.contains('hidden');$('invOverlay')?.classList.toggle('hidden',!open)}
+function syncInventoryOverlay(){let open=[...document.querySelectorAll('.containerCard')].length||!$('charWindow')?.classList.contains('hidden')||!$('environmentWindow')?.classList.contains('hidden')||!$('debugItemsWindow')?.classList.contains('hidden');$('inventoryLayer')?.classList.toggle('hidden',!open)}
 function closeAllInventoryWindows(){document.querySelectorAll('.containerCard').forEach(x=>x.remove());$('charWindow')?.classList.add('hidden');$('environmentWindow')?.classList.add('hidden');$('debugItemsWindow')?.classList.add('hidden');clearPending();hideItemTip();syncInventoryOverlay()}
-function openInventory(){renderInventory();$('invOverlay').classList.remove('hidden')}
+function syncInventoryOverlay(){let layer=$('inventoryLayer');if(!layer)return;let open=layer.querySelector('.containerCard')||!$('charWindow')?.classList.contains('hidden')||!$('environmentWindow')?.classList.contains('hidden')||!$('debugItemsWindow')?.classList.contains('hidden');layer.classList.toggle('hidden',!open)}
+function closeAllInventoryWindows(){document.querySelectorAll('#inventoryLayer .containerCard').forEach(x=>x.remove());$('charWindow')?.classList.add('hidden');$('environmentWindow')?.classList.add('hidden');$('debugItemsWindow')?.classList.add('hidden');clearPending();hideItemTip();syncInventoryOverlay()}
+function openInventory(){renderInventory();$('inventoryLayer')?.classList.remove('hidden')}
 function closeInventory(){closeAllInventoryWindows()}
-function saveInvWindow(){let p=$('invOverlay')?.querySelector('.invPanel');if(!p)return;try{localStorage.setItem('eirdan-inv-window',JSON.stringify({left:p.style.left,top:p.style.top,width:p.style.width,height:p.style.height,min:p.classList.contains('minimized')}))}catch(_){}}
-function restoreInvWindow(){let p=$('invOverlay')?.querySelector('.invPanel');if(!p)return;try{let s=JSON.parse(localStorage.getItem('eirdan-inv-window')||'null');if(s){p.style.left=s.left||p.style.left;p.style.top=s.top||p.style.top;p.style.width=s.width||p.style.width;p.style.height=s.height||p.style.height;p.classList.toggle('minimized',!!s.min)}}catch(_){}}
-function makeDraggable(winId,barId,key){let p=$(winId),bar=$(barId);if(!p||!bar)return;let d=null;bar.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;let r=p.getBoundingClientRect();d={x:e.clientX-r.left,y:e.clientY-r.top};bar.setPointerCapture?.(e.pointerId)});bar.addEventListener('pointermove',e=>{if(!d)return;p.style.left=Math.max(0,Math.min(innerWidth-p.offsetWidth,e.clientX-d.x))+'px';p.style.top=Math.max(0,Math.min(innerHeight-p.offsetHeight,e.clientY-d.y))+'px';p.style.right='auto';p.style.bottom='auto'});bar.addEventListener('pointerup',()=>d=null);bar.addEventListener('pointercancel',()=>d=null)}
-function initInvWindow(){let p=$('invOverlay')?.querySelector('.invPanel');makeDraggable(p?.id||'__none','invDrag','inv');let bar=$('invDrag'),d=null;if(p&&bar){bar.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;let r=p.getBoundingClientRect();d={x:e.clientX-r.left,y:e.clientY-r.top}});bar.addEventListener('pointermove',e=>{if(!d)return;p.style.left=Math.max(0,Math.min(innerWidth-p.offsetWidth,e.clientX-d.x))+'px';p.style.top=Math.max(0,Math.min(innerHeight-p.offsetHeight,e.clientY-d.y))+'px'});bar.addEventListener('pointerup',()=>d=null)}makeDraggable('charWindow','charDrag','char');makeDraggable('environmentWindow','envDrag','env');makeDraggable('debugItemsWindow','debugItemsDrag','debug');$('invMin').onclick=()=>p.classList.toggle('minimized');$('invCharacter').onclick=()=>$('charWindow').classList.toggle('hidden');$('openCharacter')?.addEventListener('click',()=>$('charWindow').classList.remove('hidden'));$('charClose').onclick=()=>{$('charWindow').classList.add('hidden');syncInventoryOverlay()};$('charMin').onclick=()=>$('charWindow').classList.toggle('minimized');$('invSort').onclick=sortAll;$('openEnvironment').onclick=()=>{$('environmentWindow').classList.remove('hidden');renderEnvironment()};$('envClose').onclick=()=>{$('environmentWindow').classList.add('hidden');syncInventoryOverlay()};$('envMin').onclick=()=>$('environmentWindow').classList.toggle('minimized');$('openDebugItems').onclick=()=>{$('debugItemsWindow').classList.remove('hidden');renderDebugItems()};$('debugItemsClose').onclick=()=>{$('debugItemsWindow').classList.add('hidden');syncInventoryOverlay()}}
+function makeDraggable(winId,barId){let p=$(winId),bar=$(barId);if(!p||!bar)return;let d=null;bar.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;let r=p.getBoundingClientRect();d={x:e.clientX-r.left,y:e.clientY-r.top};bar.setPointerCapture?.(e.pointerId);e.preventDefault()});bar.addEventListener('pointermove',e=>{if(!d)return;p.style.left=Math.max(0,Math.min(innerWidth-p.offsetWidth,e.clientX-d.x))+'px';p.style.top=Math.max(0,Math.min(innerHeight-p.offsetHeight,e.clientY-d.y))+'px';p.style.right='auto';p.style.bottom='auto'});bar.addEventListener('pointerup',()=>d=null);bar.addEventListener('pointercancel',()=>d=null)}
+function initInvWindow(){makeDraggable('charWindow','charDrag');makeDraggable('environmentWindow','envDrag');makeDraggable('debugItemsWindow','debugItemsDrag');$('charClose').onclick=()=>{$('charWindow').classList.add('hidden');syncInventoryOverlay()};$('charMin').onclick=()=>$('charWindow').classList.toggle('minimized');$('envClose').onclick=()=>{$('environmentWindow').classList.add('hidden');syncInventoryOverlay()};$('envMin').onclick=()=>$('environmentWindow').classList.toggle('minimized');$('debugItemsClose').onclick=()=>{$('debugItemsWindow').classList.add('hidden');syncInventoryOverlay()}}
 function equipSelected(){let uid=playerInventory.selected;if(uid)equipUid(uid)}
 function unequipSelected(){let uid=playerInventory.selected;if(uid)unequipUid(uid)}
 function discardSelected(){let uid=playerInventory.selected;if(uid)dropItem(uid)}
@@ -320,7 +320,7 @@ function ensureBattleControls(){['combatLog','auto','combatSpeed','endTurn','res
 const battlePointer=e=>{e.preventDefault();let h=canvasHexFromEvent(e);if(h)manualHexAction(h[0],h[1])};$('battleCanvas').onpointerup=battlePointer;
 
 
-document.body.appendChild($('invOverlay'));document.body.appendChild($('resultOverlay'));
+document.body.appendChild($('inventoryLayer'));document.body.appendChild($('resultOverlay'));
 const WORLD_DATA=window.EIRDAN_WORLD_DATA||{regions:{},places:{},cities:{},travel:{}};
 const WORLD={day:1,minutes:8*60,region:'ren',location:'road',gold:24,reputation:0,hasHorse:false,needs:{hunger:0,thirst:0,fatigue:0},flags:{gateIncident:false},regions:WORLD_DATA.regions,places:WORLD_DATA.places};
 let rpgScreen='worldMap';
@@ -404,7 +404,7 @@ async function runFullDiagnostic(){
  const err=(name,e)=>{out.push('FAIL | '+name+' | '+(e?.message||e));fail++};
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  const snap={screen:rpgScreen,settingsReturn,combatLabReturn,world:structuredClone(WORLD),inv:structuredClone(playerInventory),ui:document.body.dataset.ui||'',vol:window.EIRDAN_MASTER_VOLUME};
- const hiddenIds=['mainMenu','rpgShell','combatLab','gameMenu','invOverlay','resultOverlay','debugPanel','versionOverlay'];
+ const hiddenIds=['mainMenu','rpgShell','combatLab','gameMenu','inventoryLayer','resultOverlay','debugPanel','versionOverlay'];
  const hiddenState=Object.fromEntries(hiddenIds.map(id=>[id,$(id).classList.contains('hidden')]));
  try{
   status.textContent='Проверка кнопок и переходов...';await sleep(20);
@@ -421,7 +421,7 @@ async function runFullDiagnostic(){
   ok('Button: В главное меню handler',typeof $('toMainMenu').onclick==='function');
 
   // Static UI contract: catches missing controls/IDs without navigating the visible game.
-  const requiredIds=['mainMenu','newGame','loadGame','openSettings','quitGame','settingsMenu','uiMode','masterVolume','settingsBack','openDebug','debugPanel','runFullDiagnostic','downloadFullDiagnostic','uploadFullDiagnostic','enterCombatLab','rpgShell','gameMenuBtn','gameMenu','resumeGame','gameSettings','toMainMenu','rpgCharacter','inventory','invOverlay','invClose','invEquip','invUnequip','tabBag','tabChar','combatLab','closeCombatLab','sim1v1','sim3v3','resultOverlay','resultNew','resultDownload'];
+  const requiredIds=['mainMenu','newGame','loadGame','openSettings','quitGame','settingsMenu','uiMode','masterVolume','settingsBack','openDebug','debugPanel','runFullDiagnostic','downloadFullDiagnostic','uploadFullDiagnostic','enterCombatLab','rpgShell','gameMenuBtn','gameMenu','resumeGame','gameSettings','toMainMenu','rpgCharacter','inventory','inventoryLayer','invClose','invEquip','invUnequip','tabBag','tabChar','combatLab','closeCombatLab','sim1v1','sim3v3','resultOverlay','resultNew','resultDownload'];
   ok('UI: required controls exist',requiredIds.every(id=>!!$(id)),requiredIds.filter(id=>!$(id)).join(', '));
   ok('UI: Load Game intentionally disabled',$('loadGame').disabled===true);
   ok('Settings: interface control wired',typeof $('uiMode').onchange==='function');
@@ -460,7 +460,7 @@ async function runFullDiagnostic(){
   ok('Startup: boot screen exists',!!$('bootScreen')&&!!$('bootBar')&&!!$('bootStatus'));
 
   status.textContent='Проверка инвентаря и предметов...';await sleep(20);
-  playerInventory=structuredClone(snap.inv);openInventory();ok('Inventory: opens',!$('invOverlay').classList.contains('hidden'));
+  playerInventory=structuredClone(snap.inv);openInventory();ok('Inventory: opens',!$('inventoryLayer').classList.contains('hidden'));
   $('tabBag').click();ok('Inventory: Рюкзак tab',playerInventory.view==='bag'&&!$('bagView').classList.contains('hidden'));
   let gs=playerInventory.bag.indexOf('greatsword');playerInventory.selected=gs;playerInventory.selectedSlot=null;equipSelected();
   ok('Inventory: equip two-handed weapon',playerInventory.equip.main==='greatsword');
@@ -470,7 +470,7 @@ async function runFullDiagnostic(){
   sh=playerInventory.bag.indexOf('shield_round');playerInventory.selected=sh;equipSelected();ok('Inventory: equip shield with one-handed',playerInventory.equip.off==='shield_round');
   $('tabChar').click();ok('Inventory: Персонаж tab',playerInventory.view==='char'&&!$('charView').classList.contains('hidden'));
   playerInventory.selected=null;playerInventory.selectedSlot='off';unequipSelected();ok('Inventory: unequip selected slot',!playerInventory.equip.off&&playerInventory.bag.includes('shield_round'));
-  closeInventory();ok('Inventory: closes',$('invOverlay').classList.contains('hidden'));
+  closeInventory();ok('Inventory: closes',$('inventoryLayer').classList.contains('hidden'));
   playerInventory=structuredClone(snap.inv);
 
   status.textContent='Проверка боя и симуляций...';await sleep(20);
@@ -549,23 +549,20 @@ $('uiMode').onchange=e=>document.body.dataset.ui=e.target.value;
 const savedTheme=localStorage.getItem('eirdan-theme')||'dark';document.body.dataset.theme=savedTheme;if($('themeMode'))$('themeMode').value=savedTheme;
 $('themeMode').onchange=e=>{document.body.dataset.theme=e.target.value;localStorage.setItem('eirdan-theme',e.target.value)};
 $('masterVolume').oninput=e=>{window.EIRDAN_MASTER_VOLUME=(+e.target.value||0)/100};
-$('rpgInventory').onclick=()=>{renderInventory();$('invOverlay').classList.remove('hidden')};$('rpgCharacter').onclick=()=>{renderCharacter();$('charWindow').classList.remove('hidden');syncInventoryOverlay()};$('rpgEnvironment').onclick=()=>{renderEnvironment();$('environmentWindow').classList.remove('hidden');syncInventoryOverlay()};
+$('rpgInventory').onclick=()=>{renderInventory();$('inventoryLayer').classList.remove('hidden')};$('rpgCharacter').onclick=()=>{renderCharacter();$('charWindow').classList.remove('hidden');syncInventoryOverlay()};$('rpgEnvironment').onclick=()=>{renderEnvironment();$('environmentWindow').classList.remove('hidden');syncInventoryOverlay()};
 renderRpg();
 showOnly('mainMenu');
 $('versionBadge').onclick=()=>{$('versionOverlay').classList.remove('hidden')};
 $('versionClose').onclick=()=>{$('versionOverlay').classList.add('hidden')};
 $('versionOverlay').onclick=e=>{if(e.target===$('versionOverlay'))$('versionOverlay').classList.add('hidden')};
 $('inventory').onclick=openInventory;
-$('invClose').onclick=closeInventory;
-$('invEquip').onclick=equipSelected;
-$('invUnequip').onclick=unequipSelected;
 $('statsToggle').onclick=()=>{$('statsDrawer').classList.toggle('hidden')};
 initInvWindow();
 
 function closeTopOverlay(){
  const overlays=[...document.querySelectorAll('.placeOverlay,.travelOverlay')].filter(x=>!x.classList.contains('hidden'));if(overlays.length){overlays.at(-1).remove();return true}
  if(!$('versionOverlay')?.classList.contains('hidden')){$('versionOverlay').classList.add('hidden');return true}
- if(!$('invOverlay')?.classList.contains('hidden')){closeAllInventoryWindows();return true}
+ if(!$('inventoryLayer')?.classList.contains('hidden')){closeAllInventoryWindows();return true}
  if(!$('debugPanel')?.classList.contains('hidden')){$('debugPanel').classList.add('hidden');return true}
  if(!$('gameMenu')?.classList.contains('hidden')){$('gameMenu').classList.add('hidden');return true}
  return false
