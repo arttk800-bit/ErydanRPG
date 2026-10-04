@@ -1,5 +1,5 @@
 EIRDAN SHELL + ACTION DIAGNOSTIC
-Generated: 2026-10-04T13:57:45.561Z
+Generated: 2026-10-04T14:00:29.368Z
 
 === SHELL CHECKS ===
 PASS DOM shell
@@ -21,16 +21,16 @@ PASS Session schema
   "state": "current",
   "busy": false,
   "installed": {
-    "version": "0.51.4-alpha",
-    "build": "diagnostics-5",
+    "version": "0.51.5-alpha",
+    "build": "diagnostics-6",
     "channel": "development",
-    "stage": "Fast Diagnostic Confirmation",
+    "stage": "Diagnostic Delivery Recheck",
     "schema": 1
   },
   "remote": {
-    "build": "diagnostics-5",
-    "version": "0.51.4-alpha",
-    "stage": "Fast Diagnostic Confirmation",
+    "build": "diagnostics-6",
+    "version": "0.51.5-alpha",
+    "stage": "Diagnostic Delivery Recheck",
     "ready": true
   },
   "error": null,
@@ -43,8 +43,8 @@ PASS Session schema
 }
 
 === ACTION TRACE ===
-#1 [2026-10-04T13:57:42.809Z] update -> checking {"manual":false}
-#2 [2026-10-04T13:57:42.884Z] update -> compared {"installed":{"version":"0.51.4-alpha","build":"diagnostics-5","channel":"development","stage":"Fast Diagnostic Confirmation","schema":1},"remote":{"build":"diagnostics-5","version":"0.51.4-alpha","stage":"Fast Diagnostic Confirmation","ready":true}}
-#3 [2026-10-04T13:57:42.884Z] update -> current {"version":"0.51.4-alpha"}
-#4 [2026-10-04T13:57:44.462Z] settings -> click {"disabled":false,"screen":"main"}
-#5 [2026-10-04T13:57:45.297Z] debug -> click {"disabled":false,"screen":"settings"}
+#1 [2026-10-04T14:00:27.534Z] update -> checking {"manual":false}
+#2 [2026-10-04T14:00:27.607Z] update -> compared {"installed":{"version":"0.51.5-alpha","build":"diagnostics-6","channel":"development","stage":"Diagnostic Delivery Recheck","schema":1},"remote":{"build":"diagnostics-6","version":"0.51.5-alpha","stage":"Diagnostic Delivery Recheck","ready":true}}
+#3 [2026-10-04T14:00:27.607Z] update -> current {"version":"0.51.5-alpha"}
+#4 [2026-10-04T14:00:27.753Z] settings -> click {"disabled":false,"screen":"main"}
+#5 [2026-10-04T14:00:29.277Z] debug -> click {"disabled":false,"screen":"settings"}
