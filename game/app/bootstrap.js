@@ -6,7 +6,7 @@ import {runShellDiagnostics} from '../diagnostics/shell-diagnostics.js';
 import {loadCurrentRelease,releaseChangesHtml} from '../client/release.js';
 
 const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
-const INSTALLED_BUILD={version:'0.49.1-alpha',build:'update-manager-3',stage:'Modular Release Metadata'};
+const INSTALLED_BUILD={version:'0.49.2-alpha',build:'update-manager-4',stage:'Verified Update Activation'};
 let buildMeta=INSTALLED_BUILD;
 const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,swRegistration=null,updateAvailable=false,updateChecking=false;
 const $=s=>document.querySelector(s);
@@ -44,18 +44,20 @@ async function checkForUpdates({manual=false}={}){
     $('#checkUpdates')?.removeAttribute('disabled');
   }
 }
-function waitForControllerChange(timeout=15000){return new Promise((resolve,reject)=>{let done=false;const finish=()=>{if(done)return;done=true;clearTimeout(timer);navigator.serviceWorker.removeEventListener('controllerchange',finish);resolve()};const timer=setTimeout(()=>{if(done)return;done=true;navigator.serviceWorker.removeEventListener('controllerchange',finish);reject(new Error('controller change timeout'))},timeout);navigator.serviceWorker.addEventListener('controllerchange',finish)})}
+function waitForServiceWorkerBuild(expected,timeout=20000){return new Promise((resolve,reject)=>{let done=false;const onMessage=e=>{if((e.data?.type==='SW_ACTIVATED'||e.data?.type==='SW_BUILD')&&e.data.build===expected)finish(true)};const finish=ok=>{if(done)return;done=true;clearInterval(poll);clearTimeout(timer);navigator.serviceWorker.removeEventListener('message',onMessage);ok?resolve():reject(new Error('service worker build mismatch'))};navigator.serviceWorker.addEventListener('message',onMessage);const poll=setInterval(()=>navigator.serviceWorker.controller?.postMessage({type:'GET_BUILD'}),250);const timer=setTimeout(()=>finish(false),timeout);navigator.serviceWorker.controller?.postMessage({type:'GET_BUILD'})})}
 async function applyUpdate(){
   await persist();
   updateButton('Установка…',true,90,'working');
-  const waiting=swRegistration?.waiting;
-  if(waiting){
-    const changed=waitForControllerChange().catch(()=>null);
-    waiting.postMessage({type:'SKIP_WAITING'});
-    await changed;
-  }
+  const remote=await fetchRemoteBuild();
+  await swRegistration.update();
+  const worker=swRegistration.installing||swRegistration.waiting;
+  if(worker?.state==='installing')await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('install timeout')),30000);const done=()=>{if(worker.state==='installed'||worker.state==='activated'){clearTimeout(timer);resolve()}else if(worker.state==='redundant'){clearTimeout(timer);reject(new Error('worker redundant'))}};worker.addEventListener('statechange',done);done()});
+  swRegistration.waiting?.postMessage({type:'SKIP_WAITING'});
+  await waitForServiceWorkerBuild(remote.build);
+  updateButton('Запуск новой версии…',true,100,'ready');
   const url=new URL(location.href);
-  url.searchParams.set('v',Date.now().toString());
+  url.searchParams.set('build',remote.build);
+  url.searchParams.set('t',Date.now().toString());
   location.replace(url.toString());
 }
 async function downloadUpdate(meta){
