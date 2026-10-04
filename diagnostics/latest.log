@@ -1,5 +1,5 @@
 EIRDAN SHELL + ACTION DIAGNOSTIC
-Generated: 2026-10-04T19:54:47.253Z
+Generated: 2026-10-04T20:19:53.743Z
 
 === SHELL CHECKS ===
 PASS DOM shell
@@ -15,33 +15,52 @@ PASS Update lock idle
 PASS Installed build metadata
 PASS Remote build reachable
 PASS Session schema
-PASS Travel: Road endpoints exist
-PASS Travel: Route sweep has connected pairs
-PASS Travel: Route sweep integrity
+PASS Travel: Road edge endpoints valid
+PASS Travel: POI road access references valid
+PASS Travel: All required POI have road access
+FAIL Travel: No isolated road nodes
+PASS Travel: Bridge nodes connected on both sides
+PASS Travel: All road-connected POI mutually reachable
 PASS Travel: Travel start
 PASS Travel: Travel advances
 PASS Travel: Pause freezes travel
-PASS Travel: Stop button state
-PASS Travel: Resume button state
-PASS Travel: Camp button state
-PASS Travel: Cancel preserves position
-PASS Travel: Restart from road position
+PASS Travel: Stop action
+PASS Travel: Resume action
+PASS Travel: Camp action
+PASS Travel: Cancel preserves exact position
+PASS Travel: Restart from exact road position
+PASS Travel: Restart enters road before destination
+PASS UI: Region screen mounted
+PASS UI: Legend exists
+FAIL UI: Legend toggles open
+PASS UI: POI Stone Guard exists
+FAIL UI: POI action card opens
+FAIL UI: Walk exists
+FAIL UI: Stop exists
+FAIL UI: Resume exists
+FAIL UI: Camp exists
+FAIL UI: Fold camp exists
+PASS UI: Change-target POI exists
+FAIL UI: Reroute exists
+FAIL UI: Cancel exists
+PASS UI: Restart-target POI exists
+FAIL UI: Restart from terrain exists
 
 === UPDATE ===
 {
   "state": "current",
   "busy": false,
   "installed": {
-    "version": "0.68.0-alpha",
-    "build": "road-topology-v2-1",
+    "version": "0.72.0-alpha",
+    "build": "android-web-shell-1",
     "channel": "development",
-    "stage": "Road Topology V2",
+    "stage": "Canonical Android Web Shell",
     "schema": 1
   },
   "remote": {
-    "build": "road-topology-v2-1",
-    "version": "0.68.0-alpha",
-    "stage": "Road Topology V2",
+    "build": "android-web-shell-1",
+    "version": "0.72.0-alpha",
+    "stage": "Canonical Android Web Shell",
     "ready": true
   },
   "error": null,
@@ -54,11 +73,9 @@ PASS Travel: Restart from road position
 }
 
 === ACTION TRACE ===
-#1 [2026-10-04T19:51:19.173Z] update -> checking {"manual":false}
-#2 [2026-10-04T19:51:19.305Z] update -> compared {"installed":{"version":"0.68.0-alpha","build":"road-topology-v2-1","channel":"development","stage":"Road Topology V2","schema":1},"remote":{"build":"road-topology-v2-1","version":"0.68.0-alpha","stage":"Road Topology V2","ready":true}}
-#3 [2026-10-04T19:51:19.305Z] update -> current {"version":"0.68.0-alpha"}
-#4 [2026-10-04T19:51:22.502Z] load-game -> click {"disabled":false,"screen":"main"}
-#5 [2026-10-04T19:53:53.368Z] game-menu -> click {"disabled":false,"screen":"game"}
-#6 [2026-10-04T19:54:42.848Z] game-menu -> click {"disabled":false,"screen":"game"}
-#7 [2026-10-04T19:54:45.600Z] debug -> click {"disabled":false,"screen":"settings"}
-#8 [2026-10-04T19:54:46.317Z] debug -> click {"disabled":false,"screen":"settings"}
+#1 [2026-10-04T20:17:51.733Z] update -> checking {"manual":false}
+#2 [2026-10-04T20:17:51.934Z] update -> compared {"installed":{"version":"0.72.0-alpha","build":"android-web-shell-1","channel":"development","stage":"Canonical Android Web Shell","schema":1},"remote":{"build":"android-web-shell-1","version":"0.72.0-alpha","stage":"Canonical Android Web Shell","ready":true}}
+#3 [2026-10-04T20:17:51.934Z] update -> current {"version":"0.72.0-alpha"}
+#4 [2026-10-04T20:17:55.790Z] load-game -> click {"disabled":false,"screen":"main"}
+#5 [2026-10-04T20:19:49.203Z] game-menu -> click {"disabled":false,"screen":"game"}
+#6 [2026-10-04T20:19:52.432Z] debug -> click {"disabled":false,"screen":"settings"}
