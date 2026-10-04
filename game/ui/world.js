@@ -90,6 +90,7 @@ export const WorldUI={
    const layer=el('div');layer.className='region-poi-layer';frame.append(layer);
    const party=el('div');party.className='party-marker';party.title='Ваш отряд';frame.append(party);root.append(frame);
    const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
+   let editing=false,items=loadPoi('forest'),roads=loadEditableRoads('forest',CENTRAL_LANDS_ROADS),roadEditor=null,editorMode='poi',drag=null,selected=current.placeId||current.districtId||current.locationId||null,travelTimer=null,lastTravelAt=0;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);
    const panel=el('div');panel.className='region-editor hidden';
    const type=el('select');for(const [v,label] of [['location-map','Локация с картой'],['location','Локация без карты'],['place','Конечное место']]){const o=el('option',label);o.value=v;type.append(o)}
    const name=el('input');name.placeholder='Название локации';
@@ -98,7 +99,7 @@ export const WorldUI={
    const exportBtn=el('button','Экспортировать JSON');const roadExport=el('button','Экспорт дорог');const roadSelection=el('p','Ничего не выбрано');roadSelection.className='quiet';const deleteRoadNode=el('button','Удалить узел');const deleteRoadEdge=el('button','Удалить участок');const clearRoadSelection=el('button','Снять выбор');deleteRoadNode.disabled=true;deleteRoadEdge.disabled=true;
    const clearBtn=el('button','Сбросить к штатным');
    panel.append(modeSelect,type,name,roadKind,hint,roadSelection,deleteRoadNode,deleteRoadEdge,clearRoadSelection,exportBtn,roadExport,exportAllButton(),clearBtn);root.append(panel);roadEditor=new RoadEditor({frame,regionId:'forest',roads,onChange:r=>{roads=r},onSelection:s=>{deleteRoadNode.disabled=!s.nodeId;deleteRoadEdge.disabled=!s.edge;roadSelection.textContent=s.nodeId?'Выбран узел: '+s.nodeId:s.edge?'Выбран участок: '+s.edge[0]+' → '+s.edge[1]:'Ничего не выбрано'}});deleteRoadNode.onclick=()=>roadEditor.removeSelectedNode();deleteRoadEdge.onclick=()=>roadEditor.removeSelectedEdge();clearRoadSelection.onclick=()=>roadEditor.clearSelection();
-   let editing=false,items=loadPoi('forest'),roads=loadEditableRoads('forest',CENTRAL_LANDS_ROADS),roadEditor=null,editorMode='poi',drag=null,selected=current.placeId||current.districtId||current.locationId||null,travelTimer=null,lastTravelAt=0;const legendHost=el('div');legendHost.className='map-legend-host';frame.append(legendHost);
+   
 
    function partyPoint(){const t=TravelSystem.ensure(state);if(t.regionId==='forest'&&t.position&&['travelling','event','stopped','camp'].includes(t.status))return t.position;if(state.world?.position?.position)return state.world.position.position;const id=state.world?.position?.pointId||current.locationId||current.placeId||'veligrad';return items.find(p=>p.id===id)||CENTRAL_LANDS.points.find(p=>p.id===id)||CENTRAL_LANDS.points.find(p=>p.id==='veligrad')}
    function paintParty(){const p=partyPoint();party.classList.toggle('hidden',!p);if(p){party.style.left=(p.x*100)+'%';party.style.top=(p.y*100)+'%'}for(const pin of layer.querySelectorAll('.region-poi')){const item=items.find(x=>x.id===pin.dataset.id);if(!item||!p)continue;const near=Math.hypot(item.x-p.x,item.y-p.y)<.045;pin.classList.toggle('party-near',near)}}
