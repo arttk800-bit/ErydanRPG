@@ -9,11 +9,15 @@ import {UpdateManager} from '../client/update-manager.js';
 import {actionDiagnostics} from '../diagnostics/action-diagnostics.js';
 import {uploadDiagnostic,checkDiagnosticDelivery} from '../diagnostics/uploader.js';
 import {formatDiagnosticLog} from '../diagnostics/format.js';
+import {runtimeTrace} from '../diagnostics/runtime-trace.js';
 
 const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
 let buildMeta=null;
 const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,swRegistration=null,updateManager=null;
 const $=s=>document.querySelector(s);
+runtimeTrace.setStateProvider(()=>session);
+window.addEventListener('error',e=>runtimeTrace.error('window',e.error||e.message,{filename:e.filename,line:e.lineno,col:e.colno}));
+window.addEventListener('unhandledrejection',e=>runtimeTrace.error('promise',e.reason));
 function loadSettings(){try{return{theme:'dark',volume:70,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}}catch{return{theme:'dark',volume:70}}}
 function saveSettings(s){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}catch{}}
 const settings=loadSettings();
@@ -107,9 +111,9 @@ async function debug(){
 }
 function handleBack(){if(modalOpen){closeModal();return true}if(nav.current()==='main')return false;nav.back();return true}
 const lifecycle=new Lifecycle({onBack:handleBack,onSuspend:persist});
-document.addEventListener('click',e=>{const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')modal('Меню игры','<p>Текущая игровая сессия активна.</p>',[['Продолжить',closeModal],['Сохранить',async()=>{await persist();closeModal();toast('Игра сохранена')}],['Настройки',()=>{closeModal();nav.show('settings')}],['В главное меню',async()=>{await persist();closeModal();nav.reset('main')}]]);});
-$('#theme').addEventListener('change',e=>{settings.theme=e.target.value;saveSettings(settings);applySettings()});
-$('#volume').addEventListener('input',e=>{settings.volume=Number(e.target.value);saveSettings(settings)});
+document.addEventListener('click',e=>{const raw=e.target.closest('button,a,input,select,summary,[data-action]');if(raw)runtimeTrace.ui('click',raw.tagName.toLowerCase(),{text:(raw.textContent||'').trim().slice(0,120),action:raw.dataset?.action||null,id:raw.id||null,className:raw.className||null,disabled:!!raw.disabled});const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')modal('Меню игры','<p>Текущая игровая сессия активна.</p>',[['Продолжить',closeModal],['Сохранить',async()=>{await persist();closeModal();toast('Игра сохранена')}],['Настройки',()=>{closeModal();nav.show('settings')}],['В главное меню',async()=>{await persist();closeModal();nav.reset('main')}]]);});
+$('#theme').addEventListener('change',e=>{runtimeTrace.ui('change','select',{id:'theme',value:e.target.value});settings.theme=e.target.value;saveSettings(settings);applySettings()});
+$('#volume').addEventListener('input',e=>{runtimeTrace.ui('input','range',{id:'volume',value:e.target.value});settings.volume=Number(e.target.value);saveSettings(settings)});
 $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{toast('Полный экран недоступен на этом устройстве')}});
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installPwa').classList.remove('hidden')});
 $('#installPwa').addEventListener('click',async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('#installPwa').classList.add('hidden')});
