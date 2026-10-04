@@ -137,7 +137,7 @@ function beginBattle(duel=false){
  for(let i=0;i<cfg.enemies;i++)units.push(make('e'+i,'Враг '+(i+1),'enemy',...ep[i],pick(TEST_POOL)));
  syncPlayerInventoryToCombat(units[0]);units[0].loadout=structuredClone(playerInventory.equip);order=[...units];idx=0;round=1;over=false;auto=false;combatLog=[];fullLog=[];genTerrain();fullLog.push('=== START ===','Режим: '+(duel?'1v1':'3v3')+' · местность '+cfg.terrain,...units.map(u=>u.name+' ['+u.q+','+u.r+'] · '+unitDerivedText(u)+(u.loadout?'\n'+loadoutText(u.loadout):'')));render();$('setup').classList.add('hidden');$('battle').classList.remove('hidden');$('hud').classList.remove('hidden');ensureBattleControls()
 }
-$('prepFight')?.addEventListener('click',=()=>{if(!pendingDuel)return;pendingDuel=false;$('prepFight')?.classList.add('hidden');closeInventory();beginBattle(true)};
+$('prepFight')?.addEventListener('click',()=>{if(!pendingDuel)return;pendingDuel=false;$('prepFight')?.classList.add('hidden');closeInventory();beginBattle(true)});
 
 function canvasLayout(){
  let cv=$('battleCanvas'),box=$('grid').getBoundingClientRect(),dpr=Math.max(1,window.devicePixelRatio||1);
