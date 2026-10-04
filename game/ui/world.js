@@ -8,14 +8,14 @@ const CLASSES={location:'Локация',district:'Район',place:'Место
 const TYPES={location:'Локация',district:'Район',place:'Место',transition:'Переход'};
 function loadPoi(regionId){
  try{
-  const all=JSON.parse(localStorage.getItem(POI_KEY)||'{}'),local=all[regionId];
+  const all=JSON.parse(localStorage.getItem(POI_KEY)||'{}');let local=all[regionId];
   if(Array.isArray(local)){
    if(regionId==='forest'){
     let changed=false;
     const migrated=local.map(p=>{
-     const canonical=CENTRAL_LANDS.points.find(c=>c.type===p.type&&Math.abs(c.x-p.x)<0.0001&&Math.abs(c.y-p.y)<0.0001);
+     const canonical=CENTRAL_LANDS.points.find(c=>(c.id===p.id)||(Math.abs(c.x-p.x)<0.0001&&Math.abs(c.y-p.y)<0.0001));
      if(canonical&&(/^(Город|Деревня|Крепость|Руины|Особая)$/.test(p.name)||String(p.id).startsWith('forest-'))){changed=true;return {...p,id:canonical.id,name:canonical.name,class:canonical.class,type:canonical.type}}
-     if(canonical&&!p.class){changed=true;return {...p,class:canonical.class,type:canonical.type}}
+     if(canonical&&(!p.class||p.class!==canonical.class||p.type!==canonical.type||p.map!==canonical.map)){changed=true;return {...p,id:canonical.id,name:canonical.name,class:canonical.class,type:canonical.type,...(canonical.map?{map:canonical.map}:{})}}
      return p;
     });
     if(changed){all[regionId]=migrated;localStorage.setItem(POI_KEY,JSON.stringify(all))}
@@ -32,7 +32,7 @@ function slug(s){return String(s||'poi').toLowerCase().trim().replace(/[^a-zа-�
 export const WorldUI={
  ready:true,
  mount(root,state,onChange){
-  let pixels=null,mw=0,mh=0,indexToId={};
+  let pixels=null,mw=0,mh=0,indexToId={},regionCenters={};
   for(const [id,r] of Object.entries(WORLD_DATA.regions))indexToId[r.index]=id;
   const current=WorldSystem.ensure(state);
   if(current.regionId&&!WORLD_DATA.regions[current.regionId])current.regionId=null;
@@ -47,8 +47,8 @@ export const WorldUI={
    const frame=el('div');frame.className='world-map-frame';
    const img=el('img');img.className='world-map-image';img.src=WORLD_DATA.map.asset;img.alt='Карта мира Эйрдан';frame.append(img);
    const shade=el('canvas');shade.className='world-region-shade';frame.append(shade);const regionLabel=el('div');regionLabel.className='world-selected-region';frame.append(regionLabel);root.append(frame);
-   function draw(){regionLabel.textContent=current.regionId?WORLD_DATA.regions[current.regionId]?.name||'':'';if(!pixels)return;shade.width=mw;shade.height=mh;const ctx=shade.getContext('2d'),out=ctx.createImageData(mw,mh);const selected=current.regionId?WORLD_DATA.regions[current.regionId]?.index:0;for(let p=0,i=0;p<pixels.length;p++,i+=4){const idx=pixels[p];if(idx>0&&idx!==selected){out.data[i+3]=92}}ctx.putImageData(out,0,0)}
-   const mask=new Image();mask.onload=()=>{mw=mask.naturalWidth;mh=mask.naturalHeight;const c=document.createElement('canvas');c.width=mw;c.height=mh;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(mask,0,0);const d=x.getImageData(0,0,mw,mh).data;pixels=new Uint8Array(mw*mh);for(let p=0,i=0;p<pixels.length;p++,i+=4)pixels[p]=d[i];draw()};mask.src=WORLD_DATA.map.mask;
+   function draw(){regionLabel.textContent=current.regionId?WORLD_DATA.regions[current.regionId]?.name||'':'';const center=current.regionId?regionCenters[WORLD_DATA.regions[current.regionId]?.index]:null;if(center){regionLabel.style.left=(center.x/mw*100)+'%';regionLabel.style.top=(center.y/mh*100)+'%'}if(!pixels)return;shade.width=mw;shade.height=mh;const ctx=shade.getContext('2d'),out=ctx.createImageData(mw,mh);const selected=current.regionId?WORLD_DATA.regions[current.regionId]?.index:0;for(let p=0,i=0;p<pixels.length;p++,i+=4){const idx=pixels[p];if(idx>0&&idx!==selected){out.data[i+3]=92}}ctx.putImageData(out,0,0)}
+   const mask=new Image();mask.onload=()=>{mw=mask.naturalWidth;mh=mask.naturalHeight;const c=document.createElement('canvas');c.width=mw;c.height=mh;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(mask,0,0);const d=x.getImageData(0,0,mw,mh).data;pixels=new Uint8Array(mw*mh);const sums={};for(let p=0,i=0;p<pixels.length;p++,i+=4){const idx=d[i];pixels[p]=idx;if(idx>0){const q=sums[idx]||(sums[idx]={x:0,y:0,n:0});q.x+=p%mw;q.y+=Math.floor(p/mw);q.n++}}regionCenters={};for(const [idx,q] of Object.entries(sums))regionCenters[idx]={x:q.x/q.n,y:q.y/q.n};draw()};mask.src=WORLD_DATA.map.mask;
    frame.onclick=e=>{if(!pixels)return;const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(mw-1,Math.floor((e.clientX-r.left)/r.width*mw))),y=Math.max(0,Math.min(mh-1,Math.floor((e.clientY-r.top)/r.height*mh))),id=indexToId[pixels[y*mw+x]];if(!id)return;WorldSystem.enterRegion(state,id);status.textContent=statusText();draw();onChange?.(state);if(id==='forest'){mode='region';renderRegion()}};
    cleanup=()=>{frame.onclick=null};
   }
