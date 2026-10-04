@@ -30,11 +30,11 @@ jobs:
           mkdir -p diagnostics
           if [ -n "${DISPATCH_RUN_ID:-}" ]; then
             ENC="$(printf '%s' "$DISPATCH_RUN_ID" | jq -sRr @uri)"
-            URL="https://eirdan-diagnostics.arttk800.workers.dev/run?id=$ENC"
+            URL="https://eirdan-diagnostics.arttk800.workers.dev/run?id=$ENC&mirror=${GITHUB_RUN_ID}-$(date +%s)"
           else
-            URL="https://eirdan-diagnostics.arttk800.workers.dev/latest"
+            URL="https://eirdan-diagnostics.arttk800.workers.dev/latest?mirror=${GITHUB_RUN_ID}-$(date +%s)"
           fi
-          curl --fail --silent --show-error --retry 3 "$URL?mirror=${GITHUB_RUN_ID}-$(date +%s)" -H "Cache-Control: no-cache" -o diagnostics/latest.json
+          curl --fail --silent --show-error --retry 3 "$URL" -H "Cache-Control: no-cache" -o diagnostics/latest.json
           jq -e '(.run_id|type=="string" and length>0) and (.log|type=="string" and length>10)' diagnostics/latest.json >/dev/null
           jq -r '.log' diagnostics/latest.json > diagnostics/latest.log
           jq '{run_id,build,generated_at,received_at,source,summary,log_characters:(.log|length)}' diagnostics/latest.json > diagnostics/latest-summary.json
