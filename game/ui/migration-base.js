@@ -1,6 +1,6 @@
 import {W,CL,ARMORS,PD,CLASS_POOL,GRID,DEFAULT_BATTLE_CFG,mkbody} from '../alpha14p/data/constants.js';import {GameRNG,pick} from '../alpha14p/core/rng.js';
 import {dirs,hd,distance as combatDistance,neighbors,isBlockedTerrain,movementCost,hitChance,armorSlotForPart,armorCoverageForPart,COMBAT_MODULE_VERSION} from '../systems/combat/combat.js';
-const TEST_POOL=['guardian'];
+const TEST_POOL=[...CLASS_POOL];
 
 const INV_ITEMS={
  sword_iron:{n:'Железный меч',type:'weapon',slot:'main',w:1.35,ico:'⚔',desc:'Одноручный меч',size:[1,3],combat:{weapon:'sword'}},
@@ -128,7 +128,7 @@ $('random').onclick=()=>['a0','a1','a2'].forEach(id=>$(id).value=pick(TEST_POOL)
 function updateModeUI(){let duel=$('battleMode').value==='1v1';$('enemyCountLabel').classList.toggle('hidden',duel);$('ally1Label').classList.toggle('hidden',duel);$('ally2Label').classList.toggle('hidden',duel);$('random').classList.toggle('hidden',duel);$('start').textContent=duel?'Подготовить бой 1 vs 1':'Начать бой';$('modeHint').textContent=duel?'ГГ против одного Стража. Сначала настрой экипировку, затем нажми «Вступить в бой».':'Тестовый режим 3 vs 3. Временно доступен только Страж.'}
 $('battleMode').onchange=updateModeUI;updateModeUI();
 $('start').onclick=()=>{
- if($('battleMode').value==='1v1'){pendingDuel=true;$('prepFight')?.classList.remove('hidden');openInventory();return}
+ if($('battleMode').value==='1v1'){pendingDuel=true;beginBattle(true);return}
  pendingDuel=false;$('prepFight')?.classList.add('hidden');beginBattle(false)
 };
 function beginBattle(duel=false){
