@@ -26,9 +26,10 @@ function updateButton(label='Проверить обновления',disabled=f
 function resetUpdateButton(delay=1800){clearTimeout(resetUpdateButton.t);resetUpdateButton.t=setTimeout(()=>{if(!updateManager?.busy)updateButton()},delay)}
 async function fetchRemoteBuild(){const r=await fetch(BUILD_URL+'?update='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('build '+r.status);return r.json()}
 function updateVisual(state,data={}){
- const map={checking:['Проверка версии…',30],downloading:['Скачивание…',55],installing:['Установка…',90],applied:['Запуск новой версии…',100],current:['Обновлений нет',100],error:['Ошибка обновления',100]};
+ const map={checking:['Проверка версии…',30],downloading:['Загрузка обновления…',55],installing:['Проверка установки…',90],applied:['Запуск новой версии…',100],current:['Обновлений нет',100]};
+ if(state==='error'){const step={manifest:'версия',metadata:'метаданные','service-worker':'загрузка',activation:'активация'}[data.step]||data.step||'обновление';updateButton('Ошибка: '+step,false,100,'error');console.error('Eirdan update error',data);resetUpdateButton(6000);return}
  if(map[state])updateButton(map[state][0],['checking','downloading','installing','applied'].includes(state),map[state][1],state);
- if(state==='current'||state==='error')resetUpdateButton(2200);
+ if(state==='current')resetUpdateButton(2200);
 }
 async function registerPwa(){
  if(!('serviceWorker' in navigator))return;
