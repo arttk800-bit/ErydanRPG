@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.51.0-alpha",
+      "build": "diagnostics-1",
+      "stage": "Action Diagnostics Foundation",
+      "date": "2026-10-04",
+      "changes": [
+        "Добавлен единый lock update-manager: параллельные проверки, загрузки и установки обновления больше не запускаются.",
+        "Update-manager вынесен из bootstrap.js в самостоятельный модуль.",
+        "Добавлен журнал действий, фиксирующий click и последующие фазы action.",
+        "Shell Diagnostics расширена состояниями installed/remote build, Service Worker и update-manager.",
+        "Диагностика теперь показывает последние action-события и позволяет проверять результат действия, а не только наличие кнопки."
+      ]
+    },
+    {
       "version": "0.50.1-alpha",
       "build": "world-shell-2",
       "stage": "World Creation UX",
