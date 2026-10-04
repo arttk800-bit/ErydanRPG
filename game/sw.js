@@ -1,4 +1,4 @@
-const BUILD_ID='region-poi-migration-1';
+const BUILD_ID='hierarchical-map-points-1';
 const CACHE='eirdan-shell-v6-'+BUILD_ID;
 const CORE=['./','./app/index.html','./app/shell.css','./app/bootstrap.js','./app/navigation.js','./app/lifecycle.js','./app/game-screen.js','./client/release.js','./client/update-manager.js','./diagnostics/action-diagnostics.js','./diagnostics/uploader.js','./diagnostics/format.js','./ui/world.js','./systems/world.js','./data/world.js','./data/regions/central-lands.js','./core/session.js','./core/persistence.js','./diagnostics/shell-diagnostics.js','./manifest.webmanifest'];
 const OPTIONAL=['./assets/eirdan-world-map-regions-final.png','./assets/eirdan-world-region-index-final.png','./assets/region-central-lands.png'];
