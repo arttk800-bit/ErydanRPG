@@ -4,7 +4,8 @@ import {createSession} from '../core/session.js';
 import {saveGame,listSaves,loadGame,deleteSave,persistenceSupported} from '../core/persistence.js';
 import {runShellDiagnostics} from '../diagnostics/shell-diagnostics.js';
 
-const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
+const BUILD_URL='../ui/build.json',VERSION_URL='../data/version.json',SETTINGS_KEY='eirdan.shell.settings.v1';
+let buildMeta=null;
 const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false;
 const $=s=>document.querySelector(s);
 function loadSettings(){try{return{theme:'dark',volume:70,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}}catch{return{theme:'dark',volume:70}}}
@@ -14,7 +15,7 @@ function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').valu
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.add('hidden'),2200)}
 function closeModal(){modalOpen=false;$('#modal').classList.add('hidden')}
 function modal(title,body,actions=[['Закрыть',closeModal]]){modalOpen=true;$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden')}
-async function loadBuild(){try{const r=await fetch(BUILD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('build '+r.status);const m=await r.json();$('#versionBadge').textContent='Версия '+m.version+' · '+m.build;return m}catch(e){console.warn('Build metadata unavailable',e);$('#versionBadge').textContent='Eirdan';return null}}
+async function loadBuild(){try{const r=await fetch(BUILD_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('build '+r.status);buildMeta=await r.json()}catch(e){console.warn('Build metadata unavailable',e);try{const r=await fetch(VERSION_URL+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('version '+r.status);buildMeta=await r.json()}catch(fallbackError){console.warn('Version metadata unavailable',fallbackError);buildMeta=null}}$('#versionBadge').textContent=buildMeta?.version?'Версия '+buildMeta.version:'Версия недоступна';return buildMeta}
 async function registerPwa(){if(!('serviceWorker' in navigator))return;try{const reg=await navigator.serviceWorker.register('../sw.js',{scope:'../'});reg.addEventListener('updatefound',()=>{const w=reg.installing;w?.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)modal('Доступно обновление','<p>Новая версия Eirdan готова.</p>',[['Обновить сейчас',()=>location.reload()],['Позже',closeModal]])})})}catch(e){console.warn('PWA registration failed',e)}}
 async function persist(){if(session&&persistenceSupported())try{await saveGame(session)}catch(e){console.warn('Save failed',e)}}
 function newGame(){modal('Новый мир','<label>Название мира<input id="worldNameInput" maxlength="48" autocomplete="off" placeholder="Например: Эйрдан"></label>',[['Создать',async()=>{const input=$('#worldNameInput');const name=input?.value.trim();if(!name){input?.focus();return}session=createSession({worldName:name});await persist();closeModal();$('#sessionInfo').textContent=session.meta.worldName;nav.reset('game');toast('Мир «'+session.meta.worldName+'» создан')}],['Отмена',closeModal]]);setTimeout(()=>$('#worldNameInput')?.focus(),0)}
@@ -32,5 +33,5 @@ $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenE
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installPwa').classList.remove('hidden')});
 $('#installPwa').addEventListener('click',async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('#installPwa').classList.add('hidden')});
 window.addEventListener('appinstalled',()=>toast('Eirdan установлен'));
-$('#versionBadge').addEventListener('click',()=>modal('Версия Eirdan','<p>Application Shell 1.0: lifecycle, PWA, persistence, управление сохранениями и диагностика.</p>'));
+$('#versionBadge').addEventListener('click',()=>{const version=buildMeta?.version||'недоступна';const build=buildMeta?.build?' · '+buildMeta.build:'';const stage=buildMeta?.stage?'<p>'+buildMeta.stage+'</p>':'';modal('Версия Eirdan','<p><b>'+version+build+'</b></p>'+stage+'<p>Application Shell 1.0: lifecycle, PWA, persistence, управление сохранениями и диагностика.</p>')});
 applySettings();nav.reset('main');lifecycle.start();loadBuild();registerPwa();
