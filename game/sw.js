@@ -1,4 +1,4 @@
-const BUILD_ID='diagnostics-3';
+const BUILD_ID='diagnostics-4';
 const CACHE='eirdan-shell-v6-'+BUILD_ID;
 const CORE=['./','./app/index.html','./app/shell.css','./app/bootstrap.js','./app/navigation.js','./app/lifecycle.js','./app/game-screen.js','./client/release.js','./client/update-manager.js','./diagnostics/action-diagnostics.js','./diagnostics/uploader.js','./diagnostics/format.js','./ui/world.js','./systems/world.js','./data/world.js','./core/session.js','./core/persistence.js','./diagnostics/shell-diagnostics.js','./manifest.webmanifest'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const path of CORE){const req=new Request(path+'?build='+encodeURIComponent(BUILD_ID),{cache:'reload'});const res=await fetch(req);if(!res.ok)throw new Error('precache '+path+' '+res.status);await cache.put(path,res)}await self.skipWaiting()})()));
