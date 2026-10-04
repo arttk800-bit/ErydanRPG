@@ -40,3 +40,15 @@ Static content and balance belong in data modules/files, not UI code.
 Requirement -> inspect current architecture -> identify owning systems -> implement -> architecture review -> full JS syntax gate -> regression tests -> relevant smoke/diagnostic tests -> fix failures -> synchronize version/build/changelog/Service Worker -> release.
 
 Do not perform unrelated global refactors, but when touched legacy code clearly belongs to the system being changed, migrate it toward the current boundary as part of that work.
+
+## Module boundary (current campaign)
+The active product is the campaign PWA. Runtime capabilities are registered explicitly through `game/core/modules/registry.js` and `game/modules/index.js`.
+
+- `campaign` is enabled by default and owns world/map/travel/character/inventory/knowledge-facing integration.
+- `combat` is preserved as a future gameplay module but is disabled in a fresh campaign until explicitly integrated through its public module boundary.
+- `combat-lab` is a development tool depending on combat; it is not part of the campaign release gate.
+- `game/simulation/`, mirror/parity tooling and historical combat entry points are retained for combat development and reference, not loaded by the campaign shell.
+- `game/runtime/` and `game/alpha14p/` remain compatibility/reference code and must not acquire new gameplay responsibilities.
+- Android is retained as historical client infrastructure and is manual-build only; PWA is the active target.
+
+Validation is domain-scoped: campaign changes run campaign syntax/regression gates; combat changes run combat gates. Mirror 3000 is combat diagnostics, never a map/travel release criterion.
