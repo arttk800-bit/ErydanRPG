@@ -1,29 +1,22 @@
-const BUILD="diagnostic-24";
+const BUILD="diagnostic-25";
 const bar=()=>document.getElementById("bootBar"),status=()=>document.getElementById("bootStatus"),boot=()=>document.getElementById("bootScreen");
 function progress(n,msg){if(bar())bar().style.width=n+"%";if(status())status().textContent=msg}
-async function clearOldCaches(){if(!("caches" in window))return;for(const key of await caches.keys())await caches.delete(key)}
+function enterGame(msg){progress(100,msg||("Eirdan · "+BUILD));setTimeout(()=>boot()?.classList.add("hidden"),220)}
+const watchdog=setTimeout(()=>enterGame("Запуск · "+BUILD),3500);
 async function startEirdan(){
- progress(12,"Проверка версии…");
+ progress(15,"Проверка версии…");
  try{
   const seen=localStorage.getItem("eirdan-build");
   if(seen!==BUILD){
-   progress(28,"Найдена новая версия · "+BUILD);
-   await clearOldCaches();
-   if("serviceWorker" in navigator){
-    const regs=await navigator.serviceWorker.getRegistrations();
-    for(const reg of regs)await reg.unregister();
-   }
+   progress(45,"Обновление · "+BUILD);
    localStorage.setItem("eirdan-build",BUILD);
-   const url=new URL(location.href);
-   if(url.searchParams.get("build")!==BUILD){progress(52,"Обновление файлов…");url.searchParams.set("build",BUILD);location.replace(url.toString());return}
   }
-  progress(72,"Загрузка ресурсов…");
+  progress(75,"Загрузка игры…");
+  clearTimeout(watchdog);
+  enterGame("Eirdan · "+BUILD);
   if("serviceWorker" in navigator){
-   const reg=await navigator.serviceWorker.register("../sw.js?v="+BUILD,{updateViaCache:"none"});
-   await reg.update();
+   navigator.serviceWorker.register("../sw.js?v="+BUILD,{updateViaCache:"none"}).then(r=>r.update()).catch(e=>console.warn("SW update skipped",e));
   }
-  progress(100,"Eirdan · "+BUILD);
-  setTimeout(()=>boot()?.classList.add("hidden"),300);
- }catch(e){console.error("Eirdan update check failed",e);progress(100,"Запуск · "+BUILD);setTimeout(()=>boot()?.classList.add("hidden"),500)}
+ }catch(e){console.error("Eirdan startup check failed",e);clearTimeout(watchdog);enterGame("Запуск · "+BUILD)}
 }
-window.addEventListener("load",startEirdan);
+if(document.readyState==="complete")startEirdan();else window.addEventListener("load",startEirdan,{once:true});
