@@ -15,7 +15,7 @@ export const CENTRAL_LANDS={
   {id:'south-shield',name:'Южный Щит',class:'location',type:'fort',x:0.62968,y:0.828},
   {id:'stone-guard',name:'Каменная Стража',class:'location',type:'fort',x:0.46049,y:0.70312},
   {id:'ozernoe',name:'Озёрное',class:'location',type:'village',x:0.26099,y:0.75232},
-  {id:'old-oak',name:'Старый Дуб',class:'place',type:'landmark',x:0.37715,y:0.6596},
+  {id:'old-river-tower',name:'Старая речная башня',class:'place',type:'tower',x:0.37715,y:0.6596},
   {id:'grey-ruins',name:'Серые Руины',class:'place',type:'ruins',x:0.87589,y:0.46661},
   {id:'sosnovy-bor',name:'Сосновый Бор',class:'location',type:'village',x:0.22564,y:0.23577},
   {id:'kamenka',name:'Каменка',class:'location',type:'village',x:0.33549,y:0.31145},
@@ -24,6 +24,10 @@ export const CENTRAL_LANDS={
   {id:'malinovka',name:'Малиновка',class:'location',type:'village',x:0.37968,y:0.51202},
   {id:'podgorye',name:'Подгорье',class:'location',type:'village',x:0.46806,y:0.62176},
   {id:'vetrovo',name:'Ветрово',class:'location',type:'village',x:0.7269,y:0.3001},
-  {id:'zarechye',name:'Заречье',class:'location',type:'village',x:0.64104,y:0.26036}
+  {id:'zarechye',name:'Заречье',class:'location',type:'village',x:0.64104,y:0.26036},
+  {id:'western-ruins',name:'Западные руины',class:'place',type:'ruins',x:0.15746,y:0.65203},
+  {id:'high-pass',name:'Высокий перевал',class:'location',type:'mountain_pass',x:0.4668,y:0.12035},
+  {id:'eastern-marshes',name:'Восточные топи',class:'location',type:'marsh',x:0.7269,y:0.72015},
+  {id:'lake-island',name:'Озёрный остров',class:'place',type:'landmark',x:0.5703,y:0.29297}
  ]
 };
