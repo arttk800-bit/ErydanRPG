@@ -1,0 +1,39 @@
+// Invisible navigation graph for Central Lands.
+// Coordinates are normalized to the regional map. Roads are gameplay data, not rendered map art.
+export const CENTRAL_LANDS_ROADS={
+ regionId:'forest',
+ edges:[
+  ['sosnovy-bor','north-gate',[[.27,.25],[.32,.24]]],
+  ['sosnovy-bor','west-watch',[[.20,.29],[.18,.34]]],
+  ['north-gate','kamenka',[[.36,.26],[.34,.29]]],
+  ['north-gate','high-pass',[[.40,.19],[.45,.14]]],
+  ['north-gate','medovye-luga',[[.42,.26],[.47,.30]]],
+  ['kamenka','starolesye',[[.34,.35],[.35,.39]]],
+  ['kamenka','medovye-luga',[[.39,.31],[.45,.32]]],
+  ['west-watch','starolesye',[[.23,.40],[.30,.42]]],
+  ['starolesye','lesnoy-brod',[[.34,.45]]],
+  ['starolesye','malinovka',[[.37,.47]]],
+  ['lesnoy-brod','malinovka',[[.34,.49]]],
+  ['lesnoy-brod','western-ruins',[[.26,.52],[.20,.59]]],
+  ['malinovka','veligrad',[[.42,.50],[.47,.48]]],
+  ['medovye-luga','veligrad',[[.50,.37],[.51,.42]]],
+  ['medovye-luga','zarechye',[[.55,.30],[.60,.27]]],
+  ['zarechye','white-rock',[[.63,.22],[.62,.19]]],
+  ['zarechye','vetrovo',[[.67,.27],[.70,.28]]],
+  ['vetrovo','east-watch',[[.77,.28],[.81,.27]]],
+  ['vetrovo','rechnoe',[[.72,.35],[.72,.40]]],
+  ['rechnoe','grey-ruins',[[.78,.45],[.83,.46]]],
+  ['rechnoe','berezovka',[[.71,.50],[.70,.55]]],
+  ['rechnoe','veligrad',[[.66,.45],[.59,.45]]],
+  ['veligrad','podgorye',[[.50,.53],[.48,.58]]],
+  ['podgorye','stone-guard',[[.47,.65],[.46,.68]]],
+  ['podgorye','berezovka',[[.55,.61],[.63,.60]]],
+  ['berezovka','dubrava',[[.74,.59],[.77,.58]]],
+  ['dubrava','yuzhny-brod',[[.81,.60],[.82,.62]]],
+  ['berezovka','eastern-marshes',[[.71,.64],[.72,.68]]],
+  ['stone-guard','old-river-tower',[[.43,.69],[.40,.67]]],
+  ['old-river-tower','ozernoe',[[.34,.70],[.29,.73]]],
+  ['stone-guard','south-shield',[[.51,.74],[.58,.79]]],
+  ['south-shield','eastern-marshes',[[.67,.79],[.70,.75]]]
+ ]
+};
