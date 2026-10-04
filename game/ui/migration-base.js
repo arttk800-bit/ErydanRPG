@@ -510,6 +510,8 @@ $('quitCancel').onclick=()=>{$('quitOverlay').classList.add('hidden')};
 $('quitOverlay').onclick=e=>{if(e.target===$('quitOverlay'))$('quitOverlay').classList.add('hidden')};
 $('quitConfirm').onclick=()=>{try{window.close()}catch(_){}setTimeout(()=>{document.body.innerHTML='<main class="mainMenu"><section class="mainMenuCard"><h1 class="mainTitle">EIRDAN</h1><div class="mainSub">Игра завершена</div><div class="mainActions"><button onclick="location.reload()">Запустить снова</button></div></section></main>'},120)};
 $('uiMode').onchange=e=>document.body.dataset.ui=e.target.value;
+const savedTheme=localStorage.getItem('eirdan-theme')||'dark';document.body.dataset.theme=savedTheme;if($('themeMode'))$('themeMode').value=savedTheme;
+$('themeMode').onchange=e=>{document.body.dataset.theme=e.target.value;localStorage.setItem('eirdan-theme',e.target.value)};
 $('masterVolume').oninput=e=>{window.EIRDAN_MASTER_VOLUME=(+e.target.value||0)/100};
 $('rpgCharacter').onclick=()=>{playerInventory.view='char';playerInventory.selected=null;playerInventory.selectedSlot=null;openInventory()};
 renderRpg();
