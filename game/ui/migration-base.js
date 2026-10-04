@@ -527,8 +527,9 @@ function logicalBack(){
  if(!$('rpgShell')?.classList.contains('hidden')){if(rpgScreen==='town'||rpgScreen==='location'){rpgScreen='region';renderRpg();return}if(rpgScreen==='region'){rpgScreen='worldMap';renderRpg();return}$('gameMenu').classList.remove('hidden');return}
  // Main menu is the root: keep the app open instead of letting Android close it.
 }
-function armHistoryBack(){try{history.replaceState({eirdan:true},'',location.href);history.pushState({eirdanGuard:true},'',location.href)}catch(_){}}
-window.addEventListener('popstate',()=>{logicalBack();try{history.pushState({eirdanGuard:true},'',location.href)}catch(_){}});
+function armHistoryBack(){try{history.replaceState({eirdanRoot:true},'',location.href);history.pushState({eirdanGuard:1},'',location.href);history.pushState({eirdanGuard:2},'',location.href)}catch(_){}}
+let handlingSystemBack=false;
+window.addEventListener('popstate',()=>{if(handlingSystemBack)return;handlingSystemBack=true;logicalBack();try{history.pushState({eirdanGuard:Date.now()},'',location.href)}catch(_){}setTimeout(()=>handlingSystemBack=false,0)});
 armHistoryBack();
 
 $('tabBag').onclick=()=>{playerInventory.view='bag';playerInventory.selectedSlot=null;renderInventory()};
