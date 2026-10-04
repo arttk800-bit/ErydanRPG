@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.74.2-alpha",
+      "build": "road-editor-render-fix-1",
+      "stage": "Road Editor Render Hotfix",
+      "date": "2026-10-04",
+      "changes": [
+        "Исправлено падение renderRegion: RoadEditor создавался до инициализации roads.",
+        "Метки Центральных земель не были удалены; после исправления регион снова отрисовывает сохранённые и штатные POI.",
+        "Кнопка Редактор снова получает обработчик и открывает инструменты карты.",
+        "Диагностический архив 0.74.1 подтвердил корректную активацию runtime road-editor-touch-1 и локальный ZIP-экспорт."
+      ]
+    },
+    {
       "version": "0.74.1-alpha",
       "build": "road-editor-touch-1",
       "stage": "Road Editor Touch Controls",
