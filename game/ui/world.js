@@ -5,7 +5,25 @@ import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
 function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n}
 const POI_KEY='eirdan.region-poi.v1';
 const TYPES={city:'Город',village:'Деревня',fort:'Крепость',ruin:'Руины',cave:'Пещера',camp:'Лагерь',special:'Особая',exit:'Переход'};
-function loadPoi(regionId){try{const all=JSON.parse(localStorage.getItem(POI_KEY)||'{}');if(Array.isArray(all[regionId]))return all[regionId]}catch{}return regionId==='forest'?CENTRAL_LANDS.points.map(p=>({...p})):[]}
+function loadPoi(regionId){
+ try{
+  const all=JSON.parse(localStorage.getItem(POI_KEY)||'{}'),local=all[regionId];
+  if(Array.isArray(local)){
+   if(regionId==='forest'){
+    let changed=false;
+    const migrated=local.map(p=>{
+     const canonical=CENTRAL_LANDS.points.find(c=>c.type===p.type&&Math.abs(c.x-p.x)<0.0001&&Math.abs(c.y-p.y)<0.0001);
+     if(canonical&&(/^(Город|Деревня|Крепость|Руины|Особая)$/.test(p.name)||String(p.id).startsWith('forest-'))){changed=true;return {...p,id:canonical.id,name:canonical.name}}
+     return p;
+    });
+    if(changed){all[regionId]=migrated;localStorage.setItem(POI_KEY,JSON.stringify(all))}
+    return migrated;
+   }
+   return local;
+  }
+ }catch{}
+ return regionId==='forest'?CENTRAL_LANDS.points.map(p=>({...p})):[];
+}
 function savePoi(regionId,items){let all={};try{all=JSON.parse(localStorage.getItem(POI_KEY)||'{}')}catch{}all[regionId]=items;localStorage.setItem(POI_KEY,JSON.stringify(all))}
 function slug(s){return String(s||'poi').toLowerCase().trim().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48)||'poi'}
 
