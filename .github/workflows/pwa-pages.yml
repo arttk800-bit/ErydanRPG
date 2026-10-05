@@ -1,9 +1,39 @@
+# ACTIVE PWA DEPLOY
+# Deploys changes that can affect the enabled campaign client. Disabled combat
+# development does not redeploy the production PWA until explicitly enabled.
 name: Deploy Eirdan PWA
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['game/**','.github/workflows/pwa-pages.yml']
+    paths:
+      - 'game/app/**'
+      - 'game/client/**'
+      - 'game/assets/**'
+      - 'game/core/modules/**'
+      - 'game/core/state.js'
+      - 'game/core/ids.js'
+      - 'game/core/rng.js'
+      - 'game/core/session.js'
+      - 'game/core/persistence.js'
+      - 'game/data/**'
+      - 'game/diagnostics/**'
+      - 'game/map/**'
+      - 'game/modules/index.js'
+      - 'game/modules/runtime.js'
+      - 'game/modules/campaign.js'
+      - 'game/systems/world/**'
+      - 'game/systems/travel/**'
+      - 'game/systems/pause.js'
+      - 'game/systems/game-speed.js'
+      - 'game/tools/map-editor/**'
+      - 'game/ui/world.js'
+      - 'game/ui/map-*.js'
+      - 'game/ui/game.css'
+      - 'game/index.html'
+      - 'game/manifest.webmanifest'
+      - 'game/sw.js'
+      - '.github/workflows/pwa-pages.yml'
 permissions:
   contents: read
   pages: write
