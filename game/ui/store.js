@@ -1,1 +1,0 @@
-export class BattleStore{constructor(state){this.state=state;this.listeners=new Set();}subscribe(fn){this.listeners.add(fn);return()=>this.listeners.delete(fn);}notify(){for(const fn of this.listeners)fn(this.state);}dispatch(fn){const out=fn(this.state);this.notify();return out;}}
