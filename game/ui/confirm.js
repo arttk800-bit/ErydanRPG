@@ -1,1 +1,0 @@
-export function confirmEndTurn(settings,showConfirm,finish){if(!settings.confirmEndTurn){finish();return;}showConfirm({title:'Завершить ход?',text:'Неиспользованные AP будут потеряны.',confirm:'Завершить',cancel:'Отмена',onConfirm:finish});}
