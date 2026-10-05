@@ -2,6 +2,7 @@ export const VELIGRAD={
  id:'veligrad',
  map:'../assets/locations/city-01-central-lands.png',
  description:'Крупный укреплённый город Центральных земель.',
+ spawnPointId:'veligrad-district-center',
  points:[
   {id:'veligrad-district-north',name:'Район',class:'district',type:'district',x:0.47943,y:0.179},
   {id:'veligrad-district-northwest',name:'Район',class:'district',type:'district',x:0.28877,y:0.23198},
@@ -21,9 +22,9 @@ export const VELIGRAD={
   {id:'veligrad-place-farsoutheast',name:'Место',class:'place',type:'place',x:0.88346,y:0.89233},
   {id:'veligrad-place-farsouth',name:'Место',class:'place',type:'place',x:0.50342,y:0.94721},
   {id:'veligrad-place-farnorthwest',name:'Место',class:'place',type:'place',x:0.08801,y:0.03331},
-  {id:'veligrad-transition-west',name:'Переход',class:'transition',type:'transition',x:0.0413,y:0.66906},
-  {id:'veligrad-transition-east',name:'Переход',class:'transition',type:'transition',x:0.96301,y:0.51959},
-  {id:'veligrad-transition-northwest',name:'Переход',class:'transition',type:'transition',x:0.35569,y:0.02574},
-  {id:'veligrad-transition-northeast',name:'Переход',class:'transition',type:'transition',x:0.96932,y:0.179}
+  {id:'veligrad-gate-west',name:'Западные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.0413,y:0.66906},
+  {id:'veligrad-gate-east',name:'Восточные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.96301,y:0.51959},
+  {id:'veligrad-gate-northwest',name:'Северо-западные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.35569,y:0.02574},
+  {id:'veligrad-gate-northeast',name:'Северо-восточные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.96932,y:0.179}
  ]
 };
