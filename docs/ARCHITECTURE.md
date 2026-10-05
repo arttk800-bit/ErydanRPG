@@ -49,4 +49,10 @@ The active product is the campaign PWA. Runtime capabilities are registered expl
 - `game/simulation/`, mirror/parity tooling and historical combat entry points are retained for combat development and reference, not loaded by the campaign shell.
 - The browser-installed PWA is the only maintained client target; retired Android and executable 0.14/0.15 migration runtimes are not kept in the active tree.
 
-Validation is domain-scoped: campaign changes run campaign syntax/regression gates; combat changes run combat gates. Mirror 3000 is combat diagnostics, never a map/travel release criterion.
+Validation is domain-scoped: campaign changes run campaign syntax/regression gates; disabled combat/AI/simulation code is not imported by the campaign runtime and does not trigger campaign/browser/PWA gates. Combat validation is explicit/manual or triggered by combat-domain paths. Before enabling a previously disabled module, run its own gate and the full integration gate. Mirror 3000 is combat diagnostics, never a map/travel release criterion.
+
+## Composition root and module isolation
+`game/modules/runtime.js` is the runtime composition boundary. The app shell asks it to mount an enabled capability; it conditionally loads the module adapter with dynamic `import()`. Module metadata and dependency rules live in `game/core/modules/registry.js`; domain implementations remain in their own folders. Disabling a module therefore means both runtime isolation and CI isolation, not merely hiding its UI.
+
+## Source navigation rule
+Every non-trivial source file must identify its responsibility at the top. Large files additionally use short section markers for major cohesive blocks. Comments explain ownership/boundaries, not obvious syntax. If a file needs several unrelated responsibility sections, split it instead of documenting a god-file.
