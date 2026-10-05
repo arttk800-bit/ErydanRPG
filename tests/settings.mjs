@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {DEFAULT_SETTINGS,SETTINGS_KEY,loadSettings,toggleEndConfirmation} from '../game/client/settings.js';
+import {DEFAULT_SETTINGS,SETTINGS_KEY,loadSettings,saveSettings,toggleEndConfirmation} from '../game/client/settings.js';
 function storage(seed={}){const data=new Map(Object.entries(seed));return{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),value:k=>data.get(k)}}
 const s={...DEFAULT_SETTINGS};assert.equal(s.confirmEndTurn,true);toggleEndConfirmation(s);assert.equal(s.confirmEndTurn,false);
 const old=storage({'eirdan.shell.settings.v1':JSON.stringify({theme:'warm',volume:63}),'eirdan.settings':JSON.stringify({confirmEndTurn:false,musicVolume:.22,battleSpeed:2})});
