@@ -41,3 +41,7 @@ LocationEntry validates physical entry and resolves stable external-port → int
 
 ## Feedback
 `game/feedback/` owns player bug reports and suggestions. Reports accept text and image attachments, may attach Diagnostics, and may attach non-sensitive device/browser metadata only with explicit consent. Delivery is transport-based; only local ZIP download is active. Server transport is intentionally unavailable until a backend exists.
+
+
+## Diagnostics
+Active campaign diagnostics aggregate separate read-only reports for State/Saves, World/Simulation, PWA/asset cache, Audio, Map, Travel and UI. Domain owners retain all rules; diagnostic adapters expose health checks and snapshots only.
