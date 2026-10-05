@@ -41,7 +41,28 @@
       <button id="fullscreen">Полный экран</button>
       <button id="installPwa" class="hidden">Установить Eirdan</button>
       <button data-action="back">← Назад</button>
+      <button data-action="feedback">Обратная связь</button>
       <button data-action="debug" class="quiet">Отладка</button>
+    </section>
+  </main>
+  <main id="screen-feedback" class="screen menu-screen hidden">
+    <section class="panel feedback-panel">
+      <h2>Обратная связь</h2>
+      <label>Тип<select id="feedbackType"><option value="bug">Сообщить об ошибке</option><option value="suggestion">Предложить изменение</option></select></label>
+      <label>Заголовок<input id="feedbackTitle" maxlength="120" placeholder="Кратко опишите тему"></label>
+      <label>Описание<textarea id="feedbackText" maxlength="6000" rows="5" placeholder="Что произошло или что вы предлагаете изменить"></textarea></label>
+      <div id="feedbackBugFields" class="feedback-bug-fields">
+        <label>Как воспроизвести<textarea id="feedbackSteps" maxlength="4000" rows="3"></textarea></label>
+        <label>Ожидалось<textarea id="feedbackExpected" maxlength="2000" rows="2"></textarea></label>
+        <label>Произошло<textarea id="feedbackActual" maxlength="2000" rows="2"></textarea></label>
+      </div>
+      <label>Скриншоты <span class="quiet">до 6 изображений / 25 МБ</span><input id="feedbackScreenshots" type="file" accept="image/*" multiple></label>
+      <label class="check-row"><input id="feedbackDiagnostics" type="checkbox" checked> Прикрепить диагностику игры</label>
+      <label class="check-row"><input id="feedbackDeviceInfo" type="checkbox"> Я согласен приложить техническую информацию об устройстве и браузере</label>
+      <p id="feedbackFiles" class="quiet">Скриншоты не выбраны.</p>
+      <div class="feedback-actions"><button id="feedbackDownload">Скачать архив</button><button id="feedbackSend" disabled title="Серверная отправка будет добавлена позже">Отправить разработчику</button></div>
+      <p id="feedbackStatus" class="quiet">Отправка на сервер пока недоступна. Архив можно передать любым удобным способом.</p>
+      <button data-action="back">← Назад</button>
     </section>
   </main>
   <main id="screen-debug" class="screen menu-screen hidden">
