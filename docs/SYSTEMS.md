@@ -38,3 +38,6 @@ WorldClock owns game date/time. Simulation advances it only while the gameplay r
 
 ## LocationEntry / Camp
 LocationEntry validates physical entry and resolves stable external-port → internal-transition spawn mapping with incomplete-map fallbacks. Camp owns a temporary mapless location anchored to world coordinates and a list of facilities; facilities are extensible for future party professions.
+
+## Feedback
+`game/feedback/` owns player bug reports and suggestions. Reports accept text and image attachments, may attach Diagnostics, and may attach non-sensitive device/browser metadata only with explicit consent. Delivery is transport-based; only local ZIP download is active. Server transport is intentionally unavailable until a backend exists.
