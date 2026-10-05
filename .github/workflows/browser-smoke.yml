@@ -1,8 +1,11 @@
 # CAMPAIGN BROWSER GATE
-# Manual real-browser smoke for the enabled PWA shell and campaign module.
+# Runs only when the finished change block is promoted to the ci/gate branch.
 name: Browser smoke
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ci/gate
 jobs:
   smoke:
     runs-on: ubuntu-latest
