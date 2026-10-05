@@ -31,3 +31,10 @@ Release metadata is detected from version/build manifests. Applying an available
 
 ## Growth rule
 When a file under `game/systems/` or another domain accumulates a second independent responsibility, extract a dedicated module/folder and expose a small public interface. Do not solve growth by moving domain logic into `app/` or `ui/`.
+
+
+## WorldClock / Simulation
+WorldClock owns game date/time. Simulation advances it only while the gameplay runtime is active and unpaused. Modes currently distinguish normal world time, accelerated travel, passive UI contexts and sleep. Temporal checks are emitted in game-time intervals so event probability does not depend on FPS.
+
+## LocationEntry / Camp
+LocationEntry validates physical entry and resolves stable external-port → internal-transition spawn mapping with incomplete-map fallbacks. Camp owns a temporary mapless location anchored to world coordinates and a list of facilities; facilities are extensible for future party professions.
