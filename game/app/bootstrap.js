@@ -21,6 +21,9 @@ import {activeServiceWorkerBuild,registerServiceWorker} from '../client/pwa.js';
 import {createNotifications} from './notifications.js';
 import {ModalController} from './modal.js';
 import {AudioSystem} from '../audio/system.js';
+import {FeedbackSystem} from '../feedback/system.js';
+import {buildFeedbackPackage} from '../feedback/package.js';
+import {FeedbackDownloadTransport} from '../feedback/transports/download.js';
 
 const BUILD_URL='../data/version.json';
 let buildMeta=null;
@@ -79,10 +82,31 @@ async function debug(){
  run.onclick=async()=>{run.disabled=true;run.textContent='Проверка…';try{last=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration});render(last)}finally{run.disabled=false;run.textContent='Запустить проверки'}};
  archive.onclick=async()=>{try{if(!last)last=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration});actionDiagnostics.record('diagnostics-archive','start');const result=downloadDiagnosticArchive(last,buildMeta);actionDiagnostics.record('diagnostics-archive','success',result);toast('Диагностика сохранена ZIP-архивом')}catch(e){actionDiagnostics.record('diagnostics-archive','error',{message:String(e)});runtimeTrace.error('diagnostics.archive',e);toast('Не удалось сохранить диагностику')}};
 }
-function openGameMenu(){if(!session)return;PauseSystem.set(session,'game-menu',true);modalPauseReason='game-menu';modal('Меню игры','<nav class="game-menu-list"><button data-menu="continue">Продолжить</button><button data-menu="save">Сохранить игру</button><button data-menu="settings">Настройки</button><button data-menu="main">В главное меню</button></nav>',[]);const body=$('#modalBody');body.querySelector('[data-menu="continue"]').onclick=closeModal;body.querySelector('[data-menu="save"]').onclick=async()=>{await persist();toast('Игра сохранена')};body.querySelector('[data-menu="settings"]').onclick=()=>{PauseSystem.set(session,'settings',true);closeModal();nav.show('settings')};body.querySelector('[data-menu="main"]').onclick=()=>{persist();closeModal();gameCleanup?.();gameCleanup=null;nav.reset('main')}}
-function handleBack(){if(modalController.isOpen()){closeModal();return true}if(nav.current()==='debug'){nav.back();return true}if(nav.current()==='settings'){if(session)PauseSystem.set(session,'settings',false);nav.back();return true}if(nav.current()==='game'){openGameMenu();return true}return true}
+async function openFeedback(){
+ nav.show('feedback');
+ const type=$('#feedbackType'),bug=$('#feedbackBugFields'),files=$('#feedbackFiles'),status=$('#feedbackStatus'),download=$('#feedbackDownload');
+ const sync=()=>{bug.classList.toggle('hidden',type.value!=='bug');$('#feedbackDiagnostics').checked=type.value==='bug'};
+ type.onchange=sync;sync();
+ $('#feedbackScreenshots').onchange=e=>{const list=Array.from(e.target.files||[]);files.textContent=list.length?list.map(f=>f.name).join(', '):'Скриншоты не выбраны.'};
+ download.onclick=async()=>{
+  const input={type:type.value,title:$('#feedbackTitle').value,text:$('#feedbackText').value,steps:$('#feedbackSteps').value,expected:$('#feedbackExpected').value,actual:$('#feedbackActual').value,
+   screenshots:Array.from($('#feedbackScreenshots').files||[]),includeDiagnostics:$('#feedbackDiagnostics').checked,technicalInfoConsent:$('#feedbackDeviceInfo').checked};
+  const valid=FeedbackSystem.validate(input);if(!valid.ok){status.textContent=valid.errors.join(' · ');return}
+  download.disabled=true;status.textContent='Подготовка отчёта…';
+  try{
+   const diagnostics=input.includeDiagnostics?await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration}):null;
+   const pkg=await buildFeedbackPackage({...input,diagnostics,buildMeta});
+   const result=await FeedbackSystem.deliver(pkg,FeedbackDownloadTransport);
+   actionDiagnostics.record('feedback-download','success',{type:input.type,screenshots:input.screenshots.length,diagnostics:input.includeDiagnostics,deviceInfo:input.technicalInfoConsent,size:result.size});
+   status.textContent='Архив сохранён. Его можно отправить разработчику любым удобным способом.';
+  }catch(e){runtimeTrace.error('feedback.download',e);status.textContent='Не удалось сформировать архив.'}
+  finally{download.disabled=false}
+ };
+}
+function openGameMenu(){if(!session)return;PauseSystem.set(session,'game-menu',true);modalPauseReason='game-menu';modal('Меню игры','<nav class="game-menu-list"><button data-menu="continue">Продолжить</button><button data-menu="save">Сохранить игру</button><button data-menu="settings">Настройки</button><button data-menu="feedback">Обратная связь</button><button data-menu="main">В главное меню</button></nav>',[]);const body=$('#modalBody');body.querySelector('[data-menu="continue"]').onclick=closeModal;body.querySelector('[data-menu="save"]').onclick=async()=>{await persist();toast('Игра сохранена')};body.querySelector('[data-menu="settings"]').onclick=()=>{PauseSystem.set(session,'settings',true);closeModal();nav.show('settings')};body.querySelector('[data-menu="feedback"]').onclick=()=>{closeModal();openFeedback()};body.querySelector('[data-menu="main"]').onclick=()=>{persist();closeModal();gameCleanup?.();gameCleanup=null;nav.reset('main')}}
+function handleBack(){if(modalController.isOpen()){closeModal();return true}if(nav.current()==='debug'||nav.current()==='feedback'){nav.back();return true}if(nav.current()==='settings'){if(session)PauseSystem.set(session,'settings',false);nav.back();return true}if(nav.current()==='game'){openGameMenu();return true}return true}
 const lifecycle=new Lifecycle({onBack:handleBack,onSuspend:persist});
-document.addEventListener('click',e=>{const raw=e.target.closest('button,a,input,select,summary,[data-action]');if(raw&&!raw.disabled){const kind=raw.matches('[data-action="back"],.region-back')?'back':raw.matches('.saveChoice,[data-action="new-game"]')?'confirm':'click';audio.playUi(kind)}if(raw)runtimeTrace.ui('click',raw.tagName.toLowerCase(),{text:(raw.textContent||'').trim().slice(0,120),action:raw.dataset?.action||null,id:raw.id||null,className:raw.className||null,disabled:!!raw.disabled});const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')openGameMenu();});
+document.addEventListener('click',e=>{const raw=e.target.closest('button,a,input,select,summary,[data-action]');if(raw&&!raw.disabled){const kind=raw.matches('[data-action="back"],.region-back')?'back':raw.matches('.saveChoice,[data-action="new-game"]')?'confirm':'click';audio.playUi(kind)}if(raw)runtimeTrace.ui('click',raw.tagName.toLowerCase(),{text:(raw.textContent||'').trim().slice(0,120),action:raw.dataset?.action||null,id:raw.id||null,className:raw.className||null,disabled:!!raw.disabled});const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='feedback')openFeedback();if(a==='game-menu')openGameMenu();});
 $('#theme').addEventListener('change',e=>{runtimeTrace.ui('change','select',{id:'theme',value:e.target.value});settings.theme=e.target.value;saveSettings(settings);applySettings()});
 $('#volume').addEventListener('input',e=>{runtimeTrace.ui('input','range',{id:'volume',value:e.target.value});settings.volume=Number(e.target.value);saveSettings(settings);audio.setVolume(settings.volume)});
 $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{toast('Полный экран недоступен на этом устройстве')}});
