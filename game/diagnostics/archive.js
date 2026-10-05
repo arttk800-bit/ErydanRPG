@@ -10,6 +10,10 @@ export function downloadDiagnosticArchive(d,buildMeta={}){
   {name:'shell-diagnostic.txt',data:formatDiagnosticLog(d)},
   {name:'runtime-trace.json',data:json(runtimeTrace.export())},
   {name:'actions.json',data:json(d.actions||[])},
+  {name:'state-diagnostics.json',data:json(d.state||{})},
+  {name:'world-simulation-diagnostics.json',data:json(d.world||{})},
+  {name:'pwa-cache-diagnostics.json',data:json(d.pwa||{})},
+  {name:'audio-diagnostics.json',data:json(d.audio||{})},
   {name:'map-diagnostics.json',data:json(d.map||{})},
   {name:'travel-diagnostics.json',data:json(d.travel||{})},
   {name:'ui-smoke-diagnostics.json',data:json(d.ui||{})}
