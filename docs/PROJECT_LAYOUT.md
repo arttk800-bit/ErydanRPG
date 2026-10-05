@@ -2,7 +2,7 @@
 
 ## Application and infrastructure
 - `game/app/` — PWA shell, navigation, lifecycle and game-screen composition.
-- `game/client/` — client/runtime infrastructure: release detection, forced reload updates, startup asset preloading and cache management.
+- `game/client/` — client/runtime infrastructure: release detection, forced reload updates and revisioned asset cache management.
 - `game/core/` — shared state/session/persistence and reusable engine primitives.
 - `game/diagnostics/` — runtime diagnostics, traces, smoke checks and export.
 - `scripts/` — repository-level validation, parity and simulation scripts.
@@ -24,7 +24,7 @@
 - `game/assets/audio/` — music/audio.
 - `game/assets/fonts/` — bundled fonts.
 
-Startup-critical visual assets are preloaded by `game/client/asset-loader.js`. Cache lifetime is scoped to build ID so a new build cannot indefinitely reuse an old image under the same URL.
+Startup-critical visual assets are preloaded through `game/client/asset-loader.js` and owned by `game/client/asset-cache.js`. `asset-manifest.json` gives each managed asset an independent content revision. The stable asset cache survives game builds; only a changed asset revision is downloaded and the previous revision is removed after the replacement has been fetched and validated.
 
 ## Compatibility / migration
 - `game/runtime/`, `game/alpha14p/` and remaining compatibility wrappers exist for migration/reference purposes.
