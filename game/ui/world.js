@@ -43,16 +43,14 @@ function loadPoi(regionId){
 function savePoi(regionId,items){let all={};try{all=JSON.parse(localStorage.getItem(POI_KEY)||'{}')}catch{}all[regionId]=items;localStorage.setItem(POI_KEY,JSON.stringify(all))}
 function slug(s){return String(s||'poi').toLowerCase().trim().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48)||'poi'}
 function downloadJson(filename,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),0)}
+function readStored(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return{}}}
+function mapBundle(mapId,{kind,id,map,points,fallbackRoads={nodes:[],edges:[],access:{}},fallbackTerrain=[]}){const roads=loadEditableRoads(mapId,fallbackRoads),terrain=loadTerrainZones(mapId,fallbackTerrain);return{kind,id,map,points,roads,terrain}}
 function exportAllMaps(){
- let stored={};try{stored=JSON.parse(localStorage.getItem(POI_KEY)||'{}')}catch{}
- const maps={...stored};
+ const stored=readStored(POI_KEY),maps={...stored};
  if(!Array.isArray(maps.forest))maps.forest=CENTRAL_LANDS.points.map(p=>({...p}));
  if(!Array.isArray(maps['location:veligrad']))maps['location:veligrad']=VELIGRAD.points.map(p=>({...p}));
- return {format:'eirdan-map-editor',version:1,exportedAt:new Date().toISOString(),maps:{
-  forest:{kind:'region',id:'forest',map:CENTRAL_LANDS.map,points:maps.forest},
-  'location:veligrad':{kind:'location',id:'veligrad',map:VELIGRAD.map,points:maps['location:veligrad']},
-  ...Object.fromEntries(Object.entries(maps).filter(([key])=>key!=='forest'&&key!=='location:veligrad').map(([key,points])=>[key,{kind:key.startsWith('location:')?'location':'region',id:key.replace(/^location:/,''),map:null,points}]))
- }}
+ const ids=new Set([...Object.keys(maps),...Object.keys(readStored('eirdan.region-roads.v1')),...Object.keys(readStored('eirdan.map-terrain.v1')),'forest','location:veligrad']);
+ return {format:'eirdan-map-editor',version:2,exportedAt:new Date().toISOString(),maps:Object.fromEntries([...ids].map(key=>{const isForest=key==='forest',isVeligrad=key==='location:veligrad',points=maps[key]||(isForest?CENTRAL_LANDS.points:isVeligrad?VELIGRAD.points:[]),kind=key.startsWith('location:')?'location':'region',id=key.replace(/^location:/,''),map=isForest?CENTRAL_LANDS.map.asset:isVeligrad?VELIGRAD.map:null,fallbackRoads=isForest?CENTRAL_LANDS_ROADS:{nodes:[],edges:[],access:{}};return[key,mapBundle(key,{kind,id,map,points,fallbackRoads})]}))};
 }
 function exportAllButton(){const b=el('button','Экспорт всех карт');b.onclick=()=>downloadJson('eirdan-map-editor-all.json',exportAllMaps());return b}
 function clampPin(pin){pin.style.transform='translate(-50%,-50%)'}
