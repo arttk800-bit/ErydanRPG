@@ -2,9 +2,37 @@
   "schema": 1,
   "cacheSchema": 2,
   "assets": [
-    {"id":"world-map","path":"../assets/world/eirdan-world-map-regions-final.png","revision":"001a1098da4a227878ae99e075ba0bc1a0ae5555","type":"image","startup":true},
-    {"id":"world-region-index","path":"../assets/world/eirdan-world-region-index-final.png","revision":"4e272a44f1f92ea28b4ec7a07d537f9bf1d3c8f8","type":"image","startup":true},
-    {"id":"central-lands-map","path":"../assets/regions/region-central-lands.png","revision":"d99be302cb8b4bd2376729198e23c29cb8f9243b","type":"image","startup":true},
-    {"id":"veligrad-map","path":"../assets/locations/city-01-central-lands.png","revision":"d84c5184b562f3edf28e6fb21fbbdf0f99452eb1","type":"image","startup":true}
+    {
+      "id": "world-map",
+      "path": "../assets/world/eirdan-world-map-regions-final.png",
+      "revision": "001a1098da4a227878ae99e075ba0bc1a0ae5555",
+      "type": "image",
+      "startup": true,
+      "sha256": "64d020d7308d39a9f96dcd1faea911db28522752d12b6cbb1333bb7794702d5f"
+    },
+    {
+      "id": "world-region-index",
+      "path": "../assets/world/eirdan-world-region-index-final.png",
+      "revision": "4e272a44f1f92ea28b4ec7a07d537f9bf1d3c8f8",
+      "type": "image",
+      "startup": true,
+      "sha256": "0c293ecfd168e9297eff9d52115174812eab70af80d8130dd04843f1041dffae"
+    },
+    {
+      "id": "central-lands-map",
+      "path": "../assets/regions/region-central-lands.png",
+      "revision": "d99be302cb8b4bd2376729198e23c29cb8f9243b",
+      "type": "image",
+      "startup": true,
+      "sha256": "7074a1fb88dc07c0e7ec3beda02cdda01196745cadb29202091e9c6ec30ab6db"
+    },
+    {
+      "id": "veligrad-map",
+      "path": "../assets/locations/city-01-central-lands.png",
+      "revision": "d84c5184b562f3edf28e6fb21fbbdf0f99452eb1",
+      "type": "image",
+      "startup": true,
+      "sha256": "c3cd4aef1b8f2f417b9223a994c40bf082f6db4dc5e88237e346d8b1e6280e68"
+    }
   ]
 }
