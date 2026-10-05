@@ -59,3 +59,14 @@ Campaign, browser/PWA and combat gates are path- and source-scoped. A disabled o
 **Status:** accepted.
 
 Each source file carries a concise responsibility marker. Large cohesive sections may have additional markers. If meaningful section markers reveal unrelated responsibilities in one file, extract modules instead of allowing the comments to legitimize a god-file.
+
+
+## 2026-10-05 — Maps, time and temporary locations
+- Navigation maps stop at region and major mapped-location level. Districts are logical zones; final places never require route graphs or terrain zones.
+- Final places may use decorative scene backgrounds without becoming maps.
+- Map browsing and physical party position are separate. Preview never teleports or implicitly enters a location.
+- Location entry uses stable bidirectional access-port IDs and explicit transition spawn mapping.
+- Game time continuously advances only while gameplay is active. Pause, main menu, background/closed PWA stop all simulation with no offline catch-up.
+- Sleep is accelerated simulation rather than an instant clock jump and may be interrupted by temporal/context events.
+- Camp is a temporary mapless location anchored to party coordinates.
+- Local multiplayer remains a future constraint only: world/party simulation must not be owned by one player controller; current guests are expected to join the host party if that design survives.
