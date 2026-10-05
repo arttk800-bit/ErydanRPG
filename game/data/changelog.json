@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.82.0-alpha",
+      "build": "architecture-cleanup-1",
+      "stage": "Architecture Cleanup",
+      "date": "2026-10-05",
+      "changes": [
+        "Активные campaign/client/world модули очищены от устаревших compatibility-обёрток и старого глобального world-data.",
+        "Настройки, PWA-регистрация, модальные окна, уведомления, POI-хранилище и экспорт Map Editor закреплены за отдельными владельцами.",
+        "Travel diagnostics переведены на канонические travel-модули; Browser smoke снова проходит без 404 старых compatibility-путей.",
+        "Удалены неиспользуемые Android/WebView platform helper и старый глобальный источник данных мира.",
+        "Release metadata и Service Worker build синхронизированы с текущей архитектурой."
+      ]
+    },
+    {
       "version": "0.81.0-alpha",
       "build": "asset-cache-v2-1",
       "stage": "Revisioned Asset Cache",
