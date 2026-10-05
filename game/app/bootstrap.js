@@ -79,8 +79,8 @@ function confirmDelete(worldId){modal('Удалить сохранение?','<p
 async function debug(){
  nav.show('debug');const out=$('#debugResults'),run=$('[data-debug="run"]'),archive=$('[data-debug="archive"]');let last=null;
  const render=d=>{out.replaceChildren();const head=document.createElement('p');head.innerHTML='<b>'+(d.ok?'PASS':'CHECK')+'</b>';out.append(head);for(const [n,ok] of d.checks){const p=document.createElement('p');p.textContent=(ok?'✓ ':'× ')+n;out.append(p)}};
- run.onclick=async()=>{run.disabled=true;run.textContent='Проверка…';try{last=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration});render(last)}finally{run.disabled=false;run.textContent='Запустить проверки'}};
- archive.onclick=async()=>{try{if(!last)last=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration});actionDiagnostics.record('diagnostics-archive','start');const result=downloadDiagnosticArchive(last,buildMeta);actionDiagnostics.record('diagnostics-archive','success',result);toast('Диагностика сохранена ZIP-архивом')}catch(e){actionDiagnostics.record('diagnostics-archive','error',{message:String(e)});runtimeTrace.error('diagnostics.archive',e);toast('Не удалось сохранить диагностику')}};
+ run.onclick=async()=>{run.disabled=true;run.textContent='Проверка…';try{last=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration,audio});render(last)}finally{run.disabled=false;run.textContent='Запустить проверки'}};
+ archive.onclick=async()=>{try{if(!last)last=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration,audio});actionDiagnostics.record('diagnostics-archive','start');const result=downloadDiagnosticArchive(last,buildMeta);actionDiagnostics.record('diagnostics-archive','success',result);toast('Диагностика сохранена ZIP-архивом')}catch(e){actionDiagnostics.record('diagnostics-archive','error',{message:String(e)});runtimeTrace.error('diagnostics.archive',e);toast('Не удалось сохранить диагностику')}};
 }
 async function openFeedback(){
  if(session)PauseSystem.set(session,'feedback',true);
@@ -95,7 +95,7 @@ async function openFeedback(){
   const valid=FeedbackSystem.validate(input);if(!valid.ok){status.textContent=valid.errors.join(' · ');return}
   download.disabled=true;status.textContent='Подготовка отчёта…';
   try{
-   const diagnostics=input.includeDiagnostics?await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration}):null;
+   const diagnostics=input.includeDiagnostics?await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration,audio}):null;
    const pkg=await buildFeedbackPackage({...input,diagnostics,buildMeta});
    const result=await FeedbackSystem.deliver(pkg,FeedbackDownloadTransport);
    actionDiagnostics.record('feedback-download','success',{type:input.type,screenshots:input.screenshots.length,diagnostics:input.includeDiagnostics,deviceInfo:input.technicalInfoConsent,size:result.size});
