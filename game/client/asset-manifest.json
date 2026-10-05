@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "cacheSchema": 2,
+  "cacheSchema": 3,
   "assets": [
     {
       "id": "world-map",
@@ -153,6 +153,83 @@
       "type": "audio",
       "startup": false,
       "sha256": "9b970bda933fec8f6e2b04968fd3d622ff6b1d3909c3a45be2bf4bb12dd2d9d3"
+    },
+    {
+      "id": "ambience-blacksmith",
+      "path": "../assets/audio/ambience/blacksmith.ogg",
+      "revision": "0d1925b6a3c59bb35d8f66e33ca0097414f6a9c1",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ambience-campfire",
+      "path": "../assets/audio/ambience/campfire.ogg",
+      "revision": "321fb2fd2b50169af7fbafabeae6365ed7d7a335",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ambience-forest",
+      "path": "../assets/audio/ambience/forest.ogg",
+      "revision": "a0f18fb59cbf07885308d10e94c9951a171dad4c",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ambience-market",
+      "path": "../assets/audio/ambience/market.ogg",
+      "revision": "7d2c8180b9dcef1e0a9009428af4d11abbdb90b2",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ambience-mountains",
+      "path": "../assets/audio/ambience/mountains.ogg",
+      "revision": "3817baa47a56e66c8159e4eb64ceaf2e93e352a7",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ambience-rain",
+      "path": "../assets/audio/ambience/rain.ogg",
+      "revision": "b22d21f023392795eae96c61655e7e35a51f90f9",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ambience-tavern",
+      "path": "../assets/audio/ambience/tavern.ogg",
+      "revision": "ba0f07c49c3f11e223a49916d6d51741e38c7c0d",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ambience-town",
+      "path": "../assets/audio/ambience/town.ogg",
+      "revision": "706c3832252305584a44e7575f256420e7a7a627",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ui-back",
+      "path": "../assets/audio/ui/back.ogg",
+      "revision": "06c5e72c4fd2773438de35ce26bd90caad730031",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ui-click",
+      "path": "../assets/audio/ui/click.ogg",
+      "revision": "7ca77c7186126ce177640aad0c7ccc4c59bf4446",
+      "type": "audio",
+      "startup": false
+    },
+    {
+      "id": "ui-confirm",
+      "path": "../assets/audio/ui/confirm.ogg",
+      "revision": "673b0a04c1abd661f72c2403ee8e86f6af4f89b6",
+      "type": "audio",
+      "startup": false
     }
   ]
 }
