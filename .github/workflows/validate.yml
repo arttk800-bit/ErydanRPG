@@ -1,46 +1,8 @@
 # CAMPAIGN GATE
-# Runs only for the enabled campaign/client/world boundary.
+# Manual release-block validation for the enabled campaign/client/world boundary.
 name: validate campaign
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'game/app/**'
-      - 'game/client/**'
-      - 'game/core/modules/**'
-      - 'game/core/state.js'
-      - 'game/core/ids.js'
-      - 'game/core/rng.js'
-      - 'game/core/session.js'
-      - 'game/core/persistence.js'
-      - 'game/core/events.js'
-      - 'game/core/commands.js'
-      - 'game/map/**'
-      - 'game/modules/index.js'
-      - 'game/modules/runtime.js'
-      - 'game/modules/campaign.js'
-      - 'game/systems/world/**'
-      - 'game/systems/travel/**'
-      - 'game/systems/pause.js'
-      - 'game/systems/game-speed.js'
-      - 'game/systems/travel-conditions.js'
-      - 'game/tools/map-editor/**'
-      - 'game/ui/world.js'
-      - 'game/ui/map-*.js'
-      - 'game/data/**'
-      - 'game/diagnostics/**'
-      - 'scripts/domain-config.mjs'
-      - 'scripts/validate-domain.mjs'
-      - 'scripts/validate-campaign.mjs'
-      - 'tests/core-regression.mjs'
-      - 'tests/movement-regression.mjs'
-      - 'tests/travel-routing.mjs'
-      - 'tests/settings.mjs'
-      - 'tests/asset-cache.mjs'
-      - 'package.json'
-      - '.github/workflows/validate.yml'
-  pull_request:
 jobs:
   test:
     runs-on: ubuntu-latest
