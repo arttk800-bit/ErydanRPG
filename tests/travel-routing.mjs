@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {RoadSystem} from '../game/systems/roads.js';
+import {RoadSystem} from '../game/systems/travel/roads.js';
 import {TerrainSystem} from '../game/map/terrain.js';
 import {TravelSystem} from '../game/systems/travel/travel.js';
 import {freeTravelPath} from '../game/systems/travel/route-planner.js';
