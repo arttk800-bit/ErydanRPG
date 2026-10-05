@@ -44,3 +44,18 @@ Every relevant change must pass architecture review, syntax/module validation, e
 **Status:** accepted.
 
 For unfamiliar or established engineering problems, prefer primary documentation, specifications and original/open-source implementations. Reuse ideas and proven patterns after understanding their constraints and fit; do not copy code blindly, and respect licenses when code is reused directly.
+
+## ADR-010 — Runtime modules have one composition boundary
+**Status:** accepted.
+
+The application shell does not directly import optional gameplay domains. `game/modules/runtime.js` resolves enabled modules and loads their adapters conditionally. Dependencies are validated by the module registry. Disabled modules must not be evaluated by the active runtime.
+
+## ADR-011 — Automated gates follow enabled domain boundaries
+**Status:** accepted.
+
+Campaign, browser/PWA and combat gates are path- and source-scoped. A disabled optional domain does not block unrelated active development. Re-enabling a module requires its domain gate plus an integration/full gate before release.
+
+## ADR-012 — Source files declare responsibility
+**Status:** accepted.
+
+Each source file carries a concise responsibility marker. Large cohesive sections may have additional markers. If meaningful section markers reveal unrelated responsibilities in one file, extract modules instead of allowing the comments to legitimize a god-file.
