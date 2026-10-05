@@ -4,6 +4,7 @@
 - `game/app/` — PWA shell, navigation, lifecycle and game-screen composition.
 - `game/client/` — client/runtime infrastructure: release detection, forced reload updates and revisioned asset cache management.
 - `game/core/` — shared state/session/persistence and reusable engine primitives.
+- `game/modules/` — module catalog, dependency metadata and runtime composition boundary. Disabled module adapters are excluded from unrelated domain validation.
 - `game/diagnostics/` — runtime diagnostics, traces, smoke checks and export.
 - `scripts/` — repository-level validation, parity and simulation scripts.
 - `tests/` — automated regression tests.
@@ -14,7 +15,7 @@
 - `game/systems/world/` — world state and world-domain API.
 - `game/systems/travel/` — roads, route planning, travel conditions and travel simulation.
 - `game/systems/` root currently contains smaller domains such as inventory, pause and game speed; they move into dedicated folders as their responsibilities grow.
-- `game/tools/map-editor/` — development-only map/road/terrain authoring tools; not gameplay-rule ownership.
+- `game/tools/map-editor/` — development-only map/road/terrain/POI authoring tools. `session.js` composes editor tooling and `poi-authoring.js` owns POI editing interactions; gameplay rules remain outside the editor.
 - `game/simulation/` — headless battle runners, mirror/parity analysis and telemetry.
 - `game/data/` — static content, balance and world/map definitions.
 - `game/ui/` — presentation and interaction adapters; no gameplay-rule ownership.
