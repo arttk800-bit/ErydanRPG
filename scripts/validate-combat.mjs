@@ -1,2 +1,7 @@
+// ============================================================================
+// COMBAT VALIDATION ENTRYPOINT
+// Selects the combat source boundary; other disabled domains are not checked.
+// ============================================================================
 import {validate} from './validate-domain.mjs';
-validate({required:['game/combat/actions.js','game/combat/damage.js','game/ai/ai-controller.js','game/simulation/runner.js','game/simulation/mirror.js'],roots:['game/combat','game/ai','game/simulation','game/systems/combat']});
+import {DOMAIN_VALIDATION} from './domain-config.mjs';
+validate(DOMAIN_VALIDATION.combat);
