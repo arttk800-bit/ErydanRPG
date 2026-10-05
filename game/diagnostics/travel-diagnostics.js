@@ -1,7 +1,7 @@
 import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
 import {CENTRAL_LANDS_ROADS} from '../data/regions/central-lands-roads.js';
-import {RoadSystem} from '../systems/roads.js';
-import {TravelSystem} from '../systems/travel.js';
+import {RoadSystem} from '../systems/travel/roads.js';
+import {TravelSystem} from '../systems/travel/travel.js';
 import {PauseSystem} from '../systems/pause.js';
 const NO_ROAD_REQUIRED=new Set(['lake-island']);
 function state(){return{clock:{day:1,minute:480},world:{position:{regionId:'forest',pointId:'veligrad'}},history:[]}}
