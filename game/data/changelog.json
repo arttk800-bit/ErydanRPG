@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.78.1-alpha",
+      "build": "runtime-update-detection-1",
+      "stage": "Runtime Update Detection Fix",
+      "date": "2026-10-05",
+      "changes": [
+        "Исправлено ложное состояние «Версия актуальна», когда старая запущенная PWA-сборка уже могла прочитать свежий version.json.",
+        "Проверка обновления теперь сравнивает опубликованный build с build реально активного Service Worker, а не только с сетевыми метаданными.",
+        "При несовпадении runtime build клиент предлагает принудительную перезагрузку до новой сборки."
+      ]
+    },
+    {
       "version": "0.78.0-alpha",
       "build": "terrain-free-routing-1",
       "stage": "Terrain & Free Routing",
