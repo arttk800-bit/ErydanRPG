@@ -12,17 +12,8 @@ import {mapPoint} from './map-gestures.js';
 import {GameSpeedSystem} from '../systems/game-speed.js';
 import {loadPoi,savePoi} from '../map/poi-store.js';
 import {buildMapEditorExport} from '../tools/map-editor/export-data.js';
+import {el,choiceMenu,downloadJson} from './map-ui.js';
 
-function el(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n}
-function choiceMenu(options,initial=options[0]?.[0]){const box=el('details');box.className='map-choice';const summary=el('summary');const menu=el('div');menu.className='map-choice-menu';let value=initial;const label=()=>options.find(([v])=>v===value)?.[1]||value;summary.textContent=label();for(const [v,l] of options){const b=el('button',l);b.type='button';b.onclick=e=>{e.preventDefault();e.stopPropagation();value=v;summary.textContent=label();box.open=false;box.onchange?.({target:box})};menu.append(b)}box.append(summary,menu);Object.defineProperty(box,'value',{get:()=>value,set:v=>{value=v;summary.textContent=label()}});return box}
-const CLASSES={location:'Локация',district:'Район',place:'Место',transition:'Переход'};
-const TYPES={city:'Город',village:'Поселение',fort:'Крепость',tower:'Башня',ruins:'Руины',mountain_pass:'Перевал',marsh:'Топи',landmark:'Ориентир',location:'Локация',district:'Район',place:'Место',transition:'Переход'};
-const TYPE_ICONS={city:'♜',village:'⌂',fort:'◆',tower:'▲',ruins:'✦',mountain_pass:'⌃',marsh:'≈',landmark:'◇',location:'○',district:'▦',place:'●',transition:'⇢'};
-function pointIcon(item){return TYPE_ICONS[item.type]||TYPE_ICONS[item.class]||'●'}
-function pointTypeLabel(item){return TYPES[item.type]||TYPES[item.class]||'Место'}
-function legendFor(items,state,editing){const visible=items.filter(p=>editing||WorldSystem.isDiscovered(state,p));const types=[...new Set(visible.map(p=>p.type||p.class))];const box=el('details');box.className='map-legend';box.onclick=e=>e.stopPropagation();box.onpointerdown=e=>e.stopPropagation();const sum=el('summary','Легенда');box.append(sum);const body=el('div');body.className='map-legend-items';for(const t of types){const sample=visible.find(p=>(p.type||p.class)===t);const row=el('div');row.append(el('span',pointIcon(sample)),el('span',pointTypeLabel(sample)));body.append(row)}box.append(body);return box}
-function slug(s){return String(s||'poi').toLowerCase().trim().replace(/[^a-zа-яё0-9]+/gi,'-').replace(/^-|-$/g,'').slice(0,48)||'poi'}
-function downloadJson(filename,data){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),0)}
 function exportAllButton(){const b=el('button','Экспорт всех карт');b.onclick=()=>downloadJson('eirdan-map-editor-all.json',buildMapEditorExport());return b}
 function clampPin(pin){pin.style.transform='translate(-50%,-50%)'}
 function pointDescription(item){return item.description||({location:'Отдельная локация. Её можно посетить и исследовать.',district:'Район внутри текущей локации.',place:'Отдельное место на карте.',transition:'Переход к другой области карты.'}[item.class]||'Место на карте.')}
