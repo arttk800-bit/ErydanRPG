@@ -65,7 +65,7 @@
 .map-choice-menu button{min-height:40px;text-align:left;border:0;background:transparent}
 .map-choice-menu button:active{background:color-mix(in srgb,var(--accent) 18%,transparent)}
 .region-editor{align-items:start}.region-editor>.map-choice{min-height:44px}
-@media(max-width:520px){.world-fog-toggle{position:static;margin:5px auto 8px}.world-head{display:grid;justify-items:center}.map-choice-menu{position:fixed;z-index:50;left:12px;right:12px;top:auto;bottom:max(12px,env(safe-area-inset-bottom));max-height:55dvh;overflow:auto}}
+@media(max-width:520px){.world-fog-toggle{position:static;margin:5px auto 8px}.world-head{display:grid;justify-items:center}.map-choice-menu{position:fixed;z-index:50;left:50%;right:auto;top:50%;bottom:auto;width:min(calc(100vw - 24px),420px);max-height:70dvh;overflow:auto;transform:translate(-50%,-50%)}}
 
 .road-editor-edge[data-road-type="trail"]{stroke-dasharray:.012 .009;stroke-width:.006}
 .road-editor-edge[data-road-type="road"]{stroke-width:.008}
