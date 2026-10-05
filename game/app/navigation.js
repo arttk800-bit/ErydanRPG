@@ -1,5 +1,5 @@
 import {runtimeTrace} from '../diagnostics/runtime-trace.js';
-const SCREEN_IDS={main:'screen-main',game:'screen-game',settings:'screen-settings',debug:'screen-debug'};
+const SCREEN_IDS={main:'screen-main',game:'screen-game',settings:'screen-settings',feedback:'screen-feedback',debug:'screen-debug'};
 export class Navigation{
  constructor(root=document){this.root=root;this.stack=['main'];runtimeTrace.system('navigation','init',{stack:this.stack})}
  current(){return this.stack.at(-1)}
