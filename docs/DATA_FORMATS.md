@@ -69,3 +69,10 @@ Cancelling/stopping away from a named point may leave `state.world.position.posi
 
 ## Release metadata
 `game/data/version.json`, `game/ui/build.json`, changelog release entries and `game/sw.js` build ID must describe the same released code. A user-significant release is not complete until these values are synchronized and validation gates pass.
+
+
+## Map access ports and transitions (0.88)
+
+Mapped locations may expose multiple regional access ports under `roads.access[locationId].ports`. Each port owns a stable `id` and regional road `node`. A location-level `transition` is the only boundary POI type and binds to the same port id with its local road `node`, `pointId`, and `externalNode`. Runtime entry stores `entryPortId` so entering a location resolves to the matching transition instead of a generic spawn point. Legacy single `{node}` access remains readable during migration; legacy `gate` / `entrance` / `exit` POIs are migrated to `transition`.
+
+Map Editor user exports use the complete `eirdan-map-editor` bundle (`Экспорт всех карт`). Partial POI/road/terrain exports are no longer exposed in the editor UI.
