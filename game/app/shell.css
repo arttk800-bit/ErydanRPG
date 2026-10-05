@@ -117,3 +117,6 @@
 .modal{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 
 .debug-panel{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto}.debug-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.debug-results{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0002;max-height:55dvh;overflow:auto}.debug-results p{margin:6px 0}@media(max-width:560px){.debug-tools{grid-template-columns:1fr}}
+
+/* Editor selection and world region action cards. */
+.region-poi.editor-selected{z-index:15!important;border-color:#fff!important;box-shadow:0 0 0 2px var(--accent),0 3px 12px #000c!important}.world-region-actions{margin-top:10px}.world-region-actions .map-point-card{margin-top:0}.region-description{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
