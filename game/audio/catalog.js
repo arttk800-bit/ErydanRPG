@@ -1,8 +1,10 @@
 // ============================================================================
 // AUDIO CATALOG
-// Canonical metadata and semantic contexts for Eirdan music tracks.
+// Canonical metadata and semantic scenes for Eirdan music and environment audio.
 // ============================================================================
 export const AUDIO_CONTEXT=Object.freeze({WORLD:'world',TRAVEL:'travel',FOREST:'forest',TOWN:'town',INDOOR:'indoor',TAVERN:'tavern',CASTLE:'castle',BATTLE:'battle',ORC:'orc',HUMAN:'human',EVENT:'event'});
+export const MUSIC_SCENE=Object.freeze({EXPLORATION:'exploration',BATTLE:'battle',EVENT:'event'});
+
 const track=(id,assetId,contexts,title)=>Object.freeze({id,assetId,contexts:Object.freeze(contexts),title,loop:true});
 export const MUSIC_TRACKS=Object.freeze([
  track('battle-greensleeves','music-battle-greensleeves',['battle'],'Battle Greensleeves'),
@@ -21,5 +23,16 @@ export const MUSIC_TRACKS=Object.freeze([
  track('theme-humans-march','music-theme-humans-march',['human','event'],'Theme Humans March'),
  track('theme-embarking','music-theme-embarking',['event','travel','tavern'],'Embarking — Wenches, Ale, Loot')
 ]);
-export function tracksForContext(context){return MUSIC_TRACKS.filter(track=>track.contexts.includes(context))}
+
+const EXPLORATION_CONTEXTS=new Set(['world','travel','forest','town','indoor','tavern','castle']);
+export function musicSceneForContext(context){
+ if(context==='battle')return MUSIC_SCENE.BATTLE;
+ if(context==='event'||context==='orc'||context==='human')return MUSIC_SCENE.EVENT;
+ return EXPLORATION_CONTEXTS.has(context)?MUSIC_SCENE.EXPLORATION:null;
+}
+export function tracksForContext(context){
+ const scene=musicSceneForContext(context);
+ if(scene===MUSIC_SCENE.EXPLORATION)return MUSIC_TRACKS.filter(item=>item.contexts.some(value=>EXPLORATION_CONTEXTS.has(value)));
+ return MUSIC_TRACKS.filter(item=>item.contexts.includes(context));
+}
 export function trackById(id){return MUSIC_TRACKS.find(track=>track.id===id)||null}
