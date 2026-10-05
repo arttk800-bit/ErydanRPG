@@ -11,12 +11,11 @@ import {mapMetrics} from '../data/map-metrics.js';
 import {mapPoint} from './map-gestures.js';
 import {GameSpeedSystem} from '../systems/game-speed.js';
 import {loadPoi,savePoi} from '../map/poi-store.js';
-import {buildMapEditorExport,mapBundle} from '../tools/map-editor/export-data.js';
-import {el,choiceMenu,downloadJson} from './map-ui.js';
+import {mapBundle} from '../tools/map-editor/export-data.js';
+import {el,downloadJson} from './map-ui.js';
 import {MAP_POINT_CLASSES as CLASSES,MAP_POINT_TYPES as TYPES,pointIcon,legendFor,mapPointSlug,actionPanel} from './map-points.js';
-import {createEditorModeSelect,createRoadTypeSelect,createTerrainTypeSelect,createTerrainControls,createRoadSelectionControls,setEditorControlVisibility} from '../tools/map-editor/editor-ui.js';
+import {createMapEditorPanel} from '../tools/map-editor/panel.js';
 
-function exportAllButton(){const b=el('button','Экспорт всех карт');b.onclick=()=>downloadJson('eirdan-map-editor-all.json',buildMapEditorExport());return b}
 function clampPin(pin){pin.style.transform='translate(-50%,-50%)'}
 
 
