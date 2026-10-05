@@ -150,26 +150,45 @@ export const WorldUI={
    const img=el('img');img.className='region-map-image';img.src=location.map;img.alt=location.name;frame.append(img);
    const layer=el('div');layer.className='region-poi-layer';frame.append(layer);root.append(frame);
    const actionHost=el('div');actionHost.className='map-point-action-host';root.append(actionHost);
-   const panel=el('div');panel.className='region-editor hidden';
-   const cls=choiceMenu([['district','Район'],['place','Место'],['transition','Переход']],'district')
-   const name=el('input');name.placeholder='Название';
-   const hint=el('p','Расставьте районы, отдельные места и переходы. Поселения внутри города недоступны.');hint.className='quiet';
-   const exportBtn=el('button','Экспортировать JSON');const clearBtn=el('button','Удалить все локальные метки');panel.append(cls,name,hint,exportBtn,exportAllButton(),clearBtn);root.append(panel);
-   const key='location:'+location.id;let editing=false,items=loadPoi(key),selected=current.placeId||current.districtId||null,drag=null;
+   const key='location:'+location.id;let editing=false,editorMode='poi',items=loadPoi(key),selected=current.placeId||current.districtId||null,drag=null;
    if(location.id==='veligrad'&&!items.length)items=VELIGRAD.points.map(p=>({...p}));
+   let roads=loadEditableRoads(key,{nodes:[],edges:[],access:{}}),terrainZones=loadTerrainZones(key,[]),roadEditor=null,terrainEditor=null;
+   const panel=el('div');panel.className='region-editor hidden';
+   const modeSelect=choiceMenu([['poi','Метки'],['road','Дороги'],['terrain','Местность']],'poi');
+   const cls=choiceMenu([['district','Район'],['place','Место'],['transition','Переход']],'district');
+   const name=el('input');name.placeholder='Название';
+   const roadType=choiceMenu([['trail','Тропа'],['road','Дорога'],['highway','Тракт'],['rough','Бездорожье']],'road');
+   const terrainType=choiceMenu([['forest','Лес'],['swamp','Болото'],['mountain','Горы'],['water','Глубокая вода'],['blocked','Непроходимая область']],'forest');
+   const finishTerrain=el('button','Замкнуть полигон'),undoTerrain=el('button','Удалить последнюю точку'),cancelTerrain=el('button','Отменить вершины'),terrainSelection=el('p','Зона не выбрана'),deleteTerrain=el('button','Удалить выбранную зону'),clearTerrain=el('button','Удалить все зоны');terrainSelection.className='quiet';deleteTerrain.disabled=true;
+   const roadSelection=el('p','Ничего не выбрано');roadSelection.className='quiet';const deleteRoadNode=el('button','Удалить узел'),deleteRoadEdge=el('button','Удалить участок'),clearRoadSelection=el('button','Снять выбор'),clearRoads=el('button','Удалить все узлы');deleteRoadNode.disabled=true;deleteRoadEdge.disabled=true;
+   const hint=el('p','Расставьте районы, отдельные места и переходы.');hint.className='quiet';
+   const poiExport=el('button','Экспорт меток'),roadExport=el('button','Экспорт дорог'),terrainExport=el('button','Экспорт местности'),mapExport=el('button','Экспорт карты целиком'),clearBtn=el('button','Удалить все локальные метки');
+   panel.append(modeSelect,cls,name,roadType,terrainType,finishTerrain,undoTerrain,cancelTerrain,terrainSelection,deleteTerrain,clearTerrain,roadSelection,deleteRoadNode,deleteRoadEdge,clearRoadSelection,clearRoads,hint,poiExport,roadExport,terrainExport,mapExport,exportAllButton(),clearBtn);root.append(panel);
+   roadEditor=new RoadEditor({frame,regionId:key,roads,getPois:()=>items,onChange:r=>{roads=r},onSelection:s=>{deleteRoadNode.disabled=!s.nodeId;deleteRoadEdge.disabled=!s.edge;roadSelection.textContent=s.nodeId?'Выбран узел: '+s.nodeId:s.edge?'Выбран участок: '+s.edge[0]+' → '+s.edge[1]:'Ничего не выбрано'}});
+   terrainEditor=new TerrainEditor({frame,mapId:key,zones:terrainZones,onChange:z=>{terrainZones=z},onSelection:z=>{terrainSelection.textContent=z?'Выбрана зона: '+z.type+' · '+z.id:'Зона не выбрана';deleteTerrain.disabled=!z}});
+   roadEditor.setRoadType(roadType.value);terrainEditor.setType(terrainType.value);
+   finishTerrain.onclick=()=>terrainEditor.finish();undoTerrain.onclick=()=>terrainEditor.undoLastPoint();cancelTerrain.onclick=()=>terrainEditor.cancelDraft();deleteTerrain.onclick=()=>terrainEditor.removeSelected();clearTerrain.onclick=()=>{if(confirm('Удалить все зоны местности этой локации?'))terrainEditor.clear()};
+   deleteRoadNode.onclick=()=>roadEditor.removeSelectedNode();deleteRoadEdge.onclick=()=>roadEditor.removeSelectedEdge();clearRoadSelection.onclick=()=>roadEditor.clearSelection();clearRoads.onclick=()=>{if(confirm('Удалить ВСЕ дорожные узлы и участки этой локации?'))roadEditor.clearAll()};
+   roadType.onchange=()=>roadEditor.setRoadType(roadType.value);terrainType.onchange=()=>terrainEditor.setType(terrainType.value);
    function persist(){savePoi(key,items);paint()}
    function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{WorldSystem.enterMapPoint(state,p);onChange?.(state);actionHost.querySelector('p')?.insertAdjacentHTML('afterend','<p class="quiet">Маршрут выбран: '+(method==='horse'?'на лошади':'пешком')+'. Расчёт пути будет подключён позже.</p>')},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
    function paint(){layer.replaceChildren();for(const item of items){if(!editing&&!WorldSystem.isDiscovered(state,item))continue;const pin=el('button');pin.className='region-poi'+((editing||selected===item.id)?' expanded':'');pin.dataset.class=item.class;pin.style.left=(item.x*100)+'%';pin.style.top=(item.y*100)+'%';if(WorldSystem.isFavorite(state,item))pin.classList.add('favorite');pin.append(el('span',WorldSystem.isFavorite(state,item)?'★':'●'),el('span',item.name||CLASSES[item.class]||'Место'));layer.append(pin);clampPin(pin,frame,item);
-    pin.onclick=e=>{e.stopPropagation();if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;paint();showActions(item)};
-    pin.onpointerdown=e=>{if(!editing)return;e.preventDefault();e.stopPropagation();drag=item;pin.setPointerCapture?.(e.pointerId)};
-    pin.onpointermove=e=>{if(!drag)return;const r=frame.getBoundingClientRect();drag.x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));drag.y=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
+    pin.onclick=e=>{e.stopPropagation();if(editing&&editorMode!=='poi')return;if(editing){if(confirm('Удалить «'+item.name+'»?')){items=items.filter(x=>x.id!==item.id);persist()}return}selected=item.id;paint();showActions(item)};
+    pin.onpointerdown=e=>{if(!editing||editorMode!=='poi')return;e.preventDefault();e.stopPropagation();drag=item;pin.setPointerCapture?.(e.pointerId)};
+    pin.onpointermove=e=>{if(!drag)return;const p=mapPoint(frame,e.clientX,e.clientY);drag.x=p.x;drag.y=p.y;pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
     pin.onpointerup=()=>{if(drag){drag=null;persist()}}}}
-   frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const r=frame.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height,c=cls.value,label=name.value.trim()||({district:'Район',place:'Место',transition:'Переход'}[c]);items.push({id:location.id+'-'+slug(label)+'-'+Date.now().toString(36),name:label,class:c,type:c,x:+x.toFixed(5),y:+y.toFixed(5)});name.value='';persist()};
-   edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);edit.textContent=editing?'Готово':'Редактор';paint()};
+   frame.onclick=e=>{if(e.target.closest('.region-poi')||!editing||editorMode!=='poi')return;if(!editing){selected=null;WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}const p=mapPoint(frame,e.clientX,e.clientY),choice=cls.value,label=name.value.trim()||({district:'Район',place:'Место',transition:'Переход'}[choice]);items.push({id:location.id+'-'+slug(label)+'-'+Date.now().toString(36),name:label,class:choice,type:choice,x:+p.x.toFixed(5),y:+p.y.toFixed(5)});name.value='';persist()};
+   function syncEditorTools(){const road=editorMode==='road',terrain=editorMode==='terrain';for(const x of [roadType,roadSelection,deleteRoadNode,deleteRoadEdge,clearRoadSelection,clearRoads,roadExport])x.classList.toggle('hidden',!road);for(const x of [terrainType,finishTerrain,undoTerrain,cancelTerrain,terrainSelection,deleteTerrain,clearTerrain,terrainExport])x.classList.toggle('hidden',!terrain);for(const x of [cls,name,poiExport,clearBtn])x.classList.toggle('hidden',road||terrain);hint.textContent=road?'Ставьте и соединяйте дорожные узлы локации.':terrain?'Неразмеченная территория имеет обычную скорость. Размечайте только местность с модификатором.':'Расставьте районы, отдельные места и переходы.'}
+   modeSelect.onchange=()=>{editorMode=modeSelect.value;drag=null;roadEditor.setActive(editing&&editorMode==='road');terrainEditor.setActive(editing&&editorMode==='terrain');frame.dataset.editorMode=editorMode;syncEditorTools();paint()};
+   edit.onclick=()=>{editing=!editing;panel.classList.toggle('hidden',!editing);frame.classList.toggle('editing',editing);frame.dataset.editorMode=editing?editorMode:'';edit.textContent=editing?'Готово':'Редактор';roadEditor.setActive(editing&&editorMode==='road');terrainEditor.setActive(editing&&editorMode==='terrain');paint()};
    back.onclick=()=>{current.locationId=null;current.districtId=null;current.placeId=null;onChange?.(state);mode='region';renderRegion()};
-   exportBtn.onclick=()=>downloadJson('location-'+location.id+'-poi.json',{location:location.id,map:location.map,points:items});
-   clearBtn.onclick=()=>{if(confirm('Удалить все локальные метки этой локации?')){items=[];persist()}};paint();
-   cleanup=()=>{frame.onclick=null;back.onclick=null;edit.onclick=null};
+   poiExport.onclick=()=>downloadJson('location-'+location.id+'-poi.json',{location:location.id,map:location.map,points:items});
+   roadExport.onclick=()=>downloadJson('location-'+location.id+'-roads.json',roads);
+   terrainExport.onclick=()=>downloadJson('location-'+location.id+'-terrain.json',{mapId:key,zones:terrainZones});
+   mapExport.onclick=()=>downloadJson('location-'+location.id+'-map.json',mapBundle(key,{kind:'location',id:location.id,map:location.map,points:items}));
+   clearBtn.onclick=()=>{if(confirm('Удалить все локальные метки этой локации?')){items=[];persist()}};
+   syncEditorTools();paint();
+   cleanup=()=>{roadEditor?.destroy();terrainEditor?.destroy();frame.onclick=null;back.onclick=null;edit.onclick=null};
   }
 
   if(mode==='location'){const location=CENTRAL_LANDS.points.find(p=>p.id===current.locationId&&p.map);if(location)renderLocation(location);else renderRegion()}else if(mode==='region')renderRegion();else renderWorld();
