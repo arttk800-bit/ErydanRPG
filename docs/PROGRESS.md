@@ -21,3 +21,7 @@ The old “0.15 migration 99/100” percentage is retired because the project ha
 
 ## Definition of progress
 Progress is measured by working systems plus passing gates, not by file count or a single completion percentage. A feature is considered complete only after correct ownership, validation/regression checks and release metadata synchronization where applicable.
+
+
+## 0.89 world simulation / spatial model
+Implemented schema-3 simulation state, continuous foreground-only world clock, travel playback retuning, progressive sleep foundation, temporary camp locations, exact access-port travel targets, location entry fallbacks, preview-vs-entry separation, party-marker synchronization, visible POI IDs, actionable transition binding and contextual free-waypoint labels. Added world-simulation regression coverage to the campaign gate. Local test execution remains blocked in the current tool environment by GitHub DNS; syntax gate is run separately.
