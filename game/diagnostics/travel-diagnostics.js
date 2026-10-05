@@ -26,7 +26,7 @@ export function runTravelDiagnostics(){
  checks.push(['Travel start',!!t&&t.status==='travelling']);
  if(t){
   const before=t.progress;TravelSystem.tick(s,1,diagnosticRoads,1);checks.push(['Travel advances',t.progress>before]);
-  PauseSystem.set(s,'manual',true);const paused=t.progress;TravelSystem.tick(s,1,.05);checks.push(['Pause freezes travel',t.progress===paused]);PauseSystem.set(s,'manual',false);
+  PauseSystem.set(s,'manual',true);const paused=t.progress;TravelSystem.tick(s,1,diagnosticRoads,.05);checks.push(['Pause freezes travel',t.progress===paused]);PauseSystem.set(s,'manual',false);
   TravelSystem.stop(s,{roads:diagnosticRoads,points});checks.push(['Stop action',t.status==='stopped']);TravelSystem.resume(s,{roads:diagnosticRoads,points});checks.push(['Resume action',t.status==='travelling']);
   TravelSystem.camp(s,{roads:diagnosticRoads,points});checks.push(['Camp action',t.status==='camp'&&!!s.world.camp]);TravelSystem.resume(s,{roads:diagnosticRoads,points});
   TravelSystem.tick(s,1,.05);const pos={...t.position};TravelSystem.cancel(s,{roads:diagnosticRoads,points});checks.push(['Cancel preserves exact position',!s.world.position.pointId&&Math.hypot(s.world.position.position.x-pos.x,s.world.position.position.y-pos.y)<1e-9]);
