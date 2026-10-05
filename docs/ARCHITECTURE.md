@@ -69,3 +69,7 @@ Every non-trivial source file must identify its responsibility at the top. Large
 
 ## Feedback and diagnostics boundary
 Player feedback is owned by `game/feedback/`, not by UI or Diagnostics. `FeedbackSystem` validates bug reports and suggestions, `buildFeedbackPackage` creates one portable package, and transports decide delivery. The current transport downloads ZIP; server/email/GitHub-backed delivery is a future transport. Diagnostics remains observational and can be attached to feedback without owning feedback state. Device/browser information is collected only after explicit consent.
+
+
+## Diagnostics domain adapters
+Diagnostics observes active systems through read-only adapters. State/save validation, World/Simulation, PWA/cache and Audio snapshots remain separate from their owning systems; `shell-diagnostics.js` only aggregates reports. Diagnostics must not mutate canonical state or duplicate gameplay/client rules.
