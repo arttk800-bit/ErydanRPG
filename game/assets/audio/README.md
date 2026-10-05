@@ -1,2 +1,5 @@
-# Audio
-Clash Defiant must be shipped as a real local MP3 file in the APK assets. No remote URL and no procedural substitute. Playback starts only after a user gesture because Android WebView/browser autoplay policies may block automatic audio.
+# Audio assets
+
+Audio files belong to the PWA asset pipeline and must use independent revision/integrity metadata when added to the managed asset catalog. Playback policy and context selection belong to the `game/audio/` domain; UI only changes user-facing audio settings.
+
+Do not add remote runtime dependencies or restore the retired APK-specific audio path.
