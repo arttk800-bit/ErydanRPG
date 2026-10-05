@@ -27,6 +27,9 @@ export class UpdateManager{
    const remote=this.available||await this.fetchRemote();
    this.available=remote;this.setState('reloading',{remote});
    await this.activateServiceWorker(remote);
+   // Navigation is the actual update boundary. Do not wait for the old page's
+   // controller to become the new build: on some Android Chromium versions
+   // controllerchange is only finalized by navigation itself.
    await this.onApply?.(remote);runtimeTrace.end(trace,{ok:true,remote});return true;
   }catch(error){this.setState('error',{step:'reload',message:errorMessage(error)});runtimeTrace.error('update.reload',error);runtimeTrace.end(trace,{ok:false});return false}
   finally{this.busy=false}
@@ -40,8 +43,8 @@ export class UpdateManager{
    if(worker.state==='installing')await waitWorkerState(worker,'installed',8000);
    (reg.waiting||worker).postMessage({type:'SKIP_WAITING'});
   }
-  const active=await waitForControllerBuild(remote?.build,8000);
-  if(remote?.build&&active!==remote.build)throw new Error('runtime build '+(active||'unknown')+' != '+remote.build);
+  // The new worker may not control this document until the reload/navigation.
+  // Build verification happens on the next boot via loadBuild().
  }
  async download(){return this.update()}
  async apply(){return this.update()}
