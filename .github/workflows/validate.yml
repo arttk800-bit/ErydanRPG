@@ -1,8 +1,11 @@
 # CAMPAIGN GATE
-# Manual release-block validation for the enabled campaign/client/world boundary.
+# Runs only when the finished change block is promoted to the ci/gate branch.
 name: validate campaign
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ci/gate
 jobs:
   test:
     runs-on: ubuntu-latest
