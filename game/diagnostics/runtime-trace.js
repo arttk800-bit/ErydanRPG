@@ -3,7 +3,7 @@ function clone(v){try{return structuredClone(v)}catch{try{return JSON.parse(JSON
 function compactState(s){if(!s)return null;return clone({clock:s.clock,world:s.world,meta:s.meta?{worldId:s.meta.worldId,worldName:s.meta.worldName}:null})}
 function diff(a,b,path='',out=[]){if(Object.is(a,b))return out;if(typeof a!=='object'||a===null||typeof b!=='object'||b===null){out.push({path:path||'$',before:a,after:b});return out}const keys=new Set([...Object.keys(a),...Object.keys(b)]);for(const k of keys){if(out.length>=80)break;diff(a[k],b[k],path?path+'.'+k:k,out)}return out}
 class RuntimeTrace{
- constructor(){this.seq=0;this.events=[];this.spans=new Map();this.stateProvider=null;this.dirty=false;this.load();setInterval(()=>this.flush(),4000)}
+ constructor(){this.seq=0;this.events=[];this.spans=new Map();this.stateProvider=null;this.dirty=false;this.load();this.flushTimer=setInterval(()=>this.flush(),4000);this.flushTimer?.unref?.()}
  setStateProvider(fn){this.stateProvider=fn}
  state(){try{return compactState(this.stateProvider?.())}catch{return null}}
  record(kind,name,data={}){const e={id:++this.seq,at:new Date().toISOString(),mono:Math.round(performance.now()),kind,name,data:clone(data)};this.events.push(e);if(this.events.length>MAX_EVENTS)this.events.splice(0,this.events.length-MAX_EVENTS);this.dirty=true;return e}
