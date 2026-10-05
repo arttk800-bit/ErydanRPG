@@ -45,6 +45,18 @@
       <button data-action="debug" class="quiet">Отладка</button>
     </section>
   </main>
+  <main id="screen-debug" class="screen menu-screen hidden">
+    <section class="panel debug-panel">
+      <h2>Отладка</h2>
+      <p class="quiet">Инструменты диагностики запускаются только вручную и не перекрывают игровой экран.</p>
+      <div id="debugTools" class="debug-tools">
+        <button data-debug="run">Запустить проверки</button>
+        <button data-debug="archive">Скачать диагностику</button>
+      </div>
+      <div id="debugResults" class="debug-results"><p class="quiet">Проверки ещё не запускались.</p></div>
+      <button data-action="back">← Назад</button>
+    </section>
+  </main>
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true"><section class="panel modal-card"><h3 id="modalTitle"></h3><div id="modalBody"></div><div id="modalActions" class="modal-actions"></div></section></div>
   <div id="toast" class="toast hidden"></div>
 </div>
