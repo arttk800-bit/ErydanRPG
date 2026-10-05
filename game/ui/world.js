@@ -5,6 +5,7 @@
 // ============================================================================
 import {WORLD_DATA} from '../data/world.js';
 import {WorldSystem} from '../systems/world/world.js';
+import {MapViewSystem} from '../map/view-state.js';
 import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
 import {VELIGRAD} from '../data/locations/veligrad.js';
 import {CENTRAL_LANDS_ROADS} from '../data/regions/central-lands-roads.js';
@@ -31,7 +32,7 @@ export const WorldUI={
   for(const [id,r] of Object.entries(WORLD_DATA.regions))indexToId[r.index]=id;
   const current=WorldSystem.ensure(state);
   if(current.regionId&&!WORLD_DATA.regions[current.regionId])current.regionId=null;
-  let mode=current.locationId==='veligrad'?'location':(current.regionId==='forest'?'region':'world');
+  const view=MapViewSystem.ensure(state);let mode=view.level;
   let cleanup=()=>{};
 
   // --------------------------------------------------------------------------
@@ -39,15 +40,15 @@ export const WorldUI={
   // --------------------------------------------------------------------------
   function renderWorld(){
    cleanup();onAudioContext('world');root.replaceChildren();
-   const statusText=()=>current.regionId?'Вы находитесь в регионе: '+WORLD_DATA.regions[current.regionId].name:'Выберите регион';
+   const statusText=()=>current.regionId?'Отряд находится в регионе: '+(WORLD_DATA.regions[current.regionId]?.name||current.regionId):'Местоположение отряда не определено';
    const head=el('div');head.className='world-head';const fogToggle=el('button','Туман: вкл');fogToggle.className='world-fog-toggle';head.append(el('h2','Карта мира'),fogToggle);let fogEnabled=true;
    const status=el('p',statusText());status.className='world-region-status';head.append(status);root.append(head);
    const frame=el('div');frame.className='world-map-frame';
    const img=el('img');img.className='world-map-image';img.src=WORLD_DATA.map.asset;img.alt='Карта мира Эйрдан';frame.append(img);
    const shade=el('canvas');shade.className='world-region-shade';frame.append(shade);const regionLabel=el('div');regionLabel.className='world-selected-region';frame.append(regionLabel);root.append(frame);
-   function draw(){regionLabel.textContent=current.regionId?WORLD_DATA.regions[current.regionId]?.name||'':'';const center=current.regionId?regionCenters[WORLD_DATA.regions[current.regionId]?.index]:null;if(center){regionLabel.style.left=(center.x/mw*100)+'%';regionLabel.style.top=(center.y/mh*100)+'%'}if(!pixels)return;shade.width=mw;shade.height=mh;const ctx=shade.getContext('2d'),out=ctx.createImageData(mw,mh);const selected=current.regionId?WORLD_DATA.regions[current.regionId]?.index:0;for(let p=0,i=0;p<pixels.length;p++,i+=4){const idx=pixels[p],id=indexToId[idx];if(fogEnabled&&idx>0&&idx!==selected&&!WorldSystem.isRegionAvailable(state,id)){out.data[i]=18;out.data[i+1]=24;out.data[i+2]=23;out.data[i+3]=218}else if(idx>0&&idx!==selected){out.data[i+3]=58}}ctx.putImageData(out,0,0)}
+   function draw(){regionLabel.textContent=view.regionId?WORLD_DATA.regions[view.regionId]?.name||'':'';const center=view.regionId?regionCenters[WORLD_DATA.regions[view.regionId]?.index]:null;if(center){regionLabel.style.left=(center.x/mw*100)+'%';regionLabel.style.top=(center.y/mh*100)+'%'}if(!pixels)return;shade.width=mw;shade.height=mh;const ctx=shade.getContext('2d'),out=ctx.createImageData(mw,mh);const selected=view.regionId?WORLD_DATA.regions[view.regionId]?.index:0;for(let p=0,i=0;p<pixels.length;p++,i+=4){const idx=pixels[p],id=indexToId[idx];if(fogEnabled&&idx>0&&idx!==selected&&!WorldSystem.isRegionAvailable(state,id)){out.data[i]=18;out.data[i+1]=24;out.data[i+2]=23;out.data[i+3]=218}else if(idx>0&&idx!==selected){out.data[i+3]=58}}ctx.putImageData(out,0,0)}
    const mask=new Image();mask.onload=()=>{mw=mask.naturalWidth;mh=mask.naturalHeight;const c=document.createElement('canvas');c.width=mw;c.height=mh;const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(mask,0,0);const d=x.getImageData(0,0,mw,mh).data;pixels=new Uint8Array(mw*mh);const sums={};for(let p=0,i=0;p<pixels.length;p++,i+=4){const idx=d[i];pixels[p]=idx;if(idx>0){const q=sums[idx]||(sums[idx]={x:0,y:0,n:0});q.x+=p%mw;q.y+=Math.floor(p/mw);q.n++}}regionCenters={};for(const [idx,q] of Object.entries(sums))regionCenters[idx]={x:q.x/q.n,y:q.y/q.n};draw()};mask.src=WORLD_DATA.map.mask;
-   fogToggle.onclick=()=>{fogEnabled=!fogEnabled;fogToggle.textContent='Туман: '+(fogEnabled?'вкл':'выкл');draw()};frame.onclick=e=>{if(!pixels)return;const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(mw-1,Math.floor((e.clientX-r.left)/r.width*mw))),y=Math.max(0,Math.min(mh-1,Math.floor((e.clientY-r.top)/r.height*mh))),id=indexToId[pixels[y*mw+x]];if(!id||!WorldSystem.isRegionAvailable(state,id))return;WorldSystem.enterRegion(state,id);status.textContent=statusText();draw();onChange?.(state);if(id==='forest'){mode='region';renderRegion()}};
+   fogToggle.onclick=()=>{fogEnabled=!fogEnabled;fogToggle.textContent='Туман: '+(fogEnabled?'вкл':'выкл');draw()};frame.onclick=e=>{if(!pixels)return;const r=frame.getBoundingClientRect(),x=Math.max(0,Math.min(mw-1,Math.floor((e.clientX-r.left)/r.width*mw))),y=Math.max(0,Math.min(mh-1,Math.floor((e.clientY-r.top)/r.height*mh))),id=indexToId[pixels[y*mw+x]];if(!id)return;MapViewSystem.region(state,id);mode='region';draw();onChange?.(state);renderRegion(id)};
    cleanup=()=>{frame.onclick=null};
   }
 
@@ -55,9 +56,11 @@ export const WorldUI={
   // REGION VIEW — renders regional POIs/travel state; systems own game rules.
   // Map Editor is composed through tools/map-editor public interfaces.
   // --------------------------------------------------------------------------
-  function renderRegion(){
-   cleanup();onAudioContext('forest');root.replaceChildren();
-   const region=WORLD_DATA.regions.forest;
+  function renderRegion(regionId=view.regionId||current.regionId||'forest'){
+   cleanup();onAudioContext('world');root.replaceChildren();
+   const region=WORLD_DATA.regions[regionId];
+   if(!region?.map){const head=el('div');head.className='region-head';const back=el('button','← Мир');back.className='region-back';head.append(back,el('h2',region?.name||'Регион'));root.append(head,el('p','Карта этого региона пока не добавлена. Предпросмотр не изменяет положение отряда.'));back.onclick=()=>{MapViewSystem.world(state);mode='world';onChange?.(state);renderWorld()};cleanup=()=>{back.onclick=null};return}
+   
    const head=el('div');head.className='region-head';
    const back=el('button','← Мир');back.className='region-back';
    const title=el('div');title.append(el('h2',region.name),el('p','Карта региона'));
@@ -93,7 +96,7 @@ export const WorldUI={
    function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{if(method==='enter'&&p.map){const here=state.world?.position?.pointId||current.locationId||current.placeId||'veligrad';if(here!==p.id){startTravel(p,'walk');return}WorldSystem.enterMapPoint(state,p);onChange?.(state);mode='location';renderLocation(p);return}startTravel(p,method)},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
    frame.onclick=e=>{if(e.target.closest('.region-poi'))return;const mp=mapPoint(frame,e.clientX,e.clientY);if(!editing){selected=null;WorldSystem.clearMapPoint(state);const target={x:mp.x,y:mp.y};freeTarget.style.left=(target.x*100)+'%';freeTarget.style.top=(target.y*100)+'%';freeTarget.classList.remove('hidden');const card=el('section');card.className='map-point-card free-travel-card';card.append(el('h3','Точка на карте'),el('p','Свободное перемещение с учётом дорог и зон местности.'));const actions=el('div');actions.className='map-point-actions';const walk=el('button','Идти пешком'),horse=el('button','На лошади'),cancel=el('button','Отмена');walk.onclick=ev=>{ev.stopPropagation();startTravel(target,'walk')};horse.onclick=ev=>{ev.stopPropagation();startTravel(target,'horse')};cancel.onclick=ev=>{ev.stopPropagation();freeTarget.classList.add('hidden');actionHost.replaceChildren()};actions.append(walk,horse,cancel);card.append(actions);actionHost.replaceChildren(card);onChange?.(state);paint();freeTarget.classList.remove('hidden');return}poiAuthoring.addFromEvent(e)};
    function syncEditorTools(){editorPanel.sync(editorMode);mapExport.classList.toggle('hidden',false);hint.textContent=editorMode==='road'?'Ставьте и соединяйте дорожные узлы. Тип местности определяется отдельными полигонами.':editorMode==='terrain'?'Неразмеченная территория имеет обычную скорость. Размечайте только зоны с модификатором; вершины выбранной зоны можно перетаскивать.':'Создавайте и перемещайте метки.'}
-      back.onclick=()=>{mode='world';renderWorld()};
+      back.onclick=()=>{MapViewSystem.world(state);mode='world';onChange?.(state);renderWorld()};
    if(!state.world.position?.pointId)state.world.position={regionId:'forest',pointId:'veligrad'};
    const existingTravel=TravelSystem.ensure(state);if(['travelling','event','stopped','camp'].includes(existingTravel.status)){lastTravelAt=performance.now();travelTimer=requestAnimationFrame(travelFrame)}
    paint();
@@ -126,7 +129,7 @@ export const WorldUI={
     poiAuthoring.bindPin(pin,item)}}
    frame.onclick=e=>{if(e.target.closest('.region-poi'))return;if(!editing){selected=null;WorldSystem.clearMapPoint(state);onChange?.(state);paint();return}poiAuthoring.addFromEvent(e)};
    function syncEditorTools(){editorPanel.sync(editorMode);hint.textContent=editorMode==='road'?'Ставьте и соединяйте дорожные узлы локации.':editorMode==='terrain'?'Неразмеченная территория имеет обычную скорость. Размечайте только местность с модификатором.':'Расставьте районы, отдельные места и переходы.'}
-      back.onclick=()=>{current.locationId=null;current.districtId=null;current.placeId=null;onChange?.(state);mode='region';renderRegion()};
+      back.onclick=()=>{MapViewSystem.region(state,view.regionId||current.regionId||'forest');onChange?.(state);mode='region';renderRegion(view.regionId||current.regionId||'forest')};
    roadExport.onclick=()=>downloadJson('location-'+location.id+'-roads.json',roads);
    terrainExport.onclick=()=>downloadJson('location-'+location.id+'-terrain.json',{mapId:key,zones:terrainZones});
    mapExport.onclick=()=>downloadJson('location-'+location.id+'-map.json',mapBundle(key,{kind:'location',id:location.id,map:location.map,points:items}));
@@ -134,7 +137,7 @@ export const WorldUI={
    cleanup=()=>{poiAuthoring.destroy();editorSession.destroy();frame.onclick=null;back.onclick=null;edit.onclick=null};
   }
 
-  if(mode==='location'){const location=CENTRAL_LANDS.points.find(p=>p.id===current.locationId&&p.map);if(location)renderLocation(location);else renderRegion()}else if(mode==='region')renderRegion();else renderWorld();
+  if(mode==='location'){const location=CENTRAL_LANDS.points.find(p=>p.id===(view.locationId||current.locationId)&&p.map);if(location)renderLocation(location);else renderRegion(view.regionId||current.regionId||'forest')}else if(mode==='region')renderRegion(view.regionId||current.regionId||'forest');else renderWorld();
   return()=>cleanup();
  }
 };
