@@ -1,3 +1,8 @@
+// ============================================================================
+// WORLD UI ADAPTER
+// Composes world/region/location presentation and forwards actions to systems.
+// Gameplay rules, travel simulation and editor internals belong to their owners.
+// ============================================================================
 import {WORLD_DATA} from '../data/world.js';
 import {WorldSystem} from '../systems/world/world.js';
 import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
@@ -30,6 +35,9 @@ export const WorldUI={
   let mode=current.locationId==='veligrad'?'location':(current.regionId==='forest'?'region':'world');
   let cleanup=()=>{};
 
+  // --------------------------------------------------------------------------
+  // WORLD MAP VIEW — renders global regions/fog and forwards region selection.
+  // --------------------------------------------------------------------------
   function renderWorld(){
    cleanup();root.replaceChildren();
    const statusText=()=>current.regionId?'Вы находитесь в регионе: '+WORLD_DATA.regions[current.regionId].name:'Выберите регион';
@@ -44,6 +52,10 @@ export const WorldUI={
    cleanup=()=>{frame.onclick=null};
   }
 
+  // --------------------------------------------------------------------------
+  // REGION VIEW — renders regional POIs/travel state; systems own game rules.
+  // Map Editor is composed through tools/map-editor public interfaces.
+  // --------------------------------------------------------------------------
   function renderRegion(){
    cleanup();root.replaceChildren();
    const region=WORLD_DATA.regions.forest;
@@ -90,6 +102,9 @@ export const WorldUI={
    cleanup=()=>{editorController?.destroy();if(travelTimer)cancelAnimationFrame(travelTimer);travelTimer=null;frame.onclick=null;back.onclick=null;edit.onclick=null};
   }
 
+  // --------------------------------------------------------------------------
+  // LOCATION VIEW — renders location POIs and delegates editor tooling.
+  // --------------------------------------------------------------------------
   function renderLocation(location){
    cleanup();root.replaceChildren();
    const head=el('div');head.className='region-head';
