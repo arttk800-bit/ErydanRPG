@@ -5,10 +5,16 @@
   "description": "Eirdan systemic role-playing game",
   "start_url": "./app/index.html",
   "scope": "./",
-  "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
+  "display": "fullscreen",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
   "background_color": "#090d0c",
   "theme_color": "#090d0c",
   "orientation": "any",
-  "categories": ["games", "entertainment"]
+  "categories": [
+    "games",
+    "entertainment"
+  ]
 }
