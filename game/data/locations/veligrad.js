@@ -28,9 +28,9 @@ export const VELIGRAD={
   {id:'veligrad-place-farsoutheast',name:'Место',class:'place',type:'place',x:0.88346,y:0.89233},
   {id:'veligrad-place-farsouth',name:'Место',class:'place',type:'place',x:0.50342,y:0.94721},
   {id:'veligrad-place-farnorthwest',name:'Место',class:'place',type:'place',x:0.08801,y:0.03331},
-  {id:'veligrad-gate-west',name:'Западные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.0413,y:0.66906},
-  {id:'veligrad-gate-east',name:'Восточные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.96301,y:0.51959},
-  {id:'veligrad-gate-northwest',name:'Северо-западные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.35569,y:0.02574},
-  {id:'veligrad-gate-south',name:'Южные ворота',class:'gate',type:'gate',exit:{regionId:'forest'},x:0.50342,y:0.94721}
+  {id:'veligrad-gate-west',name:'Западные ворота',class:'transition',type:'transition',exit:{regionId:'forest'},x:0.0413,y:0.66906},
+  {id:'veligrad-gate-east',name:'Восточные ворота',class:'transition',type:'transition',exit:{regionId:'forest'},x:0.96301,y:0.51959},
+  {id:'veligrad-gate-northwest',name:'Северо-западные ворота',class:'transition',type:'transition',exit:{regionId:'forest'},x:0.35569,y:0.02574},
+  {id:'veligrad-gate-south',name:'Южные ворота',class:'transition',type:'transition',exit:{regionId:'forest'},x:0.50342,y:0.94721}
  ]
 };
