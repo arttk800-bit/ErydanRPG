@@ -26,7 +26,7 @@ function clampPin(pin){pin.style.transform='translate(-50%,-50%)'}
 
 export const WorldUI={
  ready:true,
- mount(root,state,onChange){
+ mount(root,state,onChange,onAudioContext=()=>{}){
   let pixels=null,mw=0,mh=0,indexToId={},regionCenters={};
   for(const [id,r] of Object.entries(WORLD_DATA.regions))indexToId[r.index]=id;
   const current=WorldSystem.ensure(state);
@@ -38,7 +38,7 @@ export const WorldUI={
   // WORLD MAP VIEW — renders global regions/fog and forwards region selection.
   // --------------------------------------------------------------------------
   function renderWorld(){
-   cleanup();root.replaceChildren();
+   cleanup();onAudioContext('world');root.replaceChildren();
    const statusText=()=>current.regionId?'Вы находитесь в регионе: '+WORLD_DATA.regions[current.regionId].name:'Выберите регион';
    const head=el('div');head.className='world-head';const fogToggle=el('button','Туман: вкл');fogToggle.className='world-fog-toggle';head.append(el('h2','Карта мира'),fogToggle);let fogEnabled=true;
    const status=el('p',statusText());status.className='world-region-status';head.append(status);root.append(head);
@@ -56,7 +56,7 @@ export const WorldUI={
   // Map Editor is composed through tools/map-editor public interfaces.
   // --------------------------------------------------------------------------
   function renderRegion(){
-   cleanup();root.replaceChildren();
+   cleanup();onAudioContext('forest');root.replaceChildren();
    const region=WORLD_DATA.regions.forest;
    const head=el('div');head.className='region-head';
    const back=el('button','← Мир');back.className='region-back';
@@ -88,7 +88,7 @@ export const WorldUI={
    }
    function persist(){savePoi('forest',items);paint()}
    function routeStatus(t){let box=actionHost.querySelector('.travel-status');if(!box){box=el('section');box.className='travel-status';actionHost.append(box)}const p=TravelSystem.progress(state),pct=Math.round(p.ratio*100),km=n=>(n/1000).toFixed(n>=10000?1:2);box.replaceChildren(el('div','Путь: '+pct+'% · '+km(p.done)+' км / '+km(p.total)+' км · осталось '+km(p.left)+' км'));const bar=el('progress');bar.max=1;bar.value=p.ratio;box.append(bar);const actions=el('div');actions.className='travel-actions';const camp=el('button',t.status==='camp'?'Свернуть лагерь':'Разбить лагерь');camp.onclick=()=>{t.status==='camp'?TravelSystem.resume(state,{roads,points:items,terrainZones}):TravelSystem.camp(state,{roads,points:items,terrainZones});routeStatus(t)};const cancel=el('button','Отменить путь');cancel.onclick=()=>{TravelSystem.cancel(state,{roads,points:items,terrainZones});box.remove();paintParty();onChange?.(state)};actions.append(camp,cancel);box.append(actions)}
-   function startTravel(target,method){const active=TravelSystem.ensure(state);if(['travelling','event','stopped','camp'].includes(active.status)){const msg=el('p','Сначала отмените текущий путь.');msg.className='quiet map-route-status';actionHost.append(msg);return}const anchored=state.world?.position?.pointId||null,from=anchored||current.locationId||current.placeId||'veligrad';if(anchored===target.id){WorldSystem.enterMapPoint(state,target);onChange?.(state);paint();return}const free=anchored?null:state.world?.position?.position||active.position||null,t=TravelSystem.start(state,{roads,points:items,fromId:from,toId:target.id||null,toPosition:target.id?null:{x:target.x,y:target.y},method,fromPosition:free,terrainZones});if(!t){const msg=el('p','К этой точке пока нет доступного маршрута.');msg.className='quiet map-route-status';actionHost.append(msg);return}state.world.camp=null;const old=actionHost.querySelector('.map-route-status');old?.remove();const msg=el('p',(method==='horse'?'Верхом':'Пешком')+': '+(t.distanceTotal/1000).toFixed(2)+' км');msg.className='quiet map-route-status';actionHost.append(msg);routeStatus(t);lastTravelAt=performance.now();if(!travelTimer)travelTimer=requestAnimationFrame(travelFrame);onChange?.(state);paintParty()}
+   function startTravel(target,method){onAudioContext('travel');const active=TravelSystem.ensure(state);if(['travelling','event','stopped','camp'].includes(active.status)){const msg=el('p','Сначала отмените текущий путь.');msg.className='quiet map-route-status';actionHost.append(msg);return}const anchored=state.world?.position?.pointId||null,from=anchored||current.locationId||current.placeId||'veligrad';if(anchored===target.id){WorldSystem.enterMapPoint(state,target);onChange?.(state);paint();return}const free=anchored?null:state.world?.position?.position||active.position||null,t=TravelSystem.start(state,{roads,points:items,fromId:from,toId:target.id||null,toPosition:target.id?null:{x:target.x,y:target.y},method,fromPosition:free,terrainZones});if(!t){const msg=el('p','К этой точке пока нет доступного маршрута.');msg.className='quiet map-route-status';actionHost.append(msg);return}state.world.camp=null;const old=actionHost.querySelector('.map-route-status');old?.remove();const msg=el('p',(method==='horse'?'Верхом':'Пешком')+': '+(t.distanceTotal/1000).toFixed(2)+' км');msg.className='quiet map-route-status';actionHost.append(msg);routeStatus(t);lastTravelAt=performance.now();if(!travelTimer)travelTimer=requestAnimationFrame(travelFrame);onChange?.(state);paintParty()}
    function travelFrame(now){travelTimer=null;const t=TravelSystem.ensure(state);if(!['travelling','event','stopped','camp'].includes(t.status))return;const dt=Math.min(.1,Math.max(0,(now-(lastTravelAt||now))/1000));lastTravelAt=now;if(t.status==='travelling'){const gs=GameSpeedSystem.get(state),before=t.distanceDone||0;TravelSystem.tick(state,dt,roads,gs);if((t.distanceDone||0)>before){state.clock.minute+=dt*gs;while(state.clock.minute>=1440){state.clock.minute-=1440;state.clock.day++}}paintParty();routeStatus(t);if(t.status==='arrived'){const dest=items.find(p=>p.id===t.toId);state.world.position=dest?{regionId:'forest',pointId:t.toId}:{regionId:'forest',pointId:null,position:{...t.position}};freeTarget.classList.add('hidden');if(dest)WorldSystem.enterMapPoint(state,dest);else WorldSystem.clearMapPoint(state);onChange?.(state);paint();if(dest)showActions(dest);else actionHost.replaceChildren();return}}travelTimer=requestAnimationFrame(travelFrame)}
    function showActions(item){actionHost.replaceChildren(actionPanel(item,state,(p,method)=>{if(method==='enter'&&p.map){const here=state.world?.position?.pointId||current.locationId||current.placeId||'veligrad';if(here!==p.id){startTravel(p,'walk');return}WorldSystem.enterMapPoint(state,p);onChange?.(state);mode='location';renderLocation(p);return}startTravel(p,method)},(p,b)=>{const favorite=WorldSystem.toggleFavorite(state,p);b.textContent=favorite?'★ В избранном':'☆ В избранное';onChange?.(state);paint()}))}
    frame.onclick=e=>{if(e.target.closest('.region-poi'))return;const mp=mapPoint(frame,e.clientX,e.clientY);if(!editing){selected=null;WorldSystem.clearMapPoint(state);const target={x:mp.x,y:mp.y};freeTarget.style.left=(target.x*100)+'%';freeTarget.style.top=(target.y*100)+'%';freeTarget.classList.remove('hidden');const card=el('section');card.className='map-point-card free-travel-card';card.append(el('h3','Точка на карте'),el('p','Свободное перемещение с учётом дорог и зон местности.'));const actions=el('div');actions.className='map-point-actions';const walk=el('button','Идти пешком'),horse=el('button','На лошади'),cancel=el('button','Отмена');walk.onclick=ev=>{ev.stopPropagation();startTravel(target,'walk')};horse.onclick=ev=>{ev.stopPropagation();startTravel(target,'horse')};cancel.onclick=ev=>{ev.stopPropagation();freeTarget.classList.add('hidden');actionHost.replaceChildren()};actions.append(walk,horse,cancel);card.append(actions);actionHost.replaceChildren(card);onChange?.(state);paint();freeTarget.classList.remove('hidden');return}poiAuthoring.addFromEvent(e)};
@@ -104,7 +104,7 @@ export const WorldUI={
   // LOCATION VIEW — renders location POIs and delegates editor tooling.
   // --------------------------------------------------------------------------
   function renderLocation(location){
-   cleanup();root.replaceChildren();
+   cleanup();onAudioContext('town');root.replaceChildren();
    const head=el('div');head.className='region-head';
    const back=el('button','← Регион');back.className='region-back';
    const title=el('div');title.append(el('h2',location.name),el('p','Карта локации'));
