@@ -9,8 +9,8 @@ assert.ok(timer.elapsedMs>=0);
 assert.equal(typeof timer.summary().formatted,'string');
 
 const weapons={sword:{damage:[8,8],ap:3,range:1,accuracy:1}};
-const actor={id:'a',team:'ally',q:0,r:0,ap:10,st:100,resolve:50,alive:true,escaped:false,weapon:'sword'};
-const enemy={id:'e',team:'enemy',q:1,r:0,ap:10,st:100,resolve:50,alive:true,escaped:false,weapon:'sword',hp:50,maxHp:50,armor:0,body:{torso:{hp:50,maxHp:50,armor:0}}};
+const actor={id:'a',team:'ally',q:0,r:0,ap:10,st:100,resolve:50,alive:true,escaped:false,w:'sword'};
+const enemy={id:'e',team:'enemy',q:1,r:0,ap:10,st:100,resolve:50,alive:true,escaped:false,w:'sword',hp:50,maxHp:50,armor:0,body:{torso:{hp:50,maxHp:50,armor:0}}};
 const state={units:[actor,enemy]};
 const bash=shieldBash(state,actor,enemy,weapons,()=>0);
 assert.equal(bash.ok,true);
