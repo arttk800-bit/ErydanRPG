@@ -120,3 +120,6 @@
 
 /* Editor selection and world region action cards. */
 .region-poi.editor-selected{z-index:15!important;border-color:#fff!important;box-shadow:0 0 0 2px var(--accent),0 3px 12px #000c!important}.world-region-actions{margin-top:10px}.world-region-actions .map-point-card{margin-top:0}.region-description{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+
+/* Feedback form: player-facing report composer, separate from developer diagnostics. */
+.feedback-panel{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto}.feedback-panel textarea{width:100%;resize:vertical;min-height:72px;border:1px solid var(--line);border-radius:11px;background:#17201d;color:var(--text);padding:10px 12px;font:inherit}.feedback-bug-fields{display:grid;gap:12px}.feedback-bug-fields label{display:grid;gap:7px}.check-row{grid-template-columns:auto 1fr!important;align-items:start}.check-row input{width:20px;height:20px;margin:2px 0}.feedback-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.feedback-actions button:disabled{opacity:.45}@media(max-width:560px){.feedback-actions{grid-template-columns:1fr}}
