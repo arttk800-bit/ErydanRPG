@@ -66,3 +66,6 @@ Every non-trivial source file must identify its responsibility at the top. Large
 - Physical location entry is owned by `LocationEntrySystem`; mapped locations use stable access-port IDs. Region port A resolves location transition A. Missing bindings fall back to any transition, then district, place, then a temporary center spawn.
 - Districts are logical zones inside a location map, never separate navigation maps. Final places have no navigation maps; they may use `sceneBackground` for presentation.
 - Camps are temporary locations without navigation maps and can expose dynamic facilities.
+
+## Feedback and diagnostics boundary
+Player feedback is owned by `game/feedback/`, not by UI or Diagnostics. `FeedbackSystem` validates bug reports and suggestions, `buildFeedbackPackage` creates one portable package, and transports decide delivery. The current transport downloads ZIP; server/email/GitHub-backed delivery is a future transport. Diagnostics remains observational and can be attached to feedback without owning feedback state. Device/browser information is collected only after explicit consent.
