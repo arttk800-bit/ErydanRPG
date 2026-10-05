@@ -5,10 +5,9 @@
 // ============================================================================
 import {mapPoint} from '../../ui/map-gestures.js';
 import {mapPointSlug} from '../../ui/map-points.js';
-import {downloadJson} from '../../ui/map-ui.js';
 
-export function createPoiAuthoring({frame,panel,getItems,setItems,persist,getEditing,getMode,getDrag,setDrag,createPoint,exportFile,exportPayload,resetConfirm,resetItems,onReset=()=>{}}){
- const {poiType,name,poiExport,clearPoi}=panel;
+export function createPoiAuthoring({frame,panel,getItems,setItems,persist,getEditing,getMode,getDrag,setDrag,createPoint,resetConfirm,resetItems,onReset=()=>{}}){
+ const {poiType,name,clearPoi}=panel;
  function addFromEvent(event){
   if(!getEditing()||getMode()!=='poi')return false;
   const p=mapPoint(frame,event.clientX,event.clientY),choice=poiType.value;
@@ -20,7 +19,6 @@ export function createPoiAuthoring({frame,panel,getItems,setItems,persist,getEdi
   pin.onpointermove=e=>{const drag=getDrag();if(!drag)return;const p=mapPoint(frame,e.clientX,e.clientY);drag.x=p.x;drag.y=p.y;pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
   pin.onpointerup=()=>{if(!getDrag())return;setDrag(null);persist()};
  }
- poiExport.onclick=()=>downloadJson(exportFile,exportPayload());
  clearPoi.onclick=()=>{if(confirm(resetConfirm)){setItems(resetItems());onReset();persist()}};
- return {addFromEvent,remove(item){if(!confirm('Удалить «'+item.name+'»?'))return false;setItems(getItems().filter(x=>x.id!==item.id));persist();return true},bindPin,destroy(){poiExport.onclick=null;clearPoi.onclick=null}};
+ return {addFromEvent,remove(item){if(!confirm('Удалить «'+item.name+'»?'))return false;setItems(getItems().filter(x=>x.id!==item.id));persist();return true},bindPin,destroy(){clearPoi.onclick=null}};
 }
