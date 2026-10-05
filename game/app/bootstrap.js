@@ -20,8 +20,6 @@ const $=s=>document.querySelector(s);
 runtimeTrace.setStateProvider(()=>session);
 window.addEventListener('error',e=>runtimeTrace.error('window',e.error||e.message,{filename:e.filename,line:e.lineno,col:e.colno}));
 window.addEventListener('unhandledrejection',e=>runtimeTrace.error('promise',e.reason));
-function loadSettings(){try{return{theme:'dark',volume:70,...JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}')}}catch{return{theme:'dark',volume:70}}}
-function saveSettings(s){try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(s))}catch{}}
 const settings=loadSettings();
 function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').value=settings.theme;$('#volume').value=settings.volume}
 export function notifyDiscovery(name){toast('Вы узнали о новом месте: '+(name||'неизвестное место'))}
