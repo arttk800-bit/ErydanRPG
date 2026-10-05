@@ -4,11 +4,12 @@ The old “0.15 migration 99/100” percentage is retired because the project ha
 
 ## Active runtime
 - Product target: PWA.
-- Current release line: 0.77 alpha.
+- Current release metadata is defined by `game/data/version.json`; this document does not duplicate a potentially stale version number.
 - Shell/menu/settings/save flow is operational.
 - Combat/AI/simulation modular baseline and regression infrastructure exist.
 - World and regional map flow is operational and under active iteration.
 - Road graph/editor and travel systems exist and are being stabilized.
+- Map Editor composition, road/terrain tooling and POI authoring have been extracted from World UI into `game/tools/map-editor/`.
 - Runtime diagnostics and downloadable diagnostic archive exist.
 - Client release detection is intentionally separated from update application.
 - Startup-critical map assets have a dedicated preload/cache layer.
