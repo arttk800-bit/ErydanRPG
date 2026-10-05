@@ -26,3 +26,12 @@ const gates=VELIGRAD.points.filter(p=>p.class==='gate');
 assert.equal(gates.length,4);
 assert.ok(VELIGRAD.spawnPointId);
 assert.equal(VELIGRAD.points.some(p=>p.class==='transition'),false);
+
+import {accessPorts} from '../game/map/access-points.js';
+import {CENTRAL_LANDS_ROADS} from '../game/data/regions/central-lands-roads.js';
+import {VELIGRAD_NAVIGATION} from '../game/data/locations/veligrad-navigation.js';
+assert.deepEqual(accessPorts(CENTRAL_LANDS_ROADS,'veligrad').map(p=>p.id),['veligrad:west','veligrad:northwest','veligrad:east','veligrad:south']);
+assert.equal(accessPorts(VELIGRAD_NAVIGATION,'veligrad').length,4);
+assert.equal(accessPorts(VELIGRAD_NAVIGATION,'veligrad-district-center').length,4);
+assert.ok(VELIGRAD_NAVIGATION.terrainZones.some(z=>z.type==='water'));
+assert.ok(VELIGRAD_NAVIGATION.terrainZones.some(z=>z.type==='blocked'));
