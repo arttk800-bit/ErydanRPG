@@ -84,3 +84,6 @@ Map Editor user exports use the complete `eirdan-map-editor` bundle (`Экспо
 Mapped-location access uses the same stable port ID on both scopes. Regional `roads.access[locationId].ports[]` identifies the external road node. Location navigation `access[locationId].ports[]` maps that ID to a local transition `pointId` and local node. Arrival stores `entryPortId`; entry resolves the matching transition. Fallback order is transition → district → place → temporary center spawn.
 
 Final places do not contain navigation `map` data. A decorative `sceneBackground` may reference a PNG or other presentation asset without enabling Map/Travel semantics.
+
+## Feedback package v1
+A feedback package contains `report.json` / `report.txt`, optional `screenshots/`, and optional `diagnostics/`. `report.json` uses format `eirdan-feedback`, version 1, type `bug` or `suggestion`, release metadata, attachment metadata and `technicalInfoConsent`. Technical device information is absent unless that consent value is true. Bug-only fields are steps, expected and actual; suggestions use the common title/text fields.
