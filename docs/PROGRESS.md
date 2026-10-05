@@ -36,3 +36,9 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Shell diagnostics is now an aggregator rather than owner of cross-domain checks.
 - Diagnostic ZIP includes dedicated JSON reports for state, world/simulation, PWA/cache and audio.
 - Added campaign regression coverage for diagnostic adapters.
+
+## Generic map diagnostics
+- Added a canonical registry for authored map-bearing domains (Central Lands region and Veligrad location initially).
+- Removed direct Veligrad ownership from Map Diagnostics; registered maps now use one generic validation path.
+- Added synthetic regression coverage for blocked authored edges, unreachable ports and insufficient district access.
+
