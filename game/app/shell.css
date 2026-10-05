@@ -115,3 +115,5 @@
 .region-poi.travel-label>.point-label,.region-poi.party-near>.point-label{display:block!important}
 .free-travel-target{position:absolute;z-index:7;transform:translate(-50%,-50%);width:15px;height:15px;border:2px solid var(--accent);border-radius:50%;background:color-mix(in srgb,var(--accent) 25%,transparent);box-shadow:0 0 0 4px #0007;pointer-events:none}
 .modal{backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+
+.debug-panel{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto}.debug-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.debug-results{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:#0002;max-height:55dvh;overflow:auto}.debug-results p{margin:6px 0}@media(max-width:560px){.debug-tools{grid-template-columns:1fr}}
