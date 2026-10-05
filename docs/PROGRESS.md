@@ -42,3 +42,10 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Removed direct Veligrad ownership from Map Diagnostics; registered maps now use one generic validation path.
 - Added synthetic regression coverage for blocked authored edges, unreachable ports and insufficient district access.
 
+## 0.89 regional travel arrival hotfix
+- Fixed a repeated region-arrival crash captured by RuntimeTrace: `ReferenceError: nullstate is not defined`.
+- Regional physical-position commit is now owned by `TravelSystem.arrive()`; World UI no longer writes arrival position directly.
+- Arrival preserves the selected destination access-port ID so mapped locations can spawn through the physical side used by the route.
+- Travel diagnostics now understands multi-port access records and uses canonical regional map metrics instead of normalized coordinates as meters.
+- Added regression coverage for regional arrival and destination-port persistence.
+
