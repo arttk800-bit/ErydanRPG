@@ -55,7 +55,7 @@ export const VELIGRAD_NAVIGATION={
   {id:'block-north-complex',type:'blocked',priority:30,polygon:[{x:.49,y:.06},{x:.68,y:.055},{x:.72,y:.17},{x:.67,y:.255},{x:.53,y:.25},{x:.47,y:.17}]},
   {id:'block-ne-complex',type:'blocked',priority:30,polygon:[{x:.75,y:.08},{x:.94,y:.07},{x:.98,y:.19},{x:.91,y:.28},{x:.79,y:.25},{x:.73,y:.17}]},
   {id:'block-east-complex',type:'blocked',priority:30,polygon:[{x:.84,y:.34},{x:.98,y:.32},{x:1,y:.48},{x:.94,y:.61},{x:.84,y:.57},{x:.80,y:.45}]},
-  {id:'block-sw-complex',type:'blocked',priority:30,polygon:[{x:.12,y:.55},{x:.28,y:.52},{x:.33,y:.64},{x:.28,y:.76},{x:.15,y:.78},{x:.08,y:.68}]},
+  {id:'block-sw-complex',type:'blocked',priority:30,polygon:[{x:.14,y:.55},{x:.28,y:.52},{x:.33,y:.64},{x:.28,y:.76},{x:.15,y:.78},{x:.11,y:.68}]},
   {id:'block-south-complex',type:'blocked',priority:30,polygon:[{x:.31,y:.76},{x:.45,y:.72},{x:.49,y:.84},{x:.44,y:.94},{x:.31,y:.93},{x:.27,y:.84}]},
   {id:'block-se-complex',type:'blocked',priority:30,polygon:[{x:.70,y:.68},{x:.88,y:.66},{x:.94,y:.79},{x:.88,y:.92},{x:.73,y:.90},{x:.66,y:.80}]}
  ]
