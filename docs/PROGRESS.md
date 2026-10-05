@@ -14,8 +14,8 @@ The old “0.15 migration 99/100” percentage is retired because the project ha
 - Startup-critical map assets have a dedicated preload/cache layer.
 
 ## Known architectural cleanup
-- Legacy Android/APK workflows and migration/reference modules still exist in the repository.
-- Some historical documentation and compatibility files refer to the earlier 0.14/0.15 migration.
+- Android/APK client and executable 0.14/0.15 migration runtime have been retired after dependency audit.
+- Historical behavior still required by combat development is preserved through current regression/parity baselines rather than executable legacy entrypoints.
 - `game/systems/` currently contains several domains as individual modules; growing systems should move into dedicated domain folders rather than expanding a generic systems bucket indefinitely.
 
 ## Definition of progress
