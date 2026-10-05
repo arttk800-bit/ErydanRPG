@@ -11,8 +11,9 @@ import {downloadDiagnosticArchive} from '../diagnostics/archive.js';
 import {runtimeTrace} from '../diagnostics/runtime-trace.js';
 import {preloadStartupAssets} from '../client/asset-loader.js';
 import {PauseSystem} from '../systems/pause.js';
+import {loadSettings,saveSettings} from '../ui/settings.js';
 
-const BUILD_URL='../data/version.json',SETTINGS_KEY='eirdan.shell.settings.v1';
+const BUILD_URL='../data/version.json';
 let buildMeta=null;
 const nav=new Navigation(document);let session=null,gameCleanup=null,installPrompt=null,modalOpen=false,modalPauseReason=null,swRegistration=null,updateManager=null;
 const $=s=>document.querySelector(s);
