@@ -15,17 +15,17 @@ assert.deepEqual(state.world,before);
 
 const legacy={meta:{stateVersion:1},world:{current:{regionId:'forest',locationId:'veligrad'},position:{regionId:'forest',pointId:'veligrad'}}};
 migrateGameState(legacy);
-assert.equal(legacy.meta.stateVersion,2);
+assert.equal(legacy.meta.stateVersion,3);
 assert.equal(legacy.ui.mapView.level,'location');
 assert.equal(legacy.ui.mapView.locationId,'veligrad');
 assert.equal(legacy.world.position.pointId,'veligrad');
 console.log('map view regression: OK');
 
 import {VELIGRAD} from '../game/data/locations/veligrad.js';
-const gates=VELIGRAD.points.filter(p=>p.class==='gate');
-assert.equal(gates.length,4);
+const transitions=VELIGRAD.points.filter(p=>p.class==='transition');
+assert.equal(transitions.length,4);
 assert.ok(VELIGRAD.spawnPointId);
-assert.equal(VELIGRAD.points.some(p=>p.class==='transition'),false);
+assert.equal(VELIGRAD.points.some(p=>['gate','entrance','exit'].includes(p.class)),false);
 
 import {accessPorts} from '../game/map/access-points.js';
 import {CENTRAL_LANDS_ROADS} from '../game/data/regions/central-lands-roads.js';
