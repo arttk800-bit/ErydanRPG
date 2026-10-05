@@ -12,14 +12,14 @@ export const TravelConditions={
   if(!t.passable)return 0;return Math.max(.01,(road[method]??road.walk)*(t[method]??t.walk));
  },
  segmentFactor(segment,method='walk'){return this.factor(segment?.roadType,segment?.terrain||'plain',method)},
- traversalSeconds(roads,path,{roadType='road',terrain='plain'}={},method='walk',zones=roads?.terrainZones||[]){
-  let seconds=0;
+ traversalCost(roads,path,{roadType='road',terrain='plain'}={},method='walk',zones=roads?.terrainZones||[]){
+  let cost=0;
   for(let i=1;i<(path?.length||0);i++){
    const d=roads?.metrics?Math.hypot((path[i].x-path[i-1].x)*roads.metrics.widthMeters,(path[i].y-path[i-1].y)*roads.metrics.heightMeters):Math.hypot(path[i].x-path[i-1].x,path[i].y-path[i-1].y);
    const spans=zones?.length?TerrainSystem.segmentSpans(zones,path[i-1],path[i]):[{terrain,fraction:1,passable:TerrainSystem.type(terrain).passable}];
-   for(const s of spans){const factor=this.factor(roadType,s.terrain,method);if(!factor)return Infinity;seconds+=d*s.fraction/factor}
+   for(const s of spans){const factor=this.factor(roadType,s.terrain,method);if(!factor)return Infinity;cost+=d*s.fraction/factor}
   }
-  return seconds;
+  return cost;
  },
  routeFactor(route,method='walk'){
   const seg=route?.segments||[];if(!seg.length)return 1;let distance=0,weighted=0;
