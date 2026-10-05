@@ -6,7 +6,7 @@ import {loadTerrainZones} from './terrain-store.js';
 import {readStoredPoi} from '../../map/poi-store.js';
 
 function readStored(key,storage=globalThis.localStorage){try{return JSON.parse(storage?.getItem(key)||'{}')}catch{return{}}}
-function mapBundle(mapId,{kind,id,map,points,fallbackRoads={nodes:[],edges:[],access:{}},fallbackTerrain=[]}){const roads=loadEditableRoads(mapId,fallbackRoads),terrain=loadTerrainZones(kind==='region'?'region:'+mapId:mapId,fallbackTerrain);return{kind,id,map,points,roads,terrain}}
+export function mapBundle(mapId,{kind,id,map,points,fallbackRoads={nodes:[],edges:[],access:{}},fallbackTerrain=[]}){const roads=loadEditableRoads(mapId,fallbackRoads),terrain=loadTerrainZones(kind==='region'?'region:'+mapId:mapId,fallbackTerrain);return{kind,id,map,points,roads,terrain}}
 
 export function buildMapEditorExport(storage=globalThis.localStorage){
  const maps={...readStoredPoi(storage)};
