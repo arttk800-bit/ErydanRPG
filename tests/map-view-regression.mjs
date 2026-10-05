@@ -55,3 +55,17 @@ assert.equal(LocationBoundarySystem.canExit(cityState,VELIGRAD_NAVIGATION,'velig
 cityState.world.position={regionId:'forest',locationId:'veligrad',locationPointId:'veligrad-gate-west',position:{x:.0413,y:.6691}};
 assert.equal(LocationBoundarySystem.canExit(cityState,VELIGRAD_NAVIGATION,'veligrad'),true);
 assert.equal(LocationBoundarySystem.exitPort(cityState,VELIGRAD_NAVIGATION,'veligrad').id,'veligrad:west');
+
+import {JourneySystem} from '../game/systems/travel/journey.js';
+const journeyState={clock:{day:1,minute:480},world:{current:{regionId:'forest',locationId:'veligrad',districtId:'veligrad-district-center',placeId:null},position:{regionId:'forest',locationId:'veligrad',locationPointId:'veligrad-district-center',position:{x:.5,y:.459}},travel:{status:'idle'}}};
+const journey=JourneySystem.startExit(journeyState,{location:VELIGRAD,locationNavigation:VELIGRAD_NAVIGATION,locationPoints:VELIGRAD.points,regionalRoads:CENTRAL_LANDS_ROADS,regionalPoints:(await import('../game/data/regions/central-lands.js')).CENTRAL_LANDS.points,targetId:'zarechye',method:'walk',terrainZones:[]});
+assert.ok(journey);
+assert.equal(journey.status,'to-gate');
+assert.ok(['veligrad:west','veligrad:northwest','veligrad:east','veligrad:south'].includes(journey.portId));
+journeyState.world.position={regionId:'forest',locationId:'veligrad',locationPointId:journey.gatePointId,position:{x:0,y:0}};
+const continuation=JourneySystem.continueFromGate(journeyState,{locationNavigation:VELIGRAD_NAVIGATION,regionalRoads:CENTRAL_LANDS_ROADS,regionalPoints:(await import('../game/data/regions/central-lands.js')).CENTRAL_LANDS.points,terrainZones:[]});
+assert.ok(continuation);
+assert.equal(journeyState.world.current.locationId,null);
+assert.equal(journeyState.world.position.locationId,undefined);
+assert.equal(journeyState.world.journey.status,'region');
+assert.deepEqual(journeyState.world.position.position,continuation.fromPosition);
