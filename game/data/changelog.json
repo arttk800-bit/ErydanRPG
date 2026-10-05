@@ -2,6 +2,16 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.80.2-alpha",
+      "build": "pwa-update-reload-1",
+      "stage": "PWA Update Reload Fix",
+      "date": "2026-10-05",
+      "changes": [
+        "Исправлено обновление PWA на Android: перезагрузка больше не ждёт смены Service Worker controller до навигации.",
+        "Service Worker и release metadata синхронизированы с новым runtime build."
+      ]
+    },
+    {
       "version": "0.80.1-alpha",
       "build": "pwa-installability-1",
       "stage": "PWA Installability",
