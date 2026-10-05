@@ -20,3 +20,9 @@ assert.equal(legacy.ui.mapView.level,'location');
 assert.equal(legacy.ui.mapView.locationId,'veligrad');
 assert.equal(legacy.world.position.pointId,'veligrad');
 console.log('map view regression: OK');
+
+import {VELIGRAD} from '../game/data/locations/veligrad.js';
+const gates=VELIGRAD.points.filter(p=>p.class==='gate');
+assert.equal(gates.length,4);
+assert.ok(VELIGRAD.spawnPointId);
+assert.equal(VELIGRAD.points.some(p=>p.class==='transition'),false);
