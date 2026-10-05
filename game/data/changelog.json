@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.83.0-alpha",
+      "build": "contextual-audio-1",
+      "stage": "Contextual Audio System",
+      "date": "2026-10-05",
+      "changes": [
+        "Добавлена самостоятельная Audio System с семантическими контекстами мира, путешествия, леса, города, помещений, таверн, замков, боя и событий.",
+        "15 треков Frostbite распределены по runtime-категориям и зарегистрированы как независимо ревизируемые ассеты с SHA-256.",
+        "Музыка загружается лениво через проверяемый asset cache; аудио не увеличивает обязательную стартовую загрузку PWA.",
+        "Громкость связана с канонической настройкой клиента; браузерная блокировка autoplay восстанавливается после пользовательского ввода.",
+        "Добавлены attribution/license metadata и audio regression gate."
+      ]
+    },
+    {
       "version": "0.82.0-alpha",
       "build": "architecture-cleanup-1",
       "stage": "Architecture Cleanup",
