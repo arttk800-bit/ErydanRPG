@@ -16,6 +16,7 @@ This document is the index of system ownership. It describes responsibilities, n
 | Simulation | `game/simulation/` | headless runs, mirror/parity, telemetry | browser UI |
 | Diagnostics | `game/diagnostics/` | observation, traces, smoke checks, diagnostic export | alternative gameplay logic |
 | UI | `game/ui/` | gameplay rendering and controls | authoritative gameplay rules or development-tool ownership |
+| Audio | `game/audio/` | semantic music context, track selection and playback state | world/combat rules or UI state |
 | Map Editor | `game/tools/map-editor/` | POI/road/terrain authoring UI, runtime and export tooling | world/travel gameplay rules |
 | Module runtime | `game/modules/` + `game/core/modules/` | optional capability composition, enable/disable state and dependencies | domain implementation |
 | Data | `game/data/` | static definitions and content | mutable session state |
