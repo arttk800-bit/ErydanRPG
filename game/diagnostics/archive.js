@@ -10,6 +10,7 @@ export function downloadDiagnosticArchive(d,buildMeta={}){
   {name:'shell-diagnostic.txt',data:formatDiagnosticLog(d)},
   {name:'runtime-trace.json',data:json(runtimeTrace.export())},
   {name:'actions.json',data:json(d.actions||[])},
+  {name:'map-diagnostics.json',data:json(d.map||{})},
   {name:'travel-diagnostics.json',data:json(d.travel||{})},
   {name:'ui-smoke-diagnostics.json',data:json(d.ui||{})}
  ];
