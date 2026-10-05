@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "cacheSchema": 2,
+  "assets": [
+    {"id":"world-map","path":"../assets/world/eirdan-world-map-regions-final.png","revision":"001a1098da4a227878ae99e075ba0bc1a0ae5555","type":"image","startup":true},
+    {"id":"world-region-index","path":"../assets/world/eirdan-world-region-index-final.png","revision":"4e272a44f1f92ea28b4ec7a07d537f9bf1d3c8f8","type":"image","startup":true},
+    {"id":"central-lands-map","path":"../assets/regions/region-central-lands.png","revision":"d99be302cb8b4bd2376729198e23c29cb8f9243b","type":"image","startup":true},
+    {"id":"veligrad-map","path":"../assets/locations/city-01-central-lands.png","revision":"d84c5184b562f3edf28e6fb21fbbdf0f99452eb1","type":"image","startup":true}
+  ]
+}
