@@ -25,3 +25,6 @@ Progress is measured by working systems plus passing gates, not by file count or
 
 ## 0.89 world simulation / spatial model
 Implemented schema-3 simulation state, continuous foreground-only world clock, travel playback retuning, progressive sleep foundation, temporary camp locations, exact access-port travel targets, location entry fallbacks, preview-vs-entry separation, party-marker synchronization, visible POI IDs, actionable transition binding and contextual free-waypoint labels. Added world-simulation regression coverage to the campaign gate. Local test execution remains blocked in the current tool environment by GitHub DNS; syntax gate is run separately.
+
+## Feedback reporting
+Added player-facing bug/suggestion reports with text, optional screenshots, optional Diagnostics attachment, explicit opt-in device/browser metadata and a portable ZIP package. Download is the only active delivery transport; server delivery is a deliberate stub for future backend integration.
