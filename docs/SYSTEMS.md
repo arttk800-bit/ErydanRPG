@@ -9,13 +9,15 @@ This document is the index of system ownership. It describes responsibilities, n
 | Core | `game/core/` | shared state/session primitives, persistence foundations, commands/events | feature-specific UI |
 | Combat | `game/combat/` | legal combat actions, damage/status/resolve/retreat rules | DOM/rendering |
 | AI | `game/ai/` | choosing actions through legal gameplay APIs | direct HP/coordinate mutation |
-| World | `game/systems/world.js` | current world hierarchy, discovery/visited state, world clock | map rendering |
-| Roads | `game/systems/roads.js` | road graph, metric distance, routing and nearest-road calculations | editor UI |
-| Travel | `game/systems/travel.js` | travel lifecycle, progress, free road position, stop/camp/resume/cancel | drawing party marker |
-| Inventory | `game/systems/inventory.js` | inventory/equipment domain operations | inventory presentation |
+| World | `game/systems/world/world.js` | current world hierarchy, discovery/visited state, world clock | map rendering |
+| Roads | `game/systems/travel/roads.js` | road graph, metric distance, routing and nearest-road calculations | editor UI |
+| Travel | `game/systems/travel/travel.js` | travel lifecycle, progress, free road position, stop/camp/resume/cancel | drawing party marker |
+| Inventory | planned dedicated domain | inventory/equipment domain operations | inventory presentation |
 | Simulation | `game/simulation/` | headless runs, mirror/parity, telemetry | browser UI |
 | Diagnostics | `game/diagnostics/` | observation, traces, smoke checks, diagnostic export | alternative gameplay logic |
-| UI | `game/ui/` | rendering, controls, map/road editor interaction adapters | authoritative gameplay rules |
+| UI | `game/ui/` | gameplay rendering and controls | authoritative gameplay rules or development-tool ownership |
+| Map Editor | `game/tools/map-editor/` | POI/road/terrain authoring UI, runtime and export tooling | world/travel gameplay rules |
+| Module runtime | `game/modules/` + `game/core/modules/` | optional capability composition, enable/disable state and dependencies | domain implementation |
 | Data | `game/data/` | static definitions and content | mutable session state |
 
 ## World/map boundary
