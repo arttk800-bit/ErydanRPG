@@ -28,6 +28,7 @@ function closeModal(){modalOpen=false;$('#modal').classList.add('hidden')}
 function modal(title,body,actions=[['Закрыть',closeModal]]){modalOpen=true;$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden')}
 async function activeSwBuild(timeout=1200){if(!navigator.serviceWorker?.controller)return null;return new Promise(resolve=>{const t=setTimeout(()=>{navigator.serviceWorker.removeEventListener('message',on);resolve(null)},timeout),on=e=>{if(e.data?.type==='SW_BUILD'){clearTimeout(t);navigator.serviceWorker.removeEventListener('message',on);resolve(e.data.build||null)}};navigator.serviceWorker.addEventListener('message',on);navigator.serviceWorker.controller.postMessage({type:'GET_BUILD'})})}
 async function loadBuild(){buildMeta=await loadInstalledRelease();const active=await activeSwBuild();buildMeta.runtimeBuild=active;$('#versionBadge').textContent='Версия '+buildMeta.version+(active&&active!==buildMeta.build?' · runtime '+active:'');return buildMeta}
+function installedRuntimeRelease(){return buildMeta?.runtimeBuild?{...buildMeta,build:buildMeta.runtimeBuild}:buildMeta}
 function updateButton(label='Проверить обновления',disabled=false,progress=0,state='idle'){const b=$('#checkUpdates');if(!b)return;b.textContent=label;b.disabled=disabled;b.style.setProperty('--update-progress',Math.max(0,Math.min(100,progress))+'%');b.dataset.state=state}
 function resetUpdateButton(delay=1800){clearTimeout(resetUpdateButton.t);resetUpdateButton.t=setTimeout(()=>{if(!updateManager?.busy)updateButton()},delay)}
 async function fetchRemoteBuild(){const r=await fetch(BUILD_URL+'?update='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('build '+r.status);return r.json()}
@@ -43,7 +44,7 @@ async function registerPwa(){
   swRegistration=await navigator.serviceWorker.register('../sw.js',{scope:'../',updateViaCache:'none'});
   updateManager=new UpdateManager({
    registration:swRegistration,
-   getInstalled:()=>Promise.resolve(buildMeta),
+   getInstalled:()=>Promise.resolve(installedRuntimeRelease()),
    fetchRemote:fetchRemoteBuild,
    onState:updateVisual,
    onAvailable:meta=>updateButton('Перезагрузить до '+meta.version,false,100,'ready'),
