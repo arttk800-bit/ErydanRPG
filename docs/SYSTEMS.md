@@ -45,3 +45,7 @@ LocationEntry validates physical entry and resolves stable external-port → int
 
 ## Diagnostics
 Active campaign diagnostics aggregate separate read-only reports for State/Saves, World/Simulation, PWA/asset cache, Audio, Map, Travel and UI. Domain owners retain all rules; diagnostic adapters expose health checks and snapshots only.
+
+## Map registry
+`game/data/map-registry.js` is the discovery point for canonical map-bearing content and navigation descriptors. `game/diagnostics/map-diagnostics.js` validates registered maps generically; it does not own route or terrain rules. New authored maps should register there rather than adding location-specific imports to diagnostics.
+
