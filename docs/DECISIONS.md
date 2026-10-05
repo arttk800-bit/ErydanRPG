@@ -70,3 +70,10 @@ Each source file carries a concise responsibility marker. Large cohesive section
 - Sleep is accelerated simulation rather than an instant clock jump and may be interrupted by temporal/context events.
 - Camp is a temporary mapless location anchored to party coordinates.
 - Local multiplayer remains a future constraint only: world/party simulation must not be owned by one player controller; current guests are expected to join the host party if that design survives.
+
+## 2026-10-05 — Feedback packages and privacy
+- Bug reports and suggestions share one Feedback system and portable package format.
+- Diagnostics may be attached to reports but does not own report composition or delivery.
+- Screenshots are user-selected attachments; the client does not silently capture the screen.
+- Device/browser diagnostics require explicit opt-in and exclude location, IP and account identifiers.
+- Delivery is a replaceable transport. ZIP download is active now; server/email/GitHub integration must sit behind a future transport/backend rather than exposing repository credentials in the client.
