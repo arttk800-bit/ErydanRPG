@@ -4,7 +4,11 @@ import {createHash} from 'node:crypto';
 
 const manifest=JSON.parse(fs.readFileSync(new URL('../game/client/asset-manifest.json',import.meta.url),'utf8'));
 assert.equal(manifest.schema,1);
-assert.equal(manifest.cacheSchema,2);
+assert.equal(manifest.cacheSchema,3);
+const startup=manifest.assets.filter(asset=>asset.startup);
+assert.equal(startup.length,4);
+assert.ok(startup.every(asset=>asset.type==='image'));
+assert.ok(manifest.assets.filter(asset=>asset.type==='audio').every(asset=>!asset.startup));
 assert.ok(manifest.assets.length>=4);
 const ids=new Set(),paths=new Set(),integrityErrors=[];
 for(const asset of manifest.assets){
