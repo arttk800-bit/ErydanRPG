@@ -1,10 +1,15 @@
+// ============================================================================
+// APPLICATION BOOTSTRAP
+// Composes shell/client services and delegates gameplay screens to ModuleRuntime.
+// Contains application wiring only; domain rules belong to their systems.
+// ============================================================================
 import {Navigation} from './navigation.js';
 import {Lifecycle} from './lifecycle.js';
 import {createSession} from '../core/session.js';
 import {saveGame,listSaves,loadGame,deleteSave,persistenceSupported} from '../core/persistence.js';
 import {runShellDiagnostics} from '../diagnostics/shell-diagnostics.js';
 import {loadInstalledRelease,loadCurrentRelease,releaseChangesHtml} from '../client/release.js';
-import {mountGameScreen} from './game-screen.js';
+import {ModuleRuntime} from '../modules/runtime.js';
 import {UpdateManager} from '../client/update-manager.js';
 import {actionDiagnostics} from '../diagnostics/action-diagnostics.js';
 import {downloadDiagnosticArchive} from '../diagnostics/archive.js';
@@ -61,10 +66,10 @@ async function registerPwa(){
 }
 async function persist(){if(session&&persistenceSupported())try{await saveGame(session)}catch(e){console.warn('Save failed',e)}}
 async function defaultWorldName(){const saves=persistenceSupported()?await listSaves():[];const used=new Set(saves.map(worldName));let n=1;while(used.has('Мир '+n))n+=1;return 'Мир '+n}
-function newGame(){modal('Новый мир','<label>Название мира <span class="muted">(необязательно)</span><input id="worldNameInput" maxlength="48" autocomplete="off" placeholder="Мир 1"></label>',[['Создать',async()=>{const input=$('#worldNameInput');const name=input?.value.trim()||await defaultWorldName();session=createSession({worldName:name});await persist();closeModal();nav.reset('game');gameCleanup?.();gameCleanup=mountGameScreen(session,persist);toast('Мир «'+session.meta.worldName+'» создан')}],['Отмена',closeModal]]);setTimeout(()=>$('#worldNameInput')?.focus(),0)}
+function newGame(){modal('Новый мир','<label>Название мира <span class="muted">(необязательно)</span><input id="worldNameInput" maxlength="48" autocomplete="off" placeholder="Мир 1"></label>',[['Создать',async()=>{const input=$('#worldNameInput');const name=input?.value.trim()||await defaultWorldName();session=createSession({worldName:name});await persist();closeModal();nav.reset('game');gameCleanup?.();gameCleanup=await ModuleRuntime.mount(session,'campaign',{onChange:persist});toast('Мир «'+session.meta.worldName+'» создан')}],['Отмена',closeModal]]);setTimeout(()=>$('#worldNameInput')?.focus(),0)}
 function worldName(s){return s.meta.worldName||'Старый мир'}
 function saveLabel(s){const when=s.meta.updatedAt||s.meta.createdAt;let date='';try{date=new Date(when).toLocaleString('ru-RU')}catch{}return worldName(s)+' · День '+s.clock.day+(date?' · '+date:'')}
-async function openLoad(){if(!persistenceSupported())return modal('Загрузить игру','<p>IndexedDB недоступен в этом браузере.</p>');const saves=await listSaves();if(!saves.length)return modal('Загрузить игру','<p>Сохранений пока нет.</p>');const body=saves.map(s=>'<div class="saveRow" data-save="'+s.meta.worldId+'"><button class="saveChoice">'+saveLabel(s)+'</button><button class="saveDelete" aria-label="Удалить сохранение">Удалить</button></div>').join('');modal('Загрузить игру','<div class="saveList">'+body+'</div>');document.querySelectorAll('.saveRow').forEach(row=>{const id=row.dataset.save;row.querySelector('.saveChoice').onclick=async()=>{session=await loadGame(id);closeModal();nav.reset('game');gameCleanup?.();gameCleanup=mountGameScreen(session,persist);toast('Сохранение загружено')};row.querySelector('.saveDelete').onclick=()=>confirmDelete(id)})}
+async function openLoad(){if(!persistenceSupported())return modal('Загрузить игру','<p>IndexedDB недоступен в этом браузере.</p>');const saves=await listSaves();if(!saves.length)return modal('Загрузить игру','<p>Сохранений пока нет.</p>');const body=saves.map(s=>'<div class="saveRow" data-save="'+s.meta.worldId+'"><button class="saveChoice">'+saveLabel(s)+'</button><button class="saveDelete" aria-label="Удалить сохранение">Удалить</button></div>').join('');modal('Загрузить игру','<div class="saveList">'+body+'</div>');document.querySelectorAll('.saveRow').forEach(row=>{const id=row.dataset.save;row.querySelector('.saveChoice').onclick=async()=>{session=await loadGame(id);closeModal();nav.reset('game');gameCleanup?.();gameCleanup=await ModuleRuntime.mount(session,'campaign',{onChange:persist});toast('Сохранение загружено')};row.querySelector('.saveDelete').onclick=()=>confirmDelete(id)})}
 function confirmDelete(worldId){modal('Удалить сохранение?','<p>Это действие нельзя отменить.</p>',[['Удалить',async()=>{await deleteSave(worldId);if(session?.meta?.worldId===worldId)session=null;closeModal();toast('Сохранение удалено');await openLoad()}],['Отмена',()=>openLoad()]])}
 async function debug(){
  nav.show('debug');const out=$('#debugResults'),run=$('[data-debug="run"]'),archive=$('[data-debug="archive"]');let last=null;
