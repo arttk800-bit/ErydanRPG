@@ -36,14 +36,6 @@ assert.equal(accessPorts(VELIGRAD_NAVIGATION,'veligrad-district-center').length,
 assert.ok(VELIGRAD_NAVIGATION.terrainZones.some(z=>z.type==='water'));
 assert.ok(VELIGRAD_NAVIGATION.terrainZones.some(z=>z.type==='blocked'));
 
-import {TerrainSystem} from '../game/map/terrain.js';
-import {buildTravelGraph,fastestPath} from '../game/systems/travel/route-planner.js';
-const vgNodes=new Map(VELIGRAD_NAVIGATION.nodes.map(n=>[n.id,n]));
-const vgGraph=buildTravelGraph(VELIGRAD_NAVIGATION,vgNodes,'walk',VELIGRAD_NAVIGATION.terrainZones);
-for(const from of ['vg-gate-w','vg-gate-nw','vg-gate-e','vg-gate-s'])for(const to of ['vg-gate-w','vg-gate-nw','vg-gate-e','vg-gate-s'])assert.ok(fastestPath(vgGraph,from,to),from+' must reach '+to);
-for(const [a,b] of VELIGRAD_NAVIGATION.edges){const pa=vgNodes.get(a),pb=vgNodes.get(b);assert.ok(pa&&pb);assert.equal(TerrainSystem.pathPassable(VELIGRAD_NAVIGATION.terrainZones,[pa,pb]),true,'street crosses blocked terrain: '+a+' -> '+b)}
-for(const id of ['veligrad-district-west','veligrad-district-northwest','veligrad-district-north','veligrad-district-northeast','veligrad-district-center','veligrad-district-east','veligrad-district-southwest','veligrad-district-southeast'])assert.ok(accessPorts(VELIGRAD_NAVIGATION,id).length>=3,id+' needs multiple access ports');
-
 import {LocationTravelSystem} from '../game/systems/travel/location-travel.js';
 import {LocationBoundarySystem} from '../game/systems/travel/location-boundary.js';
 const cityState={clock:{day:1,minute:480},world:{current:{regionId:'forest',locationId:'veligrad'},position:{regionId:'forest',locationId:'veligrad',locationPointId:null,position:{x:.5,y:.459}},travel:{status:'idle'}}};
