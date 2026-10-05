@@ -1,0 +1,32 @@
+name: Browser smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'game/app/**'
+      - 'game/client/**'
+      - 'game/core/**'
+      - 'game/map/**'
+      - 'game/systems/**'
+      - 'game/ui/**'
+      - 'game/data/**'
+      - 'tests/browser/**'
+      - 'playwright.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/browser-smoke.yml'
+  pull_request:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
