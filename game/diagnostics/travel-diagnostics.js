@@ -2,7 +2,9 @@ import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
 import {CENTRAL_LANDS_ROADS} from '../data/regions/central-lands-roads.js';
 import {RoadSystem} from '../systems/travel/roads.js';
 import {TravelSystem} from '../systems/travel/travel.js';
-import {PauseSystem} from '../systems/pause.js';\nimport {accessPorts} from '../map/access-points.js';\nimport {mapMetrics} from '../data/map-metrics.js';
+import {PauseSystem} from '../systems/pause.js';
+import {accessPorts} from '../map/access-points.js';
+import {mapMetrics} from '../data/map-metrics.js';
 const NO_ROAD_REQUIRED=new Set(['lake-island']);
 function state(){return{clock:{day:1,minute:480},world:{position:{regionId:'forest',pointId:'veligrad'}},history:[]}}
 export function runTravelDiagnostics(){
@@ -22,7 +24,8 @@ export function runTravelDiagnostics(){
  checks.push(['No isolated road nodes',isolated.length===0]);
  checks.push(['Bridge nodes connected on both sides',badBridges.length===0]);
  checks.push(['All road-connected POI mutually reachable',routeFailures===0]);
- const diagnosticRoads={...CENTRAL_LANDS_ROADS,metrics:{...mapMetrics('region','forest')}};\n const s=state(),t=TravelSystem.start(s,{roads:diagnosticRoads,points,fromId:'veligrad',toId:'stone-guard',method:'walk'});
+ const diagnosticRoads={...CENTRAL_LANDS_ROADS,metrics:{...mapMetrics('region','forest')}};
+ const s=state(),t=TravelSystem.start(s,{roads:diagnosticRoads,points,fromId:'veligrad',toId:'stone-guard',method:'walk'});
  checks.push(['Travel start',!!t&&t.status==='travelling']);
  if(t){
   const before=t.progress;TravelSystem.tick(s,1,diagnosticRoads,1);checks.push(['Travel advances',t.progress>before]);
