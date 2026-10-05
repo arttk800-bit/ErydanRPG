@@ -26,11 +26,28 @@ export class UpdateManager{
   try{
    const remote=this.available||await this.fetchRemote();
    this.available=remote;this.setState('reloading',{remote});
+   await this.activateServiceWorker(remote);
    await this.onApply?.(remote);runtimeTrace.end(trace,{ok:true,remote});return true;
   }catch(error){this.setState('error',{step:'reload',message:errorMessage(error)});runtimeTrace.error('update.reload',error);runtimeTrace.end(trace,{ok:false});return false}
   finally{this.busy=false}
+ }
+ async activateServiceWorker(remote){
+  const reg=this.registration;if(!reg)return;
+  this.setState('reloading',{remote,phase:'service-worker'});
+  await reg.update();
+  const worker=reg.waiting||reg.installing;
+  if(worker){
+   if(worker.state==='installing')await waitWorkerState(worker,'installed',8000);
+   (reg.waiting||worker).postMessage({type:'SKIP_WAITING'});
+  }
+  const active=await waitForControllerBuild(remote?.build,8000);
+  if(remote?.build&&active!==remote.build)throw new Error('runtime build '+(active||'unknown')+' != '+remote.build);
  }
  async download(){return this.update()}
  async apply(){return this.update()}
 }
 function errorMessage(error){return error instanceof Error?error.message:String(error)}
+
+function waitWorkerState(worker,state,timeout){return new Promise((resolve,reject)=>{if(worker.state===state||worker.state==='activated')return resolve();const timer=setTimeout(()=>{worker.removeEventListener('statechange',on);reject(new Error('service worker install timeout'))},timeout);function on(){if(worker.state===state||worker.state==='activated'){clearTimeout(timer);worker.removeEventListener('statechange',on);resolve()}else if(worker.state==='redundant'){clearTimeout(timer);worker.removeEventListener('statechange',on);reject(new Error('service worker became redundant'))}}worker.addEventListener('statechange',on)})}
+async function controllerBuild(timeout=1200){if(!navigator.serviceWorker?.controller)return null;return new Promise(resolve=>{const timer=setTimeout(()=>{navigator.serviceWorker.removeEventListener('message',on);resolve(null)},timeout);function on(e){if(e.data?.type==='SW_BUILD'){clearTimeout(timer);navigator.serviceWorker.removeEventListener('message',on);resolve(e.data.build||null)}}navigator.serviceWorker.addEventListener('message',on);navigator.serviceWorker.controller.postMessage({type:'GET_BUILD'})})}
+function waitForControllerBuild(expected,timeout){return new Promise((resolve,reject)=>{let done=false,timer=null;const finish=v=>{if(done)return;done=true;clearTimeout(timer);navigator.serviceWorker.removeEventListener('controllerchange',check);resolve(v)};const check=async()=>{const build=await controllerBuild();if(!expected||build===expected)finish(build)};timer=setTimeout(async()=>{navigator.serviceWorker.removeEventListener('controllerchange',check);const build=await controllerBuild();if(!expected||build===expected)finish(build);else if(!done){done=true;reject(new Error('service worker activation timeout'))}},timeout);navigator.serviceWorker.addEventListener('controllerchange',check);check()})}
