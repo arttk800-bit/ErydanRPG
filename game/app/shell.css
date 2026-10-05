@@ -106,3 +106,5 @@
 .shell[data-theme="warm"] .panel,.shell[data-theme="warm"] .map-point-card,.shell[data-theme="warm"] .region-editor,.shell[data-theme="warm"] .travel-status{background:color-mix(in srgb,#4a3b2c 94%,#17120e)}
 .shell[data-theme="warm"] #screen-settings{background:rgba(31,24,18,.62)}
 .shell[data-theme="warm"] .toast{background:#3b3025;color:#eee2cd}
+
+.update-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.update-actions>button{min-width:0}@media(max-width:380px){.update-actions{grid-template-columns:1fr}}
