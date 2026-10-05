@@ -6,7 +6,7 @@ const manifest=JSON.parse(fs.readFileSync(new URL('../game/client/asset-manifest
 assert.equal(manifest.schema,1);
 assert.equal(manifest.cacheSchema,2);
 assert.ok(manifest.assets.length>=4);
-const ids=new Set(),paths=new Set();
+const ids=new Set(),paths=new Set(),integrityErrors=[];
 for(const asset of manifest.assets){
   assert.ok(asset.id&&asset.path&&asset.revision&&asset.type);
   assert.ok(!ids.has(asset.id));ids.add(asset.id);
@@ -15,8 +15,9 @@ for(const asset of manifest.assets){
   const fileUrl=new URL(asset.path,new URL('../game/client/asset-cache.js',import.meta.url));
   assert.ok(fs.existsSync(fileUrl),'missing asset '+asset.path);
   const sha256=createHash('sha256').update(fs.readFileSync(fileUrl)).digest('hex');
-  assert.equal(asset.sha256,sha256,'sha256 mismatch '+asset.id+' expected '+sha256);
+  if(asset.sha256!==sha256)integrityErrors.push(asset.id+' expected '+sha256);
 }
+assert.deepEqual(integrityErrors,[],'sha256 mismatch: '+integrityErrors.join('; '));
 const sw=fs.readFileSync(new URL('../game/sw.js',import.meta.url),'utf8');
 assert.ok(sw.includes("const ASSET_CACHE='eirdan-assets-v2'"));
 assert.ok(sw.includes("url.pathname.includes('/assets/')"));
