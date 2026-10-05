@@ -26,11 +26,8 @@ export class UpdateManager{
   try{
    const remote=this.available||await this.fetchRemote();
    this.available=remote;this.setState('reloading',{remote});
-   await this.activateServiceWorker(remote);
-   // Navigation is the actual update boundary. Do not wait for the old page's
-   // controller to become the new build: on some Android Chromium versions
-   // controllerchange is only finalized by navigation itself.
-   await this.onApply?.(remote);runtimeTrace.end(trace,{ok:true,remote});return true;
+   const activation=await this.activateServiceWorker(remote);
+   await this.onApply?.(remote,activation);runtimeTrace.end(trace,{ok:true,remote,activation});return true;
   }catch(error){this.setState('error',{step:'reload',message:errorMessage(error)});runtimeTrace.error('update.reload',error);runtimeTrace.end(trace,{ok:false});return false}
   finally{this.busy=false}
  }
@@ -43,8 +40,9 @@ export class UpdateManager{
    if(worker.state==='installing')await waitWorkerState(worker,'installed',8000);
    (reg.waiting||worker).postMessage({type:'SKIP_WAITING'});
   }
-  // The new worker may not control this document until the reload/navigation.
-  // Build verification happens on the next boot via loadBuild().
+  const expected=remote?.build||null;
+  try{const build=await waitForControllerBuild(expected,5000);this.setState('reloading',{remote,phase:'activated',build});return{activated:true,build}}
+  catch(error){runtimeTrace.system('update','activation-fallback',{expected,message:errorMessage(error)});return{activated:false,build:await controllerBuild()}}
  }
  async download(){return this.update()}
  async apply(){return this.update()}
