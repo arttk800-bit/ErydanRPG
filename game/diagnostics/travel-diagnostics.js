@@ -25,11 +25,11 @@ export function runTravelDiagnostics(){
  const s=state(),t=TravelSystem.start(s,{roads:CENTRAL_LANDS_ROADS,points,fromId:'veligrad',toId:'stone-guard',method:'walk'});
  checks.push(['Travel start',!!t&&t.status==='travelling']);
  if(t){
-  const before=t.progress;TravelSystem.tick(s,1,.05);checks.push(['Travel advances',t.progress>before]);
+  const before=t.progress;TravelSystem.tick(s,1,CENTRAL_LANDS_ROADS,1);checks.push(['Travel advances',t.progress>before]);
   PauseSystem.set(s,'manual',true);const paused=t.progress;TravelSystem.tick(s,1,.05);checks.push(['Pause freezes travel',t.progress===paused]);PauseSystem.set(s,'manual',false);
-  TravelSystem.stop(s);checks.push(['Stop action',t.status==='stopped']);TravelSystem.resume(s);checks.push(['Resume action',t.status==='travelling']);
-  TravelSystem.camp(s);checks.push(['Camp action',t.status==='camp'&&!!s.world.camp]);TravelSystem.resume(s);
-  TravelSystem.tick(s,1,.05);const pos={...t.position};TravelSystem.cancel(s);checks.push(['Cancel preserves exact position',!s.world.position.pointId&&Math.hypot(s.world.position.position.x-pos.x,s.world.position.position.y-pos.y)<1e-9]);
+  TravelSystem.stop(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Stop action',t.status==='stopped']);TravelSystem.resume(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Resume action',t.status==='travelling']);
+  TravelSystem.camp(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Camp action',t.status==='camp'&&!!s.world.camp]);TravelSystem.resume(s,{roads:CENTRAL_LANDS_ROADS,points});
+  TravelSystem.tick(s,1,.05);const pos={...t.position};TravelSystem.cancel(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Cancel preserves exact position',!s.world.position.pointId&&Math.hypot(s.world.position.position.x-pos.x,s.world.position.position.y-pos.y)<1e-9]);
   const restarted=TravelSystem.start(s,{roads:CENTRAL_LANDS_ROADS,points,fromId:null,fromPosition:s.world.position.position,toId:'ozernoe',method:'walk'});
   checks.push(['Restart from exact road position',!!restarted&&Math.hypot(restarted.position.x-pos.x,restarted.position.y-pos.y)<1e-9]);
   checks.push(['Restart enters road before destination',!!restarted?.route?.roadEntry&&restarted.route.polyline.length>3]);
