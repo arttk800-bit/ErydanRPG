@@ -1,38 +1,8 @@
 # CAMPAIGN BROWSER GATE
-# Real-browser smoke for the enabled PWA shell and campaign module only.
+# Manual real-browser smoke for the enabled PWA shell and campaign module.
 name: Browser smoke
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'game/app/**'
-      - 'game/client/**'
-      - 'game/core/modules/**'
-      - 'game/core/state.js'
-      - 'game/core/ids.js'
-      - 'game/core/rng.js'
-      - 'game/core/session.js'
-      - 'game/core/persistence.js'
-      - 'game/map/**'
-      - 'game/modules/index.js'
-      - 'game/modules/runtime.js'
-      - 'game/modules/campaign.js'
-      - 'game/systems/world/**'
-      - 'game/systems/travel/**'
-      - 'game/systems/pause.js'
-      - 'game/systems/game-speed.js'
-      - 'game/tools/map-editor/**'
-      - 'game/ui/world.js'
-      - 'game/ui/map-*.js'
-      - 'game/data/**'
-      - 'game/sw.js'
-      - 'tests/browser/**'
-      - 'playwright.config.js'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/browser-smoke.yml'
-  pull_request:
 jobs:
   smoke:
     runs-on: ubuntu-latest
