@@ -1,2 +1,7 @@
+// ============================================================================
+// CAMPAIGN VALIDATION ENTRYPOINT
+// Selects the campaign source boundary; other disabled domains are not checked.
+// ============================================================================
 import {validate} from './validate-domain.mjs';
-validate({required:['game/app/bootstrap.js','game/core/state.js','game/core/modules/registry.js','game/modules/index.js','game/systems/world/world.js','game/systems/travel/travel.js','game/systems/travel/roads.js','game/systems/travel/route-planner.js','game/map/terrain.js','game/ui/world.js','game/tools/map-editor/road-editor.js'],roots:['game/app','game/client','game/core','game/map','game/modules','game/systems','game/tools/map-editor','game/diagnostics','game/data','game/ui']});
+import {DOMAIN_VALIDATION} from './domain-config.mjs';
+validate(DOMAIN_VALIDATION.campaign);
