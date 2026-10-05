@@ -45,4 +45,11 @@ const travelState=createGameState({seed:3});
 const trip=TravelSystem.start(travelState,{roads,points:[{id:'start',x:0,y:.5},{id:'town',x:.9,y:.5}],fromId:'start',toId:'town'});
 assert.ok(trip);
 assert.equal(trip.toPortId,'town:west','travel must preserve chosen physical destination port');
+TravelSystem.tick(travelState,1000,roads,16);
+assert.equal(trip.status,'arrived');
+const arrived=TravelSystem.arrive(travelState);
+assert.equal(arrived.pointId,'town','regional arrival must commit destination point');
+assert.equal(arrived.entryPortId,'town:west','regional arrival must preserve the chosen physical entry port');
+assert.equal(travelState.world.position.pointId,'town');
+
 console.log('world simulation regression: OK');
