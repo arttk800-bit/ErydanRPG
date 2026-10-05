@@ -2,7 +2,7 @@ import {CENTRAL_LANDS} from '../data/regions/central-lands.js';
 import {CENTRAL_LANDS_ROADS} from '../data/regions/central-lands-roads.js';
 import {RoadSystem} from '../systems/travel/roads.js';
 import {TravelSystem} from '../systems/travel/travel.js';
-import {PauseSystem} from '../systems/pause.js';
+import {PauseSystem} from '../systems/pause.js';\nimport {accessPorts} from '../map/access-points.js';\nimport {mapMetrics} from '../data/map-metrics.js';
 const NO_ROAD_REQUIRED=new Set(['lake-island']);
 function state(){return{clock:{day:1,minute:480},world:{position:{regionId:'forest',pointId:'veligrad'}},history:[]}}
 export function runTravelDiagnostics(){
@@ -10,7 +10,7 @@ export function runTravelDiagnostics(){
  const edgeDegree=new Map([...roadIds].map(id=>[id,0]));
  for(const e of CENTRAL_LANDS_ROADS.edges||[]){if(edgeDegree.has(e[0]))edgeDegree.set(e[0],edgeDegree.get(e[0])+1);if(edgeDegree.has(e[1]))edgeDegree.set(e[1],edgeDegree.get(e[1])+1)}
  const badEdges=(CENTRAL_LANDS_ROADS.edges||[]).filter(e=>!roadIds.has(e[0])||!roadIds.has(e[1]));
- const badAccess=Object.entries(CENTRAL_LANDS_ROADS.access||{}).filter(([poi,a])=>!ids.has(poi)||!roadIds.has(a.node));
+ const badAccess=Object.entries(CENTRAL_LANDS_ROADS.access||{}).filter(([poi])=>!ids.has(poi)||accessPorts(CENTRAL_LANDS_ROADS,poi).some(port=>!roadIds.has(port.node)));
  const missingAccess=points.filter(p=>!CENTRAL_LANDS_ROADS.access?.[p.id]&&!NO_ROAD_REQUIRED.has(p.id)).map(p=>p.id);
  const isolated=[...edgeDegree].filter(([,n])=>n===0).map(([id])=>id);
  const bridges=[...roadIds].filter(id=>id.startsWith('bridge-')),badBridges=bridges.filter(id=>(edgeDegree.get(id)||0)<2);
@@ -22,15 +22,15 @@ export function runTravelDiagnostics(){
  checks.push(['No isolated road nodes',isolated.length===0]);
  checks.push(['Bridge nodes connected on both sides',badBridges.length===0]);
  checks.push(['All road-connected POI mutually reachable',routeFailures===0]);
- const s=state(),t=TravelSystem.start(s,{roads:CENTRAL_LANDS_ROADS,points,fromId:'veligrad',toId:'stone-guard',method:'walk'});
+ const diagnosticRoads={...CENTRAL_LANDS_ROADS,metrics:{...mapMetrics('region','forest')}};\n const s=state(),t=TravelSystem.start(s,{roads:diagnosticRoads,points,fromId:'veligrad',toId:'stone-guard',method:'walk'});
  checks.push(['Travel start',!!t&&t.status==='travelling']);
  if(t){
-  const before=t.progress;TravelSystem.tick(s,1,CENTRAL_LANDS_ROADS,1);checks.push(['Travel advances',t.progress>before]);
+  const before=t.progress;TravelSystem.tick(s,1,diagnosticRoads,1);checks.push(['Travel advances',t.progress>before]);
   PauseSystem.set(s,'manual',true);const paused=t.progress;TravelSystem.tick(s,1,.05);checks.push(['Pause freezes travel',t.progress===paused]);PauseSystem.set(s,'manual',false);
-  TravelSystem.stop(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Stop action',t.status==='stopped']);TravelSystem.resume(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Resume action',t.status==='travelling']);
-  TravelSystem.camp(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Camp action',t.status==='camp'&&!!s.world.camp]);TravelSystem.resume(s,{roads:CENTRAL_LANDS_ROADS,points});
-  TravelSystem.tick(s,1,.05);const pos={...t.position};TravelSystem.cancel(s,{roads:CENTRAL_LANDS_ROADS,points});checks.push(['Cancel preserves exact position',!s.world.position.pointId&&Math.hypot(s.world.position.position.x-pos.x,s.world.position.position.y-pos.y)<1e-9]);
-  const restarted=TravelSystem.start(s,{roads:CENTRAL_LANDS_ROADS,points,fromId:null,fromPosition:s.world.position.position,toId:'ozernoe',method:'walk'});
+  TravelSystem.stop(s,{roads:diagnosticRoads,points});checks.push(['Stop action',t.status==='stopped']);TravelSystem.resume(s,{roads:diagnosticRoads,points});checks.push(['Resume action',t.status==='travelling']);
+  TravelSystem.camp(s,{roads:diagnosticRoads,points});checks.push(['Camp action',t.status==='camp'&&!!s.world.camp]);TravelSystem.resume(s,{roads:diagnosticRoads,points});
+  TravelSystem.tick(s,1,.05);const pos={...t.position};TravelSystem.cancel(s,{roads:diagnosticRoads,points});checks.push(['Cancel preserves exact position',!s.world.position.pointId&&Math.hypot(s.world.position.position.x-pos.x,s.world.position.position.y-pos.y)<1e-9]);
+  const restarted=TravelSystem.start(s,{roads:diagnosticRoads,points,fromId:null,fromPosition:s.world.position.position,toId:'ozernoe',method:'walk'});
   checks.push(['Restart from exact road position',!!restarted&&Math.hypot(restarted.position.x-pos.x,restarted.position.y-pos.y)<1e-9]);
   checks.push(['Restart enters road before destination',!!restarted?.route?.roadEntry&&restarted.route.polyline.length>3]);
  }else{
