@@ -14,6 +14,7 @@ import {loadPoi,savePoi} from '../map/poi-store.js';
 import {buildMapEditorExport} from '../tools/map-editor/export-data.js';
 import {el,choiceMenu,downloadJson} from './map-ui.js';
 import {MAP_POINT_CLASSES as CLASSES,MAP_POINT_TYPES as TYPES,pointIcon,legendFor,mapPointSlug,actionPanel} from './map-points.js';
+import {createEditorModeSelect,createRoadTypeSelect,createTerrainTypeSelect,createTerrainControls,createRoadSelectionControls,setEditorControlVisibility} from '../tools/map-editor/editor-ui.js';
 
 function exportAllButton(){const b=el('button','Экспорт всех карт');b.onclick=()=>downloadJson('eirdan-map-editor-all.json',buildMapEditorExport());return b}
 function clampPin(pin){pin.style.transform='translate(-50%,-50%)'}
@@ -61,8 +62,8 @@ export const WorldUI={
    const type=choiceMenu([['location-map','Локация с картой'],['location','Локация без карты'],['place','Конечное место']],'location-map')
    const name=el('input');name.placeholder='Название локации';
    const hint=el('p','Выберите функциональный класс и нажмите на карту. Конкретный тип и иконка задаются отдельно данными карты. Метку можно перетаскивать.');hint.className='quiet';
-   const modeSelect=choiceMenu([['poi','Метки'],['road','Дороги'],['terrain','Местность']],'poi')
-   const terrainType=choiceMenu([['forest','Лес'],['swamp','Болото'],['mountain','Горы'],['water','Глубокая вода'],['blocked','Непроходимая область']],'forest');const finishTerrain=el('button','Замкнуть полигон'),undoTerrain=el('button','Удалить последнюю точку'),cancelTerrain=el('button','Отменить вершины'),terrainSelection=el('p','Зона не выбрана'),deleteTerrain=el('button','Удалить выбранную зону'),clearTerrain=el('button','Удалить все зоны');terrainSelection.className='quiet';deleteTerrain.disabled=true;const roadType=choiceMenu([['trail','Тропа'],['road','Дорога'],['highway','Тракт'],['rough','Бездорожье']],'road')
+   const modeSelect=createEditorModeSelect()
+   const terrainType=createTerrainTypeSelect();const finishTerrain=el('button','Замкнуть полигон'),undoTerrain=el('button','Удалить последнюю точку'),cancelTerrain=el('button','Отменить вершины'),terrainSelection=el('p','Зона не выбрана'),deleteTerrain=el('button','Удалить выбранную зону'),clearTerrain=el('button','Удалить все зоны');terrainSelection.className='quiet';deleteTerrain.disabled=true;const roadType=createRoadTypeSelect()
    const toggleLabels=el('button','Развернуть названия');const clearRoads=el('button','Удалить все узлы');const clearOptionalPoi=el('button','Удалить обычные метки');const bindRoadPoi=el('button','Привязать узел к метке');bindRoadPoi.disabled=true;
    const exportBtn=el('button','Экспорт меток');const roadExport=el('button','Экспорт дорог');const terrainExport=el('button','Экспорт местности');const mapExport=el('button','Экспорт карты целиком');const roadSelection=el('p','Ничего не выбрано');roadSelection.className='quiet';const deleteRoadNode=el('button','Удалить узел');const deleteRoadEdge=el('button','Удалить участок');const clearRoadSelection=el('button','Снять выбор');deleteRoadNode.disabled=true;deleteRoadEdge.disabled=true;
    const clearBtn=el('button','Сбросить к штатным');
@@ -116,11 +117,11 @@ export const WorldUI={
    if(location.id==='veligrad'&&!items.length)items=VELIGRAD.points.map(p=>({...p}));
    let roads=loadEditableRoads(key,{nodes:[],edges:[],access:{}}),terrainZones=loadTerrainZones(key,[]),roadEditor=null,terrainEditor=null;
    const panel=el('div');panel.className='region-editor hidden';
-   const modeSelect=choiceMenu([['poi','Метки'],['road','Дороги'],['terrain','Местность']],'poi');
+   const modeSelect=createEditorModeSelect();
    const cls=choiceMenu([['district','Район'],['place','Место'],['transition','Переход']],'district');
    const name=el('input');name.placeholder='Название';
-   const roadType=choiceMenu([['trail','Тропа'],['road','Дорога'],['highway','Тракт'],['rough','Бездорожье']],'road');
-   const terrainType=choiceMenu([['forest','Лес'],['swamp','Болото'],['mountain','Горы'],['water','Глубокая вода'],['blocked','Непроходимая область']],'forest');
+   const roadType=createRoadTypeSelect();
+   const terrainType=createTerrainTypeSelect();
    const finishTerrain=el('button','Замкнуть полигон'),undoTerrain=el('button','Удалить последнюю точку'),cancelTerrain=el('button','Отменить вершины'),terrainSelection=el('p','Зона не выбрана'),deleteTerrain=el('button','Удалить выбранную зону'),clearTerrain=el('button','Удалить все зоны');terrainSelection.className='quiet';deleteTerrain.disabled=true;
    const roadSelection=el('p','Ничего не выбрано');roadSelection.className='quiet';const deleteRoadNode=el('button','Удалить узел'),deleteRoadEdge=el('button','Удалить участок'),clearRoadSelection=el('button','Снять выбор'),clearRoads=el('button','Удалить все узлы');deleteRoadNode.disabled=true;deleteRoadEdge.disabled=true;
    const hint=el('p','Расставьте районы, отдельные места и переходы.');hint.className='quiet';
