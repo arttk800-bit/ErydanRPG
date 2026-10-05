@@ -11,22 +11,27 @@ import {downloadDiagnosticArchive} from '../diagnostics/archive.js';
 import {runtimeTrace} from '../diagnostics/runtime-trace.js';
 import {preloadStartupAssets} from '../client/asset-loader.js';
 import {PauseSystem} from '../systems/pause.js';
-import {loadSettings,saveSettings} from '../ui/settings.js';
+import {loadSettings,saveSettings} from '../client/settings.js';
+import {activeServiceWorkerBuild,registerServiceWorker} from '../client/pwa.js';
+import {createNotifications} from './notifications.js';
+import {ModalController} from './modal.js';
 
 const BUILD_URL='../data/version.json';
 let buildMeta=null;
-const nav=new Navigation(document);let session=null,gameCleanup=null,installPrompt=null,modalOpen=false,modalPauseReason=null,swRegistration=null,updateManager=null;
+const nav=new Navigation(document);let session=null,gameCleanup=null,installPrompt=null,modalPauseReason=null,swRegistration=null,updateManager=null;
 const $=s=>document.querySelector(s);
+const notifications=createNotifications(document);
+const modalController=new ModalController({root:document,onClose:()=>{if(session&&modalPauseReason){PauseSystem.set(session,modalPauseReason,false);modalPauseReason=null}}});
 runtimeTrace.setStateProvider(()=>session);
 window.addEventListener('error',e=>runtimeTrace.error('window',e.error||e.message,{filename:e.filename,line:e.lineno,col:e.colno}));
 window.addEventListener('unhandledrejection',e=>runtimeTrace.error('promise',e.reason));
 const settings=loadSettings();
 function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').value=settings.theme;$('#volume').value=settings.volume}
-export function notifyDiscovery(name){toast('Вы узнали о новом месте: '+(name||'неизвестное место'))}
-function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.add('hidden'),2200)}
-function closeModal(){modalOpen=false;$('#modal').classList.add('hidden');if(session&&modalPauseReason){PauseSystem.set(session,modalPauseReason,false);modalPauseReason=null}}
-function modal(title,body,actions=[['Закрыть',closeModal]]){modalOpen=true;$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden')}
-async function activeSwBuild(timeout=1200){if(!navigator.serviceWorker?.controller)return null;return new Promise(resolve=>{const t=setTimeout(()=>{navigator.serviceWorker.removeEventListener('message',on);resolve(null)},timeout),on=e=>{if(e.data?.type==='SW_BUILD'){clearTimeout(t);navigator.serviceWorker.removeEventListener('message',on);resolve(e.data.build||null)}};navigator.serviceWorker.addEventListener('message',on);navigator.serviceWorker.controller.postMessage({type:'GET_BUILD'})})}
+export function notifyDiscovery(name){notifications.discovery(name)}
+const toast=message=>notifications.toast(message);
+const closeModal=()=>modalController.close();
+const modal=(title,body,actions)=>modalController.show(title,body,actions);
+const activeSwBuild=activeServiceWorkerBuild;
 async function loadBuild(){buildMeta=await loadInstalledRelease();const active=await activeSwBuild();buildMeta.runtimeBuild=active;$('#versionBadge').textContent='Версия '+buildMeta.version+(active&&active!==buildMeta.build?' · runtime '+active:'');return buildMeta}
 function installedRuntimeRelease(){return buildMeta?.runtimeBuild?{...buildMeta,build:buildMeta.runtimeBuild}:buildMeta}
 function updateButton(label='Проверить обновления',disabled=false,progress=0,state='idle'){const b=$('#checkUpdates');if(!b)return;b.textContent=label;b.disabled=disabled;b.style.setProperty('--update-progress',Math.max(0,Math.min(100,progress))+'%');b.dataset.state=state}
@@ -41,7 +46,7 @@ function updateVisual(state,data={}){
 async function registerPwa(){
  if(!('serviceWorker' in navigator))return;
  try{
-  swRegistration=await navigator.serviceWorker.register('../sw.js',{scope:'../',updateViaCache:'none'});
+  swRegistration=await registerServiceWorker();
   updateManager=new UpdateManager({
    registration:swRegistration,
    getInstalled:()=>Promise.resolve(installedRuntimeRelease()),
@@ -68,7 +73,7 @@ async function debug(){
  archive.onclick=async()=>{try{if(!last)last=await runShellDiagnostics({session,persistenceSupported:persistenceSupported(),updateManager,installedBuild:buildMeta,remoteBuild:fetchRemoteBuild,swRegistration});actionDiagnostics.record('diagnostics-archive','start');const result=downloadDiagnosticArchive(last,buildMeta);actionDiagnostics.record('diagnostics-archive','success',result);toast('Диагностика сохранена ZIP-архивом')}catch(e){actionDiagnostics.record('diagnostics-archive','error',{message:String(e)});runtimeTrace.error('diagnostics.archive',e);toast('Не удалось сохранить диагностику')}};
 }
 function openGameMenu(){if(!session)return;PauseSystem.set(session,'game-menu',true);modalPauseReason='game-menu';modal('Меню игры','<nav class="game-menu-list"><button data-menu="continue">Продолжить</button><button data-menu="save">Сохранить игру</button><button data-menu="settings">Настройки</button><button data-menu="main">В главное меню</button></nav>',[]);const body=$('#modalBody');body.querySelector('[data-menu="continue"]').onclick=closeModal;body.querySelector('[data-menu="save"]').onclick=async()=>{await persist();toast('Игра сохранена')};body.querySelector('[data-menu="settings"]').onclick=()=>{PauseSystem.set(session,'settings',true);closeModal();nav.show('settings')};body.querySelector('[data-menu="main"]').onclick=()=>{persist();closeModal();gameCleanup?.();gameCleanup=null;nav.reset('main')}}
-function handleBack(){if(modalOpen){closeModal();return true}if(nav.current()==='debug'){nav.back();return true}if(nav.current()==='settings'){if(session)PauseSystem.set(session,'settings',false);nav.back();return true}if(nav.current()==='game'){openGameMenu();return true}return true}
+function handleBack(){if(modalController.isOpen()){closeModal();return true}if(nav.current()==='debug'){nav.back();return true}if(nav.current()==='settings'){if(session)PauseSystem.set(session,'settings',false);nav.back();return true}if(nav.current()==='game'){openGameMenu();return true}return true}
 const lifecycle=new Lifecycle({onBack:handleBack,onSuspend:persist});
 document.addEventListener('click',e=>{const raw=e.target.closest('button,a,input,select,summary,[data-action]');if(raw)runtimeTrace.ui('click',raw.tagName.toLowerCase(),{text:(raw.textContent||'').trim().slice(0,120),action:raw.dataset?.action||null,id:raw.id||null,className:raw.className||null,disabled:!!raw.disabled});const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='force-reload'){persist().finally(()=>{const url=new URL(location.href);url.searchParams.set('forceReload',Date.now().toString());location.replace(url.toString())})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')openGameMenu();});
 $('#theme').addEventListener('change',e=>{runtimeTrace.ui('change','select',{id:'theme',value:e.target.value});settings.theme=e.target.value;saveSettings(settings);applySettings()});
