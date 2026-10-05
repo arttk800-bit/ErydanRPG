@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "npm run test:campaign && npm run test:combat",
+    "test": "npm run test:campaign",
     "validate": "npm run validate:campaign",
     "parity": "node scripts/parity-report.mjs",
     "mirror:3000": "node scripts/run-mirror3000.mjs",
@@ -14,7 +14,9 @@
     "serve:test": "python3 -m http.server 4173",
     "test:browser": "playwright test",
     "assets:integrity": "node scripts/update-asset-integrity.mjs",
-    "assets:integrity:check": "node scripts/update-asset-integrity.mjs --check"
+    "assets:integrity:check": "node scripts/update-asset-integrity.mjs --check",
+    "test:all": "npm run test:campaign && npm run test:combat",
+    "validate:all": "npm run validate:campaign && npm run validate:combat"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
