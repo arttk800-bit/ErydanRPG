@@ -10,10 +10,11 @@ import {actionDiagnostics} from '../diagnostics/action-diagnostics.js';
 import {downloadDiagnosticArchive} from '../diagnostics/archive.js';
 import {runtimeTrace} from '../diagnostics/runtime-trace.js';
 import {preloadStartupAssets} from '../client/asset-loader.js';
+import {PauseSystem} from '../systems/pause.js';
 
 const BUILD_URL='../data/version.json',SETTINGS_KEY='eirdan.shell.settings.v1';
 let buildMeta=null;
-const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,swRegistration=null,updateManager=null;
+const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,modalPauseReason=null,swRegistration=null,updateManager=null;
 const $=s=>document.querySelector(s);
 runtimeTrace.setStateProvider(()=>session);
 window.addEventListener('error',e=>runtimeTrace.error('window',e.error||e.message,{filename:e.filename,line:e.lineno,col:e.colno}));
@@ -24,7 +25,7 @@ const settings=loadSettings();
 function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').value=settings.theme;$('#volume').value=settings.volume}
 export function notifyDiscovery(name){toast('Вы узнали о новом месте: '+(name||'неизвестное место'))}
 function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.add('hidden'),2200)}
-function closeModal(){modalOpen=false;$('#modal').classList.add('hidden')}
+function closeModal(){modalOpen=false;$('#modal').classList.add('hidden');if(session&&modalPauseReason){PauseSystem.set(session,modalPauseReason,false);modalPauseReason=null}}
 function modal(title,body,actions=[['Закрыть',closeModal]]){modalOpen=true;$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;const box=$('#modalActions');box.replaceChildren();for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=fn;box.append(b)}$('#modal').classList.remove('hidden')}
 async function activeSwBuild(timeout=1200){if(!navigator.serviceWorker?.controller)return null;return new Promise(resolve=>{const t=setTimeout(()=>{navigator.serviceWorker.removeEventListener('message',on);resolve(null)},timeout),on=e=>{if(e.data?.type==='SW_BUILD'){clearTimeout(t);navigator.serviceWorker.removeEventListener('message',on);resolve(e.data.build||null)}};navigator.serviceWorker.addEventListener('message',on);navigator.serviceWorker.controller.postMessage({type:'GET_BUILD'})})}
 async function loadBuild(){buildMeta=await loadInstalledRelease();const active=await activeSwBuild();buildMeta.runtimeBuild=active;$('#versionBadge').textContent='Версия '+buildMeta.version+(active&&active!==buildMeta.build?' · runtime '+active:'');return buildMeta}
@@ -70,9 +71,10 @@ async function debug(){
   catch(e){actionDiagnostics.record('diagnostics-archive','error',{message:String(e)});runtimeTrace.error('diagnostics.archive',e);toast('Не удалось сохранить диагностику')}
  }],['Закрыть',closeModal]]);
 }
-function handleBack(){if(modalOpen){closeModal();return true}if(nav.current()==='main')return false;nav.back();return true}
+function openGameMenu(){if(!session)return;PauseSystem.set(session,'game-menu',true);modalPauseReason='game-menu';modal('Меню игры','<nav class="game-menu-list"><button data-menu="continue">Продолжить</button><button data-menu="save">Сохранить игру</button><button data-menu="settings">Настройки</button><button data-menu="main">В главное меню</button></nav>',[]);const body=$('#modalBody');body.querySelector('[data-menu="continue"]').onclick=closeModal;body.querySelector('[data-menu="save"]').onclick=async()=>{await persist();toast('Игра сохранена')};body.querySelector('[data-menu="settings"]').onclick=()=>{closeModal();nav.show('settings')};body.querySelector('[data-menu="main"]').onclick=async()=>{await persist();closeModal();nav.reset('main')}}
+function handleBack(){if(modalOpen){closeModal();return true}if(nav.current()==='settings'){nav.back();return true}if(nav.current()==='game'){openGameMenu();return true}return true}
 const lifecycle=new Lifecycle({onBack:handleBack,onSuspend:persist});
-document.addEventListener('click',e=>{const raw=e.target.closest('button,a,input,select,summary,[data-action]');if(raw)runtimeTrace.ui('click',raw.tagName.toLowerCase(),{text:(raw.textContent||'').trim().slice(0,120),action:raw.dataset?.action||null,id:raw.id||null,className:raw.className||null,disabled:!!raw.disabled});const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')modal('Меню игры','<p>Текущая игровая сессия активна.</p>',[['Продолжить',closeModal],['Сохранить',async()=>{await persist();closeModal();toast('Игра сохранена')}],['Настройки',()=>{closeModal();nav.show('settings')}],['В главное меню',async()=>{await persist();closeModal();nav.reset('main')}]]);});
+document.addEventListener('click',e=>{const raw=e.target.closest('button,a,input,select,summary,[data-action]');if(raw)runtimeTrace.ui('click',raw.tagName.toLowerCase(),{text:(raw.textContent||'').trim().slice(0,120),action:raw.dataset?.action||null,id:raw.id||null,className:raw.className||null,disabled:!!raw.disabled});const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')openGameMenu();});
 $('#theme').addEventListener('change',e=>{runtimeTrace.ui('change','select',{id:'theme',value:e.target.value});settings.theme=e.target.value;saveSettings(settings);applySettings()});
 $('#volume').addEventListener('input',e=>{runtimeTrace.ui('input','range',{id:'volume',value:e.target.value});settings.volume=Number(e.target.value);saveSettings(settings)});
 $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{toast('Полный экран недоступен на этом устройстве')}});
