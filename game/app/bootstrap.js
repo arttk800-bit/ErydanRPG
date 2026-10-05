@@ -11,7 +11,7 @@ import {downloadDiagnosticArchive} from '../diagnostics/archive.js';
 import {runtimeTrace} from '../diagnostics/runtime-trace.js';
 import {preloadStartupAssets} from '../client/asset-loader.js';
 
-const BUILD_URL='../ui/build.json',SETTINGS_KEY='eirdan.shell.settings.v1';
+const BUILD_URL='../data/version.json',SETTINGS_KEY='eirdan.shell.settings.v1';
 let buildMeta=null;
 const nav=new Navigation(document);let session=null,installPrompt=null,modalOpen=false,swRegistration=null,updateManager=null;
 const $=s=>document.querySelector(s);
