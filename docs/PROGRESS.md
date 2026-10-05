@@ -28,3 +28,11 @@ Implemented schema-3 simulation state, continuous foreground-only world clock, t
 
 ## Feedback reporting
 Added player-facing bug/suggestion reports with text, optional screenshots, optional Diagnostics attachment, explicit opt-in device/browser metadata and a portable ZIP package. Download is the only active delivery transport; server delivery is a deliberate stub for future backend integration.
+
+
+## Diagnostics 2.0
+- Added read-only State/Saves, World/Simulation and PWA/cache diagnostic adapters.
+- Audio uses the existing public snapshot adapter.
+- Shell diagnostics is now an aggregator rather than owner of cross-domain checks.
+- Diagnostic ZIP includes dedicated JSON reports for state, world/simulation, PWA/cache and audio.
+- Added campaign regression coverage for diagnostic adapters.
