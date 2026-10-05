@@ -1,7 +1,9 @@
-# Eirdan 0.15
+# Eirdan
 
-Modular migration of the Eirdan tactical RPG prototype.
+Modular browser-installed PWA RPG under active development.
 
-Combat reference: 0.14.15-alpha14p. Android-first client. Combat math remains locked during migration.
+Active runtime: `game/app/`. Gameplay responsibilities are split across `game/core/`, `game/systems/`, `game/combat/`, `game/ai/`, `game/simulation/`, `game/data/` and presentation adapters in `game/ui/`.
 
-Folders: android/ native shell; game/core state/turns/lifecycle; game/combat rules; game/ai decision logic; game/ui rendering; game/simulation diagnostics; game/data balance/content; game/assets binary resources; tests regression seeds.
+The former Android/APK client and 0.14/0.15 migration runtime are retired. Historical behavior that still matters is preserved by current regression/parity tests rather than executable legacy entrypoints.
+
+See `docs/ARCHITECTURE.md`, `docs/SYSTEMS.md`, `docs/PROJECT_LAYOUT.md` and `docs/PROGRESS.md`.
