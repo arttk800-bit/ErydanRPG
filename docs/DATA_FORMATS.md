@@ -76,3 +76,11 @@ Cancelling/stopping away from a named point may leave `state.world.position.posi
 Mapped locations may expose multiple regional access ports under `roads.access[locationId].ports`. Each port owns a stable `id` and regional road `node`. A location-level `transition` is the only boundary POI type and binds to the same port id with its local road `node`, `pointId`, and `externalNode`. Runtime entry stores `entryPortId` so entering a location resolves to the matching transition instead of a generic spawn point. Legacy single `{node}` access remains readable during migration; legacy `gate` / `entrance` / `exit` POIs are migrated to `transition`.
 
 Map Editor user exports use the complete `eirdan-map-editor` bundle (`Экспорт всех карт`). Partial POI/road/terrain exports are no longer exposed in the editor UI.
+
+
+## Simulation and location entry (schema 3)
+`state.simulation.runtime` stores the active simulation mode, temporal-event accumulator and optional sleep state. `state.simulation.clock.fraction` preserves sub-minute clock progress. These fields are runtime/game-state data, not wall-clock timestamps; no offline catch-up is performed.
+
+Mapped-location access uses the same stable port ID on both scopes. Regional `roads.access[locationId].ports[]` identifies the external road node. Location navigation `access[locationId].ports[]` maps that ID to a local transition `pointId` and local node. Arrival stores `entryPortId`; entry resolves the matching transition. Fallback order is transition → district → place → temporary center spawn.
+
+Final places do not contain navigation `map` data. A decorative `sceneBackground` may reference a PNG or other presentation asset without enabling Map/Travel semantics.
