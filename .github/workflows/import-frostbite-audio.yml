@@ -1,0 +1,44 @@
+name: Import Frostbite audio
+on:
+  push:
+    paths: ['.github/workflows/import-frostbite-audio.yml']
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified source archive
+        run: |
+          curl -L --fail -o /tmp/frostbite.zip https://opengameart.org/sites/default/files/frostbite-full-album-2022.zip
+          echo "055dc9a2b63398434351451dcf5b6c41a474b84f30ce8cf6f4d92baf2a48bc64  /tmp/frostbite.zip" | sha256sum -c -
+          mkdir -p /tmp/frostbite
+          unzip -q /tmp/frostbite.zip -d /tmp/frostbite
+      - name: Install normalized audio library
+        run: |
+          set -euo pipefail
+          mkdir -p game/assets/audio/{battle,forest,town,overworld,castle,themes}
+          cp "/tmp/frostbite/tridentkeep-Frostbite 02 Battle greensleeves.mp3" game/assets/audio/battle/greensleeves.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 06 Forest frost.mp3" game/assets/audio/forest/frost.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 12 Forest grenedier.mp3" game/assets/audio/forest/grenedier.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 13 Forest fields.mp3" game/assets/audio/forest/fields.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 03 Town indoor hymn.mp3" game/assets/audio/town/indoor-hymn.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 04 Town hayfields.mp3" game/assets/audio/town/hayfields.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 08 Town tower inn.mp3" game/assets/audio/town/tower-inn.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 09 Town locust fields.mp3" game/assets/audio/town/locust-fields.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 05 Overworld valley shadows.mp3" game/assets/audio/overworld/valley-shadows.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 11 Overworld mini adventure.mp3" game/assets/audio/overworld/mini-adventure.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 01 Castle chamber birdseye.mp3" game/assets/audio/castle/chamber-birdseye.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 15 Castle crystal.mp3" game/assets/audio/castle/crystal.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 07 Theme orcs march.mp3" game/assets/audio/themes/orcs-march.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 10 Theme humans march.mp3" game/assets/audio/themes/humans-march.mp3
+          cp "/tmp/frostbite/tridentkeep-Frostbite 14 Embarking wenches, ale, loot.mp3" game/assets/audio/themes/embarking.mp3
+      - name: Commit imported audio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add game/assets/audio
+          git diff --cached --quiet && exit 0
+          git commit -m "assets: import normalized Frostbite audio library"
+          git push
