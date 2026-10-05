@@ -73,3 +73,7 @@ Player feedback is owned by `game/feedback/`, not by UI or Diagnostics. `Feedbac
 
 ## Diagnostics domain adapters
 Diagnostics observes active systems through read-only adapters. State/save validation, World/Simulation, PWA/cache and Audio snapshots remain separate from their owning systems; `shell-diagnostics.js` only aggregates reports. Diagnostics must not mutate canonical state or duplicate gameplay/client rules.
+
+## Authored map registry and diagnostics
+Authored map-bearing domains are declared in `game/data/map-registry.js`. Map diagnostics consumes registry descriptors and public Map/Travel contracts instead of importing a specific city. Content connectivity or terrain conflicts remain diagnostic findings; deterministic routing/terrain behavior belongs to synthetic campaign regression tests.
+
