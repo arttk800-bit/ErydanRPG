@@ -33,6 +33,126 @@
       "type": "image",
       "startup": true,
       "sha256": "c3cd4aef1b8f2f417b9223a994c40bf082f6db4dc5e88237e346d8b1e6280e68"
+    },
+    {
+      "id": "music-battle-greensleeves",
+      "path": "../assets/audio/battle/greensleeves.mp3",
+      "revision": "d379d5d07306db26902e41348996124fa92804e6e0749e6761ebb35cbda6eb35",
+      "type": "audio",
+      "startup": false,
+      "sha256": "d379d5d07306db26902e41348996124fa92804e6e0749e6761ebb35cbda6eb35"
+    },
+    {
+      "id": "music-forest-frost",
+      "path": "../assets/audio/forest/frost.mp3",
+      "revision": "05360ed2c96111ef1b2762265c6f266767be54a855265661f525ae6c8666a20f",
+      "type": "audio",
+      "startup": false,
+      "sha256": "05360ed2c96111ef1b2762265c6f266767be54a855265661f525ae6c8666a20f"
+    },
+    {
+      "id": "music-forest-grenedier",
+      "path": "../assets/audio/forest/grenedier.mp3",
+      "revision": "845d9875e7a594758a127fea00fd9e3a2550897e8daa0123e6f88a1987afac64",
+      "type": "audio",
+      "startup": false,
+      "sha256": "845d9875e7a594758a127fea00fd9e3a2550897e8daa0123e6f88a1987afac64"
+    },
+    {
+      "id": "music-forest-fields",
+      "path": "../assets/audio/forest/fields.mp3",
+      "revision": "0bf8eb428a31c33b45341ada95321aa23499b5667cab59b7205d5a2ed3e8f276",
+      "type": "audio",
+      "startup": false,
+      "sha256": "0bf8eb428a31c33b45341ada95321aa23499b5667cab59b7205d5a2ed3e8f276"
+    },
+    {
+      "id": "music-town-indoor-hymn",
+      "path": "../assets/audio/town/indoor-hymn.mp3",
+      "revision": "24a964a9cbbc5b3220602a2dcb31bf1032570ddcbe924cee27738c4b80147dfc",
+      "type": "audio",
+      "startup": false,
+      "sha256": "24a964a9cbbc5b3220602a2dcb31bf1032570ddcbe924cee27738c4b80147dfc"
+    },
+    {
+      "id": "music-town-hayfields",
+      "path": "../assets/audio/town/hayfields.mp3",
+      "revision": "fd49e32d9ec9e471d26cbe6285020481f5136250364438c3be509871661cfc77",
+      "type": "audio",
+      "startup": false,
+      "sha256": "fd49e32d9ec9e471d26cbe6285020481f5136250364438c3be509871661cfc77"
+    },
+    {
+      "id": "music-town-tower-inn",
+      "path": "../assets/audio/town/tower-inn.mp3",
+      "revision": "7339b1d84056451b5da086f6fae64a03040d0da8c2ea19b37e721d0c6fef37e8",
+      "type": "audio",
+      "startup": false,
+      "sha256": "7339b1d84056451b5da086f6fae64a03040d0da8c2ea19b37e721d0c6fef37e8"
+    },
+    {
+      "id": "music-town-locust-fields",
+      "path": "../assets/audio/town/locust-fields.mp3",
+      "revision": "189fb32f61e1fc3a20fbcbe8addb352a380a3d3aa5216f64911df07a4a50cf1c",
+      "type": "audio",
+      "startup": false,
+      "sha256": "189fb32f61e1fc3a20fbcbe8addb352a380a3d3aa5216f64911df07a4a50cf1c"
+    },
+    {
+      "id": "music-overworld-valley-shadows",
+      "path": "../assets/audio/overworld/valley-shadows.mp3",
+      "revision": "d039f0fd447046ac883e602eba0791387adf9fb73acc1824384906c1bb52c368",
+      "type": "audio",
+      "startup": false,
+      "sha256": "d039f0fd447046ac883e602eba0791387adf9fb73acc1824384906c1bb52c368"
+    },
+    {
+      "id": "music-overworld-mini-adventure",
+      "path": "../assets/audio/overworld/mini-adventure.mp3",
+      "revision": "47ca007692004105d429931cb2170e3d3d4ca790a642b9a717eb4c035d9e471c",
+      "type": "audio",
+      "startup": false,
+      "sha256": "47ca007692004105d429931cb2170e3d3d4ca790a642b9a717eb4c035d9e471c"
+    },
+    {
+      "id": "music-castle-chamber-birdseye",
+      "path": "../assets/audio/castle/chamber-birdseye.mp3",
+      "revision": "60848cc62d3974cd44bbe08da1bc2f2bd877113f5b7c4ef6b7e8d6e4cb9b78d7",
+      "type": "audio",
+      "startup": false,
+      "sha256": "60848cc62d3974cd44bbe08da1bc2f2bd877113f5b7c4ef6b7e8d6e4cb9b78d7"
+    },
+    {
+      "id": "music-castle-crystal",
+      "path": "../assets/audio/castle/crystal.mp3",
+      "revision": "e646a0211cc336597d204e9d4cd07d682f589df6f28ef8f80a59a700979dfe8b",
+      "type": "audio",
+      "startup": false,
+      "sha256": "e646a0211cc336597d204e9d4cd07d682f589df6f28ef8f80a59a700979dfe8b"
+    },
+    {
+      "id": "music-theme-orcs-march",
+      "path": "../assets/audio/themes/orcs-march.mp3",
+      "revision": "d6a7d558f0c1212e4da16ed40d4fec05e4a97a1fc5640dfa8d45e49bcd00dcb4",
+      "type": "audio",
+      "startup": false,
+      "sha256": "d6a7d558f0c1212e4da16ed40d4fec05e4a97a1fc5640dfa8d45e49bcd00dcb4"
+    },
+    {
+      "id": "music-theme-humans-march",
+      "path": "../assets/audio/themes/humans-march.mp3",
+      "revision": "18d73bc2e7fdbdf75a15a11d5a3aa34afb52c7bc24c954bebff969ef420e2b46",
+      "type": "audio",
+      "startup": false,
+      "sha256": "18d73bc2e7fdbdf75a15a11d5a3aa34afb52c7bc24c954bebff969ef420e2b46"
+    },
+    {
+      "id": "music-theme-embarking",
+      "path": "../assets/audio/themes/embarking.mp3",
+      "revision": "9b970bda933fec8f6e2b04968fd3d622ff6b1d3909c3a45be2bf4bb12dd2d9d3",
+      "type": "audio",
+      "startup": false,
+      "sha256": "9b970bda933fec8f6e2b04968fd3d622ff6b1d3909c3a45be2bf4bb12dd2d9d3"
     }
   ]
 }
