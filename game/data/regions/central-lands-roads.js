@@ -37,7 +37,7 @@ export const CENTRAL_LANDS_ROADS={
  access:{
   'sosnovy-bor':{node:'r01'},'north-gate':{node:'r34'},'kamenka':{node:'r03'},'high-pass':{node:'r33'},
   'medovye-luga':{node:'r05'},'starolesye':{node:'r19'},'west-watch':{node:'r18'},'lesnoy-brod':{node:'r20'},
-  'malinovka':{node:'r21'},'veligrad':{node:'r07'},'zarechye':{node:'r30'},'white-rock':{node:'r31'},
+  'malinovka':{node:'r21'},'veligrad':{ports:[{id:'veligrad:west',node:'r22',internalPortId:'veligrad-gate-west'},{id:'veligrad:northwest',node:'r07',internalPortId:'veligrad-gate-northwest'},{id:'veligrad:east',node:'r23',internalPortId:'veligrad-gate-east'},{id:'veligrad:south',node:'r10',internalPortId:'veligrad-gate-south'}]},'zarechye':{node:'r30'},'white-rock':{node:'r31'},
   'vetrovo':{node:'r29'},'east-watch':{node:'r27'},'rechnoe':{node:'r28'},'grey-ruins':{node:'r26'},
   'berezovka':{node:'r37'},'dubrava':{node:'r39'},'yuzhny-brod':{node:'r50'},'eastern-marshes':{node:'r40'},
   'podgorye':{node:'r12'},'stone-guard':{node:'r44'},'old-river-tower':{node:'r45'},'ozernoe':{node:'r47'},
