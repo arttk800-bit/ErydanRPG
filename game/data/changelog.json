@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.78.2-alpha",
+      "build": "canonical-release-source-1",
+      "stage": "Canonical Release Source",
+      "date": "2026-10-05",
+      "changes": [
+        "Устранён второй устаревший источник версии ui/build.json из проверки обновлений.",
+        "data/version.json теперь является единым каноническим источником опубликованных version/build метаданных.",
+        "Активный Service Worker остаётся отдельным источником фактически запущенного runtime build; несовпадение с опубликованным build требует перезагрузки."
+      ]
+    },
+    {
       "version": "0.78.1-alpha",
       "build": "runtime-update-detection-1",
       "stage": "Runtime Update Detection Fix",
