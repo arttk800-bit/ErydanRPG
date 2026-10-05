@@ -12,7 +12,7 @@ Static content and balance belong in data modules/files, not UI code.
 
 ## Runtime domains
 - `game/app/` — application shell, navigation, lifecycle, screen composition.
-- `game/client/` — PWA/runtime infrastructure: release metadata, update detection, startup asset loading and client cache behavior.
+- `game/client/` — PWA/runtime infrastructure: release metadata, update detection and content-revisioned asset caching.
 - `game/core/` — shared state/session primitives, commands/events, persistence foundations and battle lifecycle primitives.
 - `game/combat/` — combat rules and action semantics.
 - `game/ai/` — AI decision policies consuming legal gameplay APIs.
@@ -37,7 +37,7 @@ Static content and balance belong in data modules/files, not UI code.
 10. A release is blocked by syntax/module-load failures or failing required regression/diagnostic gates.
 
 ## Change workflow
-Requirement -> inspect current architecture -> identify owning systems -> implement -> architecture review -> full JS syntax gate -> regression tests -> relevant smoke/diagnostic tests -> fix failures -> synchronize version/build/changelog/Service Worker -> release.
+Requirement -> inspect current architecture -> identify owning systems -> research established solutions when non-trivial -> implement -> architecture review -> full JS syntax gate -> regression tests -> relevant smoke/diagnostic tests -> fix failures -> synchronize version/build/changelog/Service Worker -> release.
 
 Do not perform unrelated global refactors, but when touched legacy code clearly belongs to the system being changed, migrate it toward the current boundary as part of that work.
 
