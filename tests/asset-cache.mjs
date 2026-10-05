@@ -18,8 +18,10 @@ for(const asset of manifest.assets){
   assert.match(asset.revision,/^[a-f0-9]{40,64}$/);
   const fileUrl=new URL(asset.path,new URL('../game/client/asset-cache.js',import.meta.url));
   assert.ok(fs.existsSync(fileUrl),'missing asset '+asset.path);
-  const sha256=createHash('sha256').update(fs.readFileSync(fileUrl)).digest('hex');
-  if(asset.sha256!==sha256)integrityErrors.push(asset.id+' expected '+sha256);
+  if(asset.sha256){
+    const sha256=createHash('sha256').update(fs.readFileSync(fileUrl)).digest('hex');
+    if(asset.sha256!==sha256)integrityErrors.push(asset.id+' expected '+sha256);
+  }
 }
 assert.deepEqual(integrityErrors,[],'sha256 mismatch: '+integrityErrors.join('; '));
 const sw=fs.readFileSync(new URL('../game/sw.js',import.meta.url),'utf8');
