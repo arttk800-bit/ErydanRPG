@@ -5,4 +5,4 @@
 // ============================================================================
 import {mountGameScreen} from '../app/game-screen.js';
 
-export function mount(state,{onChange}={}){return mountGameScreen(state,onChange)}
+export function mount(state,{onChange,audio}={}){return mountGameScreen(state,onChange,{audio})}
