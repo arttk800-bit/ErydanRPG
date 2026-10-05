@@ -20,6 +20,7 @@ import {loadSettings,saveSettings} from '../client/settings.js';
 import {activeServiceWorkerBuild,registerServiceWorker} from '../client/pwa.js';
 import {createNotifications} from './notifications.js';
 import {ModalController} from './modal.js';
+import {AudioSystem} from '../audio/system.js';
 
 const BUILD_URL='../data/version.json';
 let buildMeta=null;
@@ -31,6 +32,7 @@ runtimeTrace.setStateProvider(()=>session);
 window.addEventListener('error',e=>runtimeTrace.error('window',e.error||e.message,{filename:e.filename,line:e.lineno,col:e.colno}));
 window.addEventListener('unhandledrejection',e=>runtimeTrace.error('promise',e.reason));
 const settings=loadSettings();
+const audio=new AudioSystem({volume:settings.volume,onState:s=>runtimeTrace.system('audio','state',s)});
 function applySettings(){$('#app').dataset.theme=settings.theme;$('#theme').value=settings.theme;$('#volume').value=settings.volume}
 export function notifyDiscovery(name){notifications.discovery(name)}
 const toast=message=>notifications.toast(message);
@@ -66,7 +68,7 @@ async function registerPwa(){
 }
 async function persist(){if(session&&persistenceSupported())try{await saveGame(session)}catch(e){console.warn('Save failed',e)}}
 async function defaultWorldName(){const saves=persistenceSupported()?await listSaves():[];const used=new Set(saves.map(worldName));let n=1;while(used.has('Мир '+n))n+=1;return 'Мир '+n}
-function newGame(){modal('Новый мир','<label>Название мира <span class="muted">(необязательно)</span><input id="worldNameInput" maxlength="48" autocomplete="off" placeholder="Мир 1"></label>',[['Создать',async()=>{const input=$('#worldNameInput');const name=input?.value.trim()||await defaultWorldName();session=createSession({worldName:name});await persist();closeModal();nav.reset('game');gameCleanup?.();gameCleanup=await ModuleRuntime.mount(session,'campaign',{onChange:persist});toast('Мир «'+session.meta.worldName+'» создан')}],['Отмена',closeModal]]);setTimeout(()=>$('#worldNameInput')?.focus(),0)}
+function newGame(){modal('Новый мир','<label>Название мира <span class="muted">(необязательно)</span><input id="worldNameInput" maxlength="48" autocomplete="off" placeholder="Мир 1"></label>',[['Создать',async()=>{const input=$('#worldNameInput');const name=input?.value.trim()||await defaultWorldName();session=createSession({worldName:name});await persist();closeModal();nav.reset('game');gameCleanup?.();gameCleanup=await ModuleRuntime.mount(session,'campaign',{onChange:persist,audio});toast('Мир «'+session.meta.worldName+'» создан')}],['Отмена',closeModal]]);setTimeout(()=>$('#worldNameInput')?.focus(),0)}
 function worldName(s){return s.meta.worldName||'Старый мир'}
 function saveLabel(s){const when=s.meta.updatedAt||s.meta.createdAt;let date='';try{date=new Date(when).toLocaleString('ru-RU')}catch{}return worldName(s)+' · День '+s.clock.day+(date?' · '+date:'')}
 async function openLoad(){if(!persistenceSupported())return modal('Загрузить игру','<p>IndexedDB недоступен в этом браузере.</p>');const saves=await listSaves();if(!saves.length)return modal('Загрузить игру','<p>Сохранений пока нет.</p>');const body=saves.map(s=>'<div class="saveRow" data-save="'+s.meta.worldId+'"><button class="saveChoice">'+saveLabel(s)+'</button><button class="saveDelete" aria-label="Удалить сохранение">Удалить</button></div>').join('');modal('Загрузить игру','<div class="saveList">'+body+'</div>');document.querySelectorAll('.saveRow').forEach(row=>{const id=row.dataset.save;row.querySelector('.saveChoice').onclick=async()=>{session=await loadGame(id);closeModal();nav.reset('game');gameCleanup?.();gameCleanup=await ModuleRuntime.mount(session,'campaign',{onChange:persist});toast('Сохранение загружено')};row.querySelector('.saveDelete').onclick=()=>confirmDelete(id)})}
@@ -82,7 +84,7 @@ function handleBack(){if(modalController.isOpen()){closeModal();return true}if(n
 const lifecycle=new Lifecycle({onBack:handleBack,onSuspend:persist});
 document.addEventListener('click',e=>{const raw=e.target.closest('button,a,input,select,summary,[data-action]');if(raw)runtimeTrace.ui('click',raw.tagName.toLowerCase(),{text:(raw.textContent||'').trim().slice(0,120),action:raw.dataset?.action||null,id:raw.id||null,className:raw.className||null,disabled:!!raw.disabled});const target=e.target.closest('[data-action]');const a=target?.dataset.action;if(!a)return;actionDiagnostics.record(a,'click',{disabled:!!target.disabled,screen:nav.current()});if(a==='new-game')newGame();if(a==='load-game')openLoad();if(a==='settings')nav.show('settings');if(a==='check-updates'){if(updateManager?.busy)return;if(updateManager?.available)updateManager.update();else updateManager?.check({manual:true})};if(a==='force-reload'){persist().finally(()=>{const url=new URL(location.href);url.searchParams.set('forceReload',Date.now().toString());location.replace(url.toString())})};if(a==='back')handleBack();if(a==='debug')debug();if(a==='game-menu')openGameMenu();});
 $('#theme').addEventListener('change',e=>{runtimeTrace.ui('change','select',{id:'theme',value:e.target.value});settings.theme=e.target.value;saveSettings(settings);applySettings()});
-$('#volume').addEventListener('input',e=>{runtimeTrace.ui('input','range',{id:'volume',value:e.target.value});settings.volume=Number(e.target.value);saveSettings(settings)});
+$('#volume').addEventListener('input',e=>{runtimeTrace.ui('input','range',{id:'volume',value:e.target.value});settings.volume=Number(e.target.value);saveSettings(settings);audio.setVolume(settings.volume)});
 $('#fullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch{toast('Полный экран недоступен на этом устройстве')}});
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('#installPwa').classList.remove('hidden')});
 $('#installPwa').addEventListener('click',async()=>{if(!installPrompt)return;await installPrompt.prompt();installPrompt=null;$('#installPwa').classList.add('hidden')});
