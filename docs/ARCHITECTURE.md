@@ -56,3 +56,13 @@ Validation is domain-scoped: campaign changes run campaign syntax/regression gat
 
 ## Source navigation rule
 Every non-trivial source file must identify its responsibility at the top. Large files additionally use short section markers for major cohesive blocks. Comments explain ownership/boundaries, not obvious syntax. If a file needs several unrelated responsibility sections, split it instead of documenting a god-file.
+
+
+## World time and spatial ownership (0.89)
+- `WorldClockSystem` is the only owner of continuous game-clock advancement.
+- `SimulationSystem` converts active foreground real time into game time. Pause, main menu, hidden/background PWA and closed application advance nothing and perform no catch-up simulation.
+- Travel, sleep, camp and future inventory/dialogue screens select simulation modes; UI must not mutate `state.clock` directly.
+- `MapViewSystem` is browsing state only. Opening another region/location map never moves the party.
+- Physical location entry is owned by `LocationEntrySystem`; mapped locations use stable access-port IDs. Region port A resolves location transition A. Missing bindings fall back to any transition, then district, place, then a temporary center spawn.
+- Districts are logical zones inside a location map, never separate navigation maps. Final places have no navigation maps; they may use `sceneBackground` for presentation.
+- Camps are temporary locations without navigation maps and can expose dynamic facilities.
