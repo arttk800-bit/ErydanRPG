@@ -1,0 +1,34 @@
+// ============================================================================
+// POI AUTHORING
+// Owns generic Map Editor POI create/delete/drag/export/reset interactions.
+// Host map UI supplies point data through explicit getters/setters.
+// ============================================================================
+import {mapPoint} from '../../ui/map-gestures.js';
+import {mapPointSlug} from '../../ui/map-points.js';
+import {downloadJson} from '../../ui/map-ui.js';
+
+export function createPoiAuthoring({
+ frame,panel,mapId,getItems,setItems,persist,getEditing,getMode,setDrag=()=>{},createPoint,
+ exportFile,exportPayload,resetConfirm,resetItems,onReset=()=>{}
+}){
+ const {poiType,name,poiExport,clearPoi}=panel;
+ function addFromEvent(event){
+  if(!getEditing()||getMode()!=='poi')return false;
+  const p=mapPoint(frame,event.clientX,event.clientY),choice=poiType.value;
+  const point=createPoint({choice,label:name.value.trim(),x:+p.x.toFixed(5),y:+p.y.toFixed(5),slug:value=>mapPointSlug(value)});
+  setItems([...getItems(),point]);name.value='';persist();return true;
+ }
+ function bindPin(pin,item){
+  pin.onpointerdown=e=>{if(!getEditing()||getMode()!=='poi')return;e.preventDefault();e.stopPropagation();setDrag(item);pin.setPointerCapture?.(e.pointerId)};
+  pin.onpointermove=e=>{const drag=typeof setDrag.current==='function'?setDrag.current():null;if(!drag)return;const p=mapPoint(frame,e.clientX,e.clientY);drag.x=p.x;drag.y=p.y;pin.style.left=(drag.x*100)+'%';pin.style.top=(drag.y*100)+'%'};
+  pin.onpointerup=()=>{const drag=typeof setDrag.current==='function'?setDrag.current():null;if(!drag)return;setDrag(null);persist()};
+ }
+ poiExport.onclick=()=>downloadJson(exportFile,exportPayload());
+ clearPoi.onclick=()=>{if(confirm(resetConfirm)){setItems(resetItems());onReset();persist()}};
+ return {
+  addFromEvent,
+  remove(item){if(!confirm('Удалить «'+item.name+'»?'))return false;setItems(getItems().filter(x=>x.id!==item.id));persist();return true},
+  bindPin,
+  destroy(){poiExport.onclick=null;clearPoi.onclick=null}
+ };
+}
