@@ -22,7 +22,6 @@ Static content and balance belong in data modules/files, not UI code.
 - `game/ui/` — rendering and user interaction only.
 - `game/data/` — static game/world/content data.
 - `game/assets/` — binary and visual/audio resources.
-- `game/runtime/` and legacy migration modules — compatibility/migration only; they are not targets for new independent responsibilities.
 
 ## Core invariants
 1. Inspect the current implementation before changing a system; never infer file contents or interfaces.
@@ -48,7 +47,6 @@ The active product is the campaign PWA. Runtime capabilities are registered expl
 - `combat` is preserved as a future gameplay module but is disabled in a fresh campaign until explicitly integrated through its public module boundary.
 - `combat-lab` is a development tool depending on combat; it is not part of the campaign release gate.
 - `game/simulation/`, mirror/parity tooling and historical combat entry points are retained for combat development and reference, not loaded by the campaign shell.
-- `game/runtime/` and `game/alpha14p/` remain compatibility/reference code and must not acquire new gameplay responsibilities.
-- Android is retained as historical client infrastructure and is manual-build only; PWA is the active target.
+- The browser-installed PWA is the only maintained client target; retired Android and executable 0.14/0.15 migration runtimes are not kept in the active tree.
 
 Validation is domain-scoped: campaign changes run campaign syntax/regression gates; combat changes run combat gates. Mirror 3000 is combat diagnostics, never a map/travel release criterion.
