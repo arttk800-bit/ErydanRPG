@@ -12,7 +12,9 @@
     "validate:campaign": "node scripts/validate-campaign.mjs && npm run test:campaign",
     "validate:combat": "node scripts/validate-combat.mjs && npm run test:combat",
     "serve:test": "python3 -m http.server 4173",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "assets:integrity": "node scripts/update-asset-integrity.mjs",
+    "assets:integrity:check": "node scripts/update-asset-integrity.mjs --check"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
