@@ -17,6 +17,7 @@ export class AudioSystem{
   this.context=context;const request=++this.request,track=this.selector.select(context);if(!track)return;
   try{const path=await this.resolveAsset(track.assetId);if(request!==this.request||!path)return;await this.player.play({...track,path})}catch(error){this.player.onState({...this.snapshot(),status:'error',error:String(error)})}
  }
+ stop(){this.context=null;this.request++;this.player.stop()}
  snapshot(){return{context:this.context,...this.player.snapshot()}}
  destroy(){this.request++;globalThis.removeEventListener?.('pointerdown',this.unlock);this.player.stop()}
 }
