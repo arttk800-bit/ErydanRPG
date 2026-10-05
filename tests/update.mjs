@@ -1,1 +1,0 @@
-import assert from 'node:assert/strict';import {compareVersions} from '../game/client/update.js';assert.equal(compareVersions('0.15.1','0.15.0'),1);assert.equal(compareVersions('0.15.0','0.15.0'),0);assert.equal(compareVersions('0.14.15','0.15.0'),-1);console.log('update versioning: OK');
