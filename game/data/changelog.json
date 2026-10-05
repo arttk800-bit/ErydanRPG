@@ -2,6 +2,18 @@
   "schema": 1,
   "releases": [
     {
+      "version": "0.81.0-alpha",
+      "build": "asset-cache-v2-1",
+      "stage": "Revisioned Asset Cache",
+      "date": "2026-10-05",
+      "changes": [
+        "Тяжёлые игровые ассеты получили независимые content revisions и больше не инвалидируются каждым build игры.",
+        "Добавлен единый client asset cache: изменившийся ресурс загружается и проверяется до удаления предыдущей рабочей ревизии.",
+        "Service Worker больше не складывает управляемые assets в build-scoped shell cache.",
+        "Startup preload, runtime diagnostics и campaign regression gate переведены на новый asset manifest."
+      ]
+    },
+    {
       "version": "0.80.2-alpha",
       "build": "pwa-update-reload-1",
       "stage": "PWA Update Reload Fix",
