@@ -36,11 +36,13 @@ func verify_archive(path: String, release: Dictionary) -> Dictionary:
 	return {"ok": true}
 
 func request_install(path: String) -> Dictionary:
-	var current := identity()
-	if not current.ok: return current
+	if not available(): return {"ok": false, "error": "android_only"}
 	var java = Engine.get_singleton("JavaClassWrapper")
 	var activity = Engine.get_singleton("AndroidRuntime").getActivity()
-	if current.sdk >= 26:
+	var sdk_class = java.wrap("android.os.Build$VERSION")
+	var sdk := int(sdk_class.SDK_INT)
+	if java.get_exception() != null: return {"ok": false, "error": "android_sdk_unavailable"}
+	if sdk >= 26:
 		var allowed: bool = activity.getPackageManager().canRequestPackageInstalls()
 		if java.get_exception() != null: return {"ok": false, "error": "install_permission_unavailable"}
 		if not allowed:
