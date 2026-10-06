@@ -7,12 +7,14 @@ extends Node
 const PackageOrder = preload("res://packages/package_order.gd")
 const DataSchema = preload("res://data/data_schema.gd")
 const ModuleRegistry = preload("res://modules/module_registry.gd")
+const GameModuleCatalog = preload("res://modules/game_module_catalog.gd")
 
 func _ready() -> void:
 	_test_package_order()
 	_test_data_schema()
 	_test_save_store()
 	_test_module_registry()
+	_test_world_map_modules()
 	var payload := "{\"travel\":{\"walk_speed_kmh\":4.2}}".to_utf8_buffer()
 	var hash := _sha256_for_bytes(payload)
 	_assert(not hash.is_empty(), "payload hash")
@@ -64,6 +66,33 @@ func _ready() -> void:
 
 
 
+
+
+func _test_world_map_modules() -> void:
+	var state := {
+		"meta": {"state_version": 1, "world_id": "world-module-test", "world_name": "World Module Test"},
+		"world": {}
+	}
+	var registered := GameModuleCatalog.register_foundation(Modules)
+	_assert(registered.ok, "world/map module catalog registers")
+	var configured := Modules.configure({})
+	_assert(configured.ok and configured.active == ["world", "map"], "world/map modules resolve in dependency order")
+	var started := Modules.start({"state": state})
+	_assert(started.ok, "world/map modules start")
+	var world = Modules.instance("world")
+	var map = Modules.instance("map")
+	world.enter_region("forest")
+	map.show_world()
+	_assert(world.current().region_id == "forest", "world owns physical region")
+	_assert(map.snapshot().level == "world", "map view can browse world")
+	map.show_region("north")
+	_assert(map.snapshot().region_id == "north", "map view browses another region")
+	_assert(world.current().region_id == "forest", "map browsing does not move physical world state")
+	var hidden := {"id": "grey-ruins", "name": "Grey Ruins", "class": "place", "hidden": true}
+	_assert(world.discover(hidden, "test"), "world discovery records new knowledge")
+	world.visit(hidden)
+	_assert(state.world.knowledge["grey-ruins"].visited, "world visit persists knowledge")
+	Modules.stop()
 
 func _test_module_registry() -> void:
 	var registry := ModuleRegistry.new()
