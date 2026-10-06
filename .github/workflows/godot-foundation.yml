@@ -1,0 +1,23 @@
+# GODOT FOUNDATION GATE
+# Isolated from the active PWA/campaign gate.
+name: validate godot foundation
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci/gate
+    paths:
+      - 'godot/**'
+      - 'tests/godot-foundation-regression.mjs'
+      - 'package.json'
+      - '.github/workflows/godot-foundation.yml'
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:godot-foundation
