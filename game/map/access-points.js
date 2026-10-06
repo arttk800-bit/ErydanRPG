@@ -1,15 +1,19 @@
 // ============================================================================
 // MAP ACCESS POINTS
-// Physical ports connect one logical POI to one or more navigation nodes.
-// Legacy {node} access remains readable while maps migrate to {ports:[...]}.
+// One logical map owner has at most one physical navigation access node.
 // ============================================================================
-export function accessPorts(roads,ownerId){
- const entry=roads?.access?.[ownerId];if(!entry)return[];
- if(Array.isArray(entry.ports))return entry.ports.filter(p=>p?.id&&p?.node);
- if(entry.node)return[{id:ownerId+':default',node:entry.node,externalNode:entry.externalNode||null,kind:'legacy'}];
- return[]
+
+export function accessNodeId(roads,ownerId){
+ const entry=roads?.access?.[ownerId];
+ if(!entry)return null;
+ if(entry.node)return entry.node;
+ // v2 editor data is read during migration; only the first old port survives.
+ return Array.isArray(entry.ports)?entry.ports.find(p=>p?.node)?.node||null:null
 }
-export function accessPort(roads,ownerId,portId){
- const ports=accessPorts(roads,ownerId);return ports.find(p=>p.id===portId)||ports[0]||null
+export function accessNode(roads,ownerId){
+ const id=accessNodeId(roads,ownerId);
+ return id?(roads?.nodes||[]).find(n=>n.id===id)||null:null
 }
-export function accessNodes(roads,ownerId){return accessPorts(roads,ownerId).map(p=>p.node)}
+export function accessNodes(roads,ownerId){const id=accessNodeId(roads,ownerId);return id?[id]:[]}
+export function accessPorts(roads,ownerId){const node=accessNodeId(roads,ownerId);return node?[{id:ownerId+':access',node}]:[]}
+export function accessPort(roads,ownerId){return accessPorts(roads,ownerId)[0]||null}
