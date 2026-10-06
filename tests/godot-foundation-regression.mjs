@@ -55,7 +55,7 @@ assert.match(catalog,/"id": "world"/);
 assert.match(catalog,/"id": "map"/);
 assert.match(catalog,/"dependencies": \["world"\]/);
 assert.match(catalog,/"id": "roads"/);
-assert.match(catalog,/"id": "roads"[\\s\\S]*?"dependencies": \[\]/);
+assert.match(catalog,/"id": "roads"[\s\S]*?"dependencies": \[\]/);
 assert.match(catalog,/"id": "travel"/);
 assert.match(catalog,/"dependencies": \["world", "roads"\]/);
 const roadGraph=await read('godot/roads/road_graph.gd');
