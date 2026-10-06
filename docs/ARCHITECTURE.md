@@ -97,3 +97,9 @@ Authored map-bearing domains are declared in `game/data/map-registry.js`. Map di
 
 ## Data resolution contract
 Authorable values are data unless they are algorithms. Resolution is layered and deterministic. Base definitions remain intact; package/user overrides replace supported values through DataRegistry, which exposes provenance for diagnosis and editing. Domain systems own behavior; data supplies parameters.
+
+
+## Godot persistence boundary
+`godot/persistence/SaveStore` is the durable-storage owner for mutable game state. Save format version and game-state schema version are separate axes. `save_schema.gd` validates the persistent contract; `save_migrations.gd` owns ordered state transformations; domain systems remain owners of the meaning and mutation of their state.
+
+Persistence does not import World, Travel, Character, Combat or UI rules. Those domains will expose canonical serializable state through the future Godot composition/session boundary. Static DataRegistry definitions remain referenced by stable IDs rather than becoming save-owned definitions.
