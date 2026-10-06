@@ -100,8 +100,16 @@ func _test_world_map_modules() -> void:
 	var registered := GameModuleCatalog.register_foundation(Modules)
 	_assert(registered.ok, "world/map module catalog registers")
 	var configured := Modules.configure({})
-	_assert(configured.ok and configured.active == ["world", "map", "roads"], "world/map modules resolve in dependency order")
-	var started := Modules.start({"state": state})
+	_assert(configured.ok and configured.active == ["world", "map", "roads", "travel"], "world/map modules resolve in dependency order")
+	var road_fixture := {
+		"forest": {
+			"metrics": {"width_meters": 1000.0, "height_meters": 1000.0},
+			"nodes": [{"id": "a", "x": 0.0, "y": 0.0}, {"id": "b", "x": 1.0, "y": 0.0}],
+			"edges": [["a", "b"]],
+			"access": {"start": {"node": "a"}, "finish": {"node": "b"}}
+		}
+	}
+	var started := Modules.start({"state": state, "roads": road_fixture})
 	_assert(started.ok, "world/map modules start")
 	var world = Modules.instance("world")
 	var map = Modules.instance("map")
@@ -116,6 +124,16 @@ func _test_world_map_modules() -> void:
 	_assert(world.discover(hidden, "test"), "world discovery records new knowledge")
 	world.visit(hidden)
 	_assert(state.world.knowledge["grey-ruins"].visited, "world visit persists knowledge")
+	var travel = Modules.instance("travel")
+	var trip := travel.begin("forest", "start", "finish", "walk")
+	_assert(trip.status == "travelling", "travel begins from Roads route")
+	travel.tick(1000.0)
+	_assert(state.world.travel.status == "arrived", "travel reaches destination")
+	var destination := {"id": "finish", "name": "Finish", "class": "location"}
+	travel.arrive(destination)
+	_assert(state.world.position.point_id == "finish", "travel commits physical arrival")
+	_assert(world.current().location_id == "finish", "arrival enters destination through World API")
+	_assert(state.world.travel.status == "idle", "arrival closes active travel")
 	Modules.stop()
 
 func _test_module_registry() -> void:
