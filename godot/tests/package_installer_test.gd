@@ -14,6 +14,18 @@ func _ready() -> void:
 	_assert(install_v1.ok, "valid package installs")
 	_assert(Packages.active_packages().back().version == "1.0.0", "v1 active")
 
+	var invalid_json_payload := "{broken".to_utf8_buffer()
+	var invalid_json := _make_package("eirdan.test.balance", "1.1.0", "0.1.0", invalid_json_payload, _sha256_for_bytes(invalid_json_payload))
+	var invalid_json_result := Packages.install_archive(invalid_json)
+	_assert(not invalid_json_result.ok and invalid_json_result.stage == "content", "invalid JSON rejected before activation")
+	_assert(Packages.active_packages().back().version == "1.0.0", "invalid JSON preserves active package")
+
+	var invalid_data_payload := "{\"travel\":{\"walk_speed_kmh\":-1}}".to_utf8_buffer()
+	var invalid_data := _make_package("eirdan.test.balance", "1.2.0", "0.1.0", invalid_data_payload, _sha256_for_bytes(invalid_data_payload))
+	var invalid_data_result := Packages.install_archive(invalid_data)
+	_assert(not invalid_data_result.ok and invalid_data_result.stage == "content", "invalid data rejected before activation")
+	_assert(Packages.active_packages().back().version == "1.0.0", "invalid data preserves active package")
+
 	var bad := _make_package("eirdan.test.bad", "1.0.0", "0.1.0", payload, "0".repeat(64))
 	var bad_result := Packages.install_archive(bad)
 	_assert(not bad_result.ok and bad_result.stage == "integrity", "bad hash rejected")
