@@ -21,7 +21,6 @@ var _travel
 var _simulation
 var _current_id := "veligrad"
 var _message := "Выберите точку назначения"
-var _test_fast_forward := true
 var _mouse_dragging := false
 var _mouse_start := Vector2.ZERO
 var _camera_start := Vector2.ZERO
@@ -56,24 +55,6 @@ func setup(region: Dictionary, world, roads, travel, simulation, background_asse
 
 func _exit_tree() -> void:
 	Diagnostics.unregister_provider(&"map_presentation")
-
-func _process(delta: float) -> void:
-	if _travel == null: return
-	var snapshot: Dictionary = _travel.snapshot()
-	if snapshot.get("status") == "travelling":
-		if _simulation != null: _simulation.set_mode("travel_fast" if _test_fast_forward else "normal")
-		var simulation_delta: float = float(_simulation.step(delta)) if _simulation != null else float(delta)
-		_travel.tick(simulation_delta)
-		snapshot = _travel.snapshot()
-		if snapshot.get("status") == "arrived":
-			var destination := _point(str(snapshot.get("to_id", "")))
-			if not destination.is_empty():
-				_travel.arrive(destination)
-				_current_id = str(destination.id)
-				_message = "Прибытие: %s" % destination.name
-		_refresh()
-	elif _simulation != null:
-		_simulation.set_mode("normal")
 
 # Raw _input is intentional on Android: GUI Controls may mark touch events handled
 # before _unhandled_input. The top screen inset is reserved for fixed HUD controls.
@@ -195,7 +176,7 @@ func _refresh() -> void:
 	status.text = _message
 	if travel.get("status") == "travelling":
 		var progress: Dictionary = _travel.progress()
-		status.text += "   Путь: %.0f%% · осталось %.1f км · ТЕСТ ×1800" % [float(progress.ratio)*100.0,float(progress.left)/1000.0]
+		status.text += "   Путь: %.0f%% · осталось %.1f км" % [float(progress.ratio)*100.0,float(progress.left)/1000.0]
 	if _simulation != null:
 		var game_time: Dictionary = _simulation.time()
 		status.text += " · День %d %02d:%02d" % [int(game_time.day), int(game_time.hour), int(game_time.minute)]
