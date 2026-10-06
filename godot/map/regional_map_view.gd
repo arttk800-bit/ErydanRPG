@@ -304,7 +304,7 @@ func _update_party(delta: float, travel: Dictionary) -> void:
 		if _presented_party_position.distance_to(_target_party_position) < 0.25:
 			_presented_party_position = _target_party_position
 	party.position = _presented_party_position
-	var moving := travel.get("status") == "travelling"
+	var moving: bool = str(travel.get("status", "idle")) == "travelling"
 	var pulse := 1.0 + sin(Time.get_ticks_msec() * 0.008) * 0.10 if moving else 1.0
 	party_ring.scale = Vector2.ONE * pulse
 	party_ring.modulate.a = 0.92 if moving else 0.72
