@@ -1,11 +1,23 @@
 import {STATE_VERSION} from './state.js';
 import {MapViewSystem} from '../map/view-state.js';
+import {PauseSystem} from '../systems/pause.js';
 const DB_NAME='eirdan';const DB_VERSION=1;const STORE='saves';
 function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'meta.worldId'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function tx(db,mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}
 export async function saveGame(state){if(!state?.meta?.worldId)throw new Error('Invalid game state');state.meta.updatedAt=new Date().toISOString();const db=await openDb();await new Promise((resolve,reject)=>{const r=tx(db,'readwrite').put(structuredClone(state));r.onsuccess=resolve;r.onerror=()=>reject(r.error)});db.close();return state.meta.worldId}
 export async function listSaves(){const db=await openDb();const rows=await new Promise((resolve,reject)=>{const r=tx(db).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});db.close();return rows.sort((a,b)=>String(b.meta.updatedAt||b.meta.createdAt).localeCompare(String(a.meta.updatedAt||a.meta.createdAt)))}
-export function migrateGameState(state){if(!state)return state;state.meta=state.meta||{};const from=Number(state.meta.stateVersion||1);if(from<2){MapViewSystem.ensure(state);state.meta.stateVersion=2}if(from<3){state.simulation=state.simulation||{};state.simulation.runtime=state.simulation.runtime||{mode:'world',eventAccumulator:0,sleep:null};state.simulation.clock=state.simulation.clock||{fraction:0};state.world=state.world||{};state.world.journey=state.world.journey||{status:'idle'};state.meta.stateVersion=3}state.meta.stateVersion=Math.max(Number(state.meta.stateVersion||1),STATE_VERSION);return state}
+export function migrateGameState(state){if(!state)return state;state.meta=state.meta||{};const from=Number(state.meta.stateVersion||1);if(from<2){MapViewSystem.ensure(state);state.meta.stateVersion=2}if(from<3){state.simulation=state.simulation||{};state.simulation.runtime=state.simulation.runtime||{mode:'world',eventAccumulator:0,sleep:null};state.simulation.clock=state.simulation.clock||{fraction:0};state.world=state.world||{};state.world.journey=state.world.journey||{status:'idle'};state.meta.stateVersion=3}
+ if(from<4){
+  state.clock=state.clock||{day:1,minute:480};
+  state.clock.second=Number.isFinite(state.clock.second)?state.clock.second:Number(state.clock.minute||0)*60;
+  state.simulation=state.simulation||{};
+  state.simulation.runtime=state.simulation.runtime||{mode:'world',eventAccumulator:0,sleep:null,fastForward:false};
+  state.simulation.runtime.fastForward=false;
+  delete state.simulation.clock;
+  state.meta.stateVersion=4
+ }
+ PauseSystem.clearRuntime(state);
+ state.meta.stateVersion=Math.max(Number(state.meta.stateVersion||1),STATE_VERSION);return state}
 export async function loadGame(worldId){const db=await openDb();const row=await new Promise((resolve,reject)=>{const r=tx(db).get(worldId);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)});db.close();return migrateGameState(row)}
 export async function deleteSave(worldId){const db=await openDb();await new Promise((resolve,reject)=>{const r=tx(db,'readwrite').delete(worldId);r.onsuccess=resolve;r.onerror=()=>reject(r.error)});db.close()}
 export function persistenceSupported(){return typeof indexedDB!=='undefined'}
