@@ -10,6 +10,11 @@ Domain systems may use shared core primitives and data, but must not reach into 
 Diagnostics observe behavior and verify invariants; they do not become a second implementation of gameplay.
 Static content and balance belong in data modules/files, not UI code.
 
+## Active platform architecture
+The active development target is Godot/Android. The existing browser PWA remains intact as a legacy/reference implementation until individual domains are migrated and parity-checked. New Android work must not depend on DOM, Service Worker or browser storage contracts.
+
+The Godot foundation currently separates runtime bootstrap, package installation/activation, resolved data and diagnostics. APK/runtime changes and game/content package changes have separate lifecycles.
+
 ## Runtime domains
 - `game/app/` — application shell, navigation, lifecycle, screen composition.
 - `game/client/` — PWA/runtime infrastructure: release metadata, update detection and content-revisioned asset caching.
@@ -40,14 +45,14 @@ Requirement -> inspect current architecture -> identify owning systems -> resear
 
 Do not perform unrelated global refactors, but when touched legacy code clearly belongs to the system being changed, migrate it toward the current boundary as part of that work.
 
-## Module boundary (current campaign)
-The active product is the campaign PWA. Runtime capabilities are registered explicitly through `game/core/modules/registry.js` and `game/modules/index.js`.
+## Legacy PWA module boundary
+The preserved browser implementation is the campaign PWA. Runtime capabilities are registered explicitly through `game/core/modules/registry.js` and `game/modules/index.js`.
 
 - `campaign` is enabled by default and owns world/map/travel/character/inventory/knowledge-facing integration.
 - `combat` is preserved as a future gameplay module but is disabled in a fresh campaign until explicitly integrated through its public module boundary.
 - `combat-lab` is a development tool depending on combat; it is not part of the campaign release gate.
 - `game/simulation/`, mirror/parity tooling and historical combat entry points are retained for combat development and reference, not loaded by the campaign shell.
-- The browser-installed PWA is the only maintained client target; retired Android and executable 0.14/0.15 migration runtimes are not kept in the active tree.
+- The PWA is preserved as a reference client while the active client architecture is rebuilt under `godot/`. It is not the owner of new Android runtime/package contracts.
 
 Validation is domain-scoped: campaign changes run campaign syntax/regression gates; disabled combat/AI/simulation code is not imported by the campaign runtime and does not trigger campaign/browser/PWA gates. Combat validation is explicit/manual or triggered by combat-domain paths. Before enabling a previously disabled module, run its own gate and the full integration gate. Mirror 3000 is combat diagnostics, never a map/travel release criterion.
 
@@ -81,3 +86,14 @@ Authored map-bearing domains are declared in `game/data/map-registry.js`. Map di
 `TravelSystem` owns regional movement and arrival. A mapped regional POI has one physical access node; that node may have any number of road edges. `LocationEntrySystem` resolves one explicitly selected transition inside the mapped location. Arrival direction is intentionally not preserved across the boundary. Internal location navigation (for example district approaches) may still expose multiple access nodes and is not part of this simplification.
 
 `SimulationSystem` owns the real-time→game-time conversion. Normal simulation is 1:1. Fast-forward is a binary runtime mode available only to Travel and Sleep; there is no global game-speed system. `PauseSystem` owns independent runtime pause reasons and pause state is never persistent.
+
+## Godot/Android foundation
+- `godot/app/` is the Android runtime/bootstrap presentation boundary.
+- `godot/packages/` owns package manifest validation, staging, SHA-256 integrity, compatibility, activation and rollback.
+- `godot/data/` owns resolved game data. Gameplay systems consume DataRegistry rather than package files directly.
+- `godot/diagnostics/` owns observational runtime diagnostics and provider aggregation.
+- Android SAF/file dialogs are adapters for import/export; they do not own package or diagnostic rules.
+- Mutable installed content belongs under `user://`; packaged `res://` content is not treated as writable state.
+
+## Data resolution contract
+Authorable values are data unless they are algorithms. Resolution is layered and deterministic. Base definitions remain intact; package/user overrides replace supported values through DataRegistry, which exposes provenance for diagnosis and editing. Domain systems own behavior; data supplies parameters.
