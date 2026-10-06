@@ -92,3 +92,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Save writes use temporary write → reread/validation → activation; invalid state is rejected before storage.
 - Loads validate and pass through the migration boundary before returning canonical state.
 - Added save/load/list/delete integration coverage and static architecture contracts.
+
+
+## Godot module runtime foundation
+- Added `godot/modules/module_registry.gd` for explicit module metadata, defaults and dependency resolution.
+- Added `godot/modules/module_runtime.gd` as the single Godot composition root.
+- Disabled modules are not constructed; required dependencies cannot be disabled under active dependents.
+- Startup is dependency ordered and shutdown is reverse ordered.
+- Composition runtime has no direct imports of future World/Map/Travel/Combat implementations.
+- Added dependency, optional-module, missing-dependency and cycle regression coverage.
