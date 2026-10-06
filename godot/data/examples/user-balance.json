@@ -1,0 +1,10 @@
+{
+  "travel": {
+    "walk_speed_kmh": 4.2
+  },
+  "items": {
+    "iron_sword": {
+      "damage": 15
+    }
+  }
+}
