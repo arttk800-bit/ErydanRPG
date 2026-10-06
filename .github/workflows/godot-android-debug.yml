@@ -28,7 +28,24 @@ jobs:
           cp -a /tmp/templates/templates/. "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
           printf '4.7.2.stable.official.ed1daf0bf\n' > "$HOME/.local/share/godot/export_templates/4.7.2.stable/version.txt"
 
+      - name: Prepare persistent Android signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euxo pipefail
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > /tmp/eirdan-development.jks
+          keytool -list -keystore /tmp/eirdan-development.jks -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
       - name: Export Android debug APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /tmp/eirdan-development.jks
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: ${{ secrets.ANDROID_KEY_ALIAS }}
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           set -o pipefail
           mkdir -p build
@@ -37,6 +54,8 @@ jobs:
           ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:.*export" "$LOG"
           test -s build/eirdan-runtime-debug.apk
           sha256sum build/eirdan-runtime-debug.apk | tee build/eirdan-runtime-debug.apk.sha256
+          keytool -printcert -jarfile build/eirdan-runtime-debug.apk | tee build/eirdan-runtime-debug.apk.cert.txt
+          grep -F "SHA256: F3:2A:DE:FD:89:E7:1B:BB:DB:07:49:18:4A:53:11:F2:C8:E5:5E:AB:06:13:DB:35:AF:D3:93:4E:C4:60:5E:CB" build/eirdan-runtime-debug.apk.cert.txt
 
       - uses: actions/upload-artifact@v4
         with:
@@ -44,5 +63,6 @@ jobs:
           path: |
             build/eirdan-runtime-debug.apk
             build/eirdan-runtime-debug.apk.sha256
+            build/eirdan-runtime-debug.apk.cert.txt
           if-no-files-found: error
           retention-days: 14
