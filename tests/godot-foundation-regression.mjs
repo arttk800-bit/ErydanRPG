@@ -6,10 +6,10 @@ import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const project=await read('godot/project.godot');
 assert.match(project,/config\/version="0\.1\.0-foundation"/);
-for(const autoload of ['Diagnostics','Packages','DataRegistry'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
+for(const autoload of ['Diagnostics','PackageValidators','Packages','DataRegistry'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
 
 const manager=await read('godot/packages/package_manager.gd');
-for(const contract of [/ProjectSettings\.load_resource_pack/,/func install_archive\(/,/func rollback\(/,/PREVIOUS_FILE/,/validate_package_candidate/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
+for(const contract of [/ProjectSettings\.load_resource_pack/,/func install_archive\(/,/func rollback\(/,/PREVIOUS_FILE/,/PackageValidators\.validate/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
 
 const installer=await read('godot/packages/package_installer.gd');
 assert.match(installer,/ZIPReader/);
@@ -22,8 +22,12 @@ const http=await read('godot/packages/http_source.gd');
 assert.match(http,/HTTPRequest/);
 assert.match(http,/download_file/);
 
+const validators=await read('godot/packages/package_validators.gd');
+for(const contract of [/func register_validator\(/,/func unregister_validator\(/,/func validate\(/,/Diagnostics\.register_provider/]) assert.match(validators,contract);
+assert.doesNotMatch(manager,/DataRegistry\.validate_package_candidate/);
+
 const registry=await read('godot/data/data_registry.gd');
-for(const contract of [/func resolve\(/,/func provenance\(/,/func set_layer\(/,/func validate_package_candidate\(/,/_validate_override_data/]) assert.match(registry,contract);
+for(const contract of [/func resolve\(/,/func provenance\(/,/func set_layer\(/,/func validate_package_candidate\(/,/_validate_override_data/,/PackageValidators\.register_validator/] ) assert.match(registry,contract);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
