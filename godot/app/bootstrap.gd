@@ -8,7 +8,7 @@ extends Control
 const LocalImport = preload("res://packages/local_import.gd")
 const GameModuleCatalog = preload("res://modules/game_module_catalog.gd")
 
-@onready var status: Label = $TopBar/Status
+@onready var status: Label = $HUD/TopBar/Status
 @onready var regional_map = $RegionalMap
 
 var _state: Dictionary = {
@@ -20,9 +20,9 @@ func _ready() -> void:
 	if "--package-installer-test" in OS.get_cmdline_user_args():
 		get_tree().change_scene_to_file("res://tests/package_installer_test.tscn")
 		return
-	$TopBar/Reload.pressed.connect(_reload_runtime)
-	$TopBar/Import.pressed.connect(_import_package)
-	$TopBar/Diagnostics.pressed.connect(_export_diagnostics)
+	$HUD/TopBar/Reload.pressed.connect(_reload_runtime)
+	$HUD/TopBar/Import.pressed.connect(_import_package)
+	$HUD/TopBar/Diagnostics.pressed.connect(_export_diagnostics)
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
 	_start_gameplay()
