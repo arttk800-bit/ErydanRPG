@@ -115,3 +115,9 @@ Domain implementations register factories through the composition root. ModuleRu
 The first gameplay migration slice is split by ownership. `godot/world/world_state.gd` owns physical hierarchy state and point knowledge; `godot/map/map_view_state.gd` owns browsing scope only. Browsing another region/location is therefore incapable of changing physical location through the Map API.
 
 Concrete World and Map adapters are registered in `godot/modules/game_module_catalog.gd`. Map declares a World dependency but receives shared canonical state through ModuleRuntime context instead of importing World internals. Roads and Travel will extend this vertical slice behind their own owners.
+
+
+## Godot Roads migration boundary
+`godot/roads/road_graph.gd` owns road topology, access-node resolution, physical metric distance and deterministic shortest-path queries. Coordinates remain normalized map-space values; map metrics convert them to meters.
+
+Roads is read-only navigation computation. It does not mutate World location, Map browsing state or Travel progress. Terrain/method speed modifiers are intentionally not embedded in the topology owner; Travel conditions will consume Road routes and calculate traversal behavior separately.
