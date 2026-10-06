@@ -1,19 +1,10 @@
-name: Mirror Eirdan diagnostics
-
+# LEGACY PWA DIAGNOSTIC MIRROR
+# Historical/reference diagnostics only. Manual to avoid background legacy CI activity.
+name: Legacy PWA mirror diagnostics
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [eirdan-diagnostic-ready]
-  schedule:
-    - cron: "*/5 * * * *"
-
 permissions:
   contents: write
-
-concurrency:
-  group: eirdan-diagnostics-mirror
-  cancel-in-progress: false
-
 jobs:
   mirror:
     runs-on: ubuntu-latest
@@ -21,19 +12,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
-      - name: Fetch diagnostic
+      - name: Fetch latest legacy diagnostic
         shell: bash
-        env:
-          DISPATCH_RUN_ID: ${{ github.event.client_payload.run_id }}
         run: |
           set -euo pipefail
           mkdir -p diagnostics
-          if [ -n "${DISPATCH_RUN_ID:-}" ]; then
-            ENC="$(printf '%s' "$DISPATCH_RUN_ID" | jq -sRr @uri)"
-            URL="https://eirdan-diagnostics.arttk800.workers.dev/run?id=$ENC&mirror=${GITHUB_RUN_ID}-$(date +%s)"
-          else
-            URL="https://eirdan-diagnostics.arttk800.workers.dev/latest?mirror=${GITHUB_RUN_ID}-$(date +%s)"
-          fi
+          URL="https://eirdan-diagnostics.arttk800.workers.dev/latest?mirror=${GITHUB_RUN_ID}-$(date +%s)"
           curl --fail --silent --show-error --retry 3 "$URL" -H "Cache-Control: no-cache" -o diagnostics/latest.json
           jq -e '(.run_id|type=="string" and length>0) and (.log|type=="string" and length>10)' diagnostics/latest.json >/dev/null
           jq -r '.log' diagnostics/latest.json > diagnostics/latest.log
@@ -46,17 +30,6 @@ jobs:
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "chore: mirror Eirdan diagnostic [skip ci]"
+            git commit -m "chore: mirror legacy Eirdan diagnostic [skip ci]"
             git push origin HEAD:main
           fi
-      - name: Confirm delivery
-        shell: bash
-        env:
-          CONFIRM_SECRET: ${{ secrets.EIRDAN_DIAGNOSTICS_CONFIRM_SECRET }}
-        run: |
-          set -euo pipefail
-          RUN_ID="$(jq -r '.run_id' diagnostics/latest.json)"
-          curl --fail --silent --show-error --retry 3 -X POST "https://eirdan-diagnostics.arttk800.workers.dev/confirm" \
-            -H "Content-Type: application/json" \
-            -H "X-Eirdan-Confirm: $CONFIRM_SECRET" \
-            --data "$(jq -nc --arg run_id "$RUN_ID" --arg sha "$GITHUB_SHA" '{run_id:$run_id,github_sha:$sha}')"
