@@ -4,6 +4,8 @@
 # ============================================================================
 extends Control
 
+const LocalImport = preload("res://packages/local_import.gd")
+
 @onready var status: Label = $Panel/Status
 
 func _ready() -> void:
@@ -25,7 +27,7 @@ func _refresh() -> void:
 	]
 
 func _import_package() -> void:
-	var err := EirdanLocalImport.choose_package(_on_file_selected)
+	var err := LocalImport.choose_package(_on_file_selected)
 	if err != OK:
 		Diagnostics.error("packages.file_dialog_failed", {"error": err})
 		status.text = "Не удалось открыть выбор файла: %s" % err
