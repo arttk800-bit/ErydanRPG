@@ -31,7 +31,12 @@ func _on_file_selected(ok: bool, paths: PackedStringArray, _filter_index: int) -
 	if not ok or paths.is_empty(): return
 	var path := paths[0]
 	Diagnostics.info("packages.local_file_selected", {"path": path})
-	status.text = "Выбран пакет:\n%s\n\nИмпорт содержимого — следующий инфраструктурный блок." % path
+	var result := Packages.install_archive(path)
+	if result.ok:
+		status.text = "Пакет установлен: %s@%s" % [result.package.id, result.package.version]
+	else:
+		status.text = "Пакет отклонён на этапе %s:\n%s" % [result.get("stage", "unknown"), result.get("errors", result.get("error", "unknown error"))]
+	_refresh()
 
 func _export_diagnostics() -> void:
 	var path := "user://eirdan-diagnostics.json"
