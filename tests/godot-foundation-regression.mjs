@@ -6,7 +6,7 @@ import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const project=await read('godot/project.godot');
 assert.match(project,/config\/version="0\.1\.0-foundation"/);
-for(const autoload of ['Diagnostics','PackageValidators','Packages','DataRegistry','SaveStore'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
+for(const autoload of ['Diagnostics','PackageValidators','Packages','DataRegistry','SaveStore','Modules'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
 
 const manager=await read('godot/packages/package_manager.gd');
 for(const contract of [/ProjectSettings\.load_resource_pack/,/func install_archive\(/,/func rollback\(/,/PREVIOUS_FILE/,/PackageValidators\.validate/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
@@ -38,6 +38,12 @@ const migrations=await read('godot/persistence/save_migrations.gd');
 assert.match(migrations,/func migrate\(/);
 const saveStore=await read('godot/persistence/save_store.gd');
 for(const contract of [/func save_state\(/,/func load_state\(/,/func list_saves\(/,/func delete_save\(/,/\.tmp/,/rename_absolute/,/SaveMigrations\.migrate/]) assert.match(saveStore,contract);
+
+const moduleRegistry=await read('godot/modules/module_registry.gd');
+for(const contract of [/func register\(/,/func resolve\(/,/func can_set_enabled\(/,/module dependency cycle/]) assert.match(moduleRegistry,contract);
+const moduleRuntime=await read('godot/modules/module_runtime.gd');
+for(const contract of [/func register_module\(/,/func configure\(/,/func set_enabled\(/,/func start\(/,/func stop\(/,/factory\.call\(\)/]) assert.match(moduleRuntime,contract);
+assert.doesNotMatch(moduleRuntime,/res:\/\/world|res:\/\/map|res:\/\/travel|res:\/\/combat/);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
