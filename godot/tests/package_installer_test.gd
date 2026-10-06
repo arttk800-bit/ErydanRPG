@@ -61,7 +61,14 @@ func _ready() -> void:
 	_assert(rollback.ok, "rollback succeeds")
 	var restored := Packages.active_packages().filter(func(item): return item.id == "eirdan.test.balance")
 	_assert(restored.size() == 1 and restored[0].version == "1.0.0", "rollback restores v1")
-	var content_payload := JSON.stringify({"definitions": {"travel_events": {"mist_on_road": {"title": "Mist", "text": "Mist covers the road.", "weight": 1, "min_distance_km": 2, "choices": [{"id": "continue", "label": "Continue", "result": "The mist thins.", "time_seconds": 0}]}}}).to_utf8_buffer()
+	var content_payload := JSON.stringify({
+		"definitions": {"travel_events": {
+			"mist_on_road": {
+				"title": "Mist", "text": "Mist covers the road.", "weight": 1, "min_distance_km": 2,
+				"choices": [{"id": "continue", "label": "Continue", "result": "The mist thins.", "time_seconds": 0}]
+			}
+		}}
+	}).to_utf8_buffer()
 	var content_package := _make_package("eirdan.test.events", "1.0.0", "0.1.0", content_payload, _sha256_for_bytes(content_payload), "content")
 	var content_result := Packages.install_archive(content_package)
 	_assert(content_result.ok, "definition content package installs")
