@@ -18,7 +18,14 @@ func start(context: Dictionary) -> Dictionary:
 	_world = modules.instance("world")
 	if _roads == null or _world == null: return {"ok": false, "errors": ["travel module requires active world and roads modules"]}
 	_state = candidate
-	TravelState.ensure(_state)
+	var travel := TravelState.ensure(_state)
+	if travel.get("status") in ["travelling", "stopped", "arrived"] and float(travel.get("speed_mps", 0.0)) <= 0.0:
+		var legacy_speed := _speed_kmh(str(travel.get("method", "walk"))) / 3.6
+		if legacy_speed <= 0.0: return {"ok": false, "errors": ["travel state has no valid movement speed"]}
+		travel["speed_mps"] = legacy_speed
+		var total := float(travel.get("distance_total", 0.0))
+		travel["eta_seconds"] = total / legacy_speed if legacy_speed > 0.0 else INF
+		Diagnostics.info("travel.legacy_speed_migrated", {"method": travel.get("method", "walk"), "speed_mps": legacy_speed})
 	Diagnostics.register_provider(&"travel", snapshot)
 	return {"ok": true}
 
