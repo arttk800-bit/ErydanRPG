@@ -19,9 +19,11 @@ func start(context: Dictionary) -> Dictionary:
 	if _roads == null or _world == null: return {"ok": false, "errors": ["travel module requires active world and roads modules"]}
 	_state = candidate
 	TravelState.ensure(_state)
+	Diagnostics.register_provider(&"travel", snapshot)
 	return {"ok": true}
 
 func stop() -> void:
+	Diagnostics.unregister_provider(&"travel")
 	_state = {}
 	_roads = null
 	_world = null
@@ -43,6 +45,10 @@ func cancel() -> Dictionary:
 	return TravelState.cancel(_state)
 
 func arrive(point: Dictionary) -> Dictionary:
+	var active := TravelState.ensure(_state)
+	if str(point.get("id", "")) != str(active.get("to_id", "")):
+		Diagnostics.warn("travel.arrival_target_mismatch", {"expected": active.get("to_id"), "actual": point.get("id")})
+		return {}
 	var position := TravelState.commit_arrival(_state)
 	if position.is_empty(): return {}
 	_world.enter_map_point(point)
@@ -51,3 +57,7 @@ func arrive(point: Dictionary) -> Dictionary:
 
 func progress() -> Dictionary:
 	return TravelState.progress(_state)
+
+func snapshot() -> Dictionary:
+	if _state.is_empty(): return {"status": "inactive"}
+	return TravelState.ensure(_state).duplicate(true)
