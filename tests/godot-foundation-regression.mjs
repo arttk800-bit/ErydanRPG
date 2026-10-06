@@ -40,7 +40,8 @@ for(const contract of [/func validate_base\(/,/func validate_override\(/,/unknow
 const saveSchema=await read('godot/persistence/save_schema.gd');
 for(const contract of [/FORMAT := "eirdan-save"/,/FORMAT_VERSION := 1/,/STATE_VERSION := 1/,/func validate_state\(/,/time\.day must be a positive integer/,/time\.second must be within 0\.\.<86400/]) assert.match(saveSchema,contract);
 const migrations=await read('godot/persistence/save_migrations.gd');
-assert.match(migrations,/func migrate\(/);\nassert.match(migrations,/saves\.time_default_migrated/);
+assert.match(migrations,/func migrate\(/);
+assert.match(migrations,/saves\.time_default_migrated/);
 const saveStore=await read('godot/persistence/save_store.gd');
 for(const contract of [/func save_state\(/,/func load_state\(/,/func list_saves\(/,/func delete_save\(/,/\.tmp/,/\.bak/,/_recover_backups\(/,/_valid_world_id\(/,/rename_absolute/,/SaveMigrations\.migrate/]) assert.match(saveStore,contract);
 assert.doesNotMatch(saveStore,/validate_filename\(/);
