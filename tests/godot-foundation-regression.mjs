@@ -14,8 +14,7 @@ for(const c of [/func preview_to\(/,/func begin_to\(/,/_world\.current_position\
 const simulationRuntime=await read('godot/simulation/simulation_runtime.gd');
 for(const c of [/_simulation\.step\(/,/_travel\.tick\(/,/_travel\.arrive\(/])assert.match(simulationRuntime,c);
 const regionalMap=await read('godot/map/regional_map_view.gd');
-for(const c of [/_travel\.preview_to\(/,/_travel\.begin_to\(/,/func _current_point_id\(/,/_world\.current_position\(\)/,/journey_progress\.value/])assert.match(regionalMap,c);
-assert.doesNotMatch(regionalMap,/_current_id/);
+for(const c of [/Camera2D/,/func _input\(/,/InputEventScreenTouch/,/InputEventScreenDrag/,/_input_counts/,/MapAssetLoader\.background/,/Diagnostics\.register_provider/])assert.match(regionalMap,c);
 assert.doesNotMatch(regionalMap,/_simulation\.step\(|_travel\.tick\(|_travel\.arrive\(/);
 const bootstrap=await read('godot/app/bootstrap.gd');
 for(const c of [/NOTIFICATION_WM_GO_BACK_REQUEST/,/game_shell\.handle_back\(\)/,/exit_blocked/,/status\.show_message\("Мир загружен"\)/,/_return_from_aux_screen\(/])assert.match(bootstrap,c);
