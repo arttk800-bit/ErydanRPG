@@ -5,6 +5,8 @@
 class_name EirdanPackageInstaller
 extends RefCounted
 
+const PackageManifest = preload("res://packages/package_manifest.gd")
+
 const ROOT := "user://packages"
 const STAGING := ROOT + "/staging"
 const INSTALLED := ROOT + "/installed"
@@ -29,7 +31,7 @@ static func stage_archive(archive_path: String) -> Dictionary:
 	if parsed is not Dictionary:
 		reader.close()
 		return {"ok": false, "stage": "manifest", "error": "manifest is not a JSON object"}
-	var manifest := EirdanPackageManifest.from_dictionary(parsed, archive_path)
+	var manifest := PackageManifest.from_dictionary(parsed, archive_path)
 	var errors := manifest.validate()
 	if not errors.is_empty():
 		reader.close()
@@ -57,7 +59,7 @@ static func stage_archive(archive_path: String) -> Dictionary:
 		return integrity.merged({"stage": "integrity"})
 	return {"ok": true, "manifest": manifest, "payload_path": payload_path}
 
-static func verify_payload(manifest: EirdanPackageManifest, payload_path: String) -> Dictionary:
+static func verify_payload(manifest, payload_path: String) -> Dictionary:
 	if not FileAccess.file_exists(payload_path):
 		return {"ok": false, "error": "payload missing"}
 	var actual := FileAccess.get_sha256(payload_path).to_lower()
@@ -67,7 +69,7 @@ static func verify_payload(manifest: EirdanPackageManifest, payload_path: String
 		return {"ok": false, "error": "sha256 mismatch", "expected": manifest.content_hash, "actual": actual}
 	return {"ok": true, "sha256": actual}
 
-static func installed_path(manifest: EirdanPackageManifest) -> String:
+static func installed_path(manifest) -> String:
 	return INSTALLED.path_join(_safe_segment(manifest.id)).path_join(_safe_segment(manifest.version))
 
 static func promote_file(source: String, destination: String) -> Error:
