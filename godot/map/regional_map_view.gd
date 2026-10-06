@@ -18,6 +18,7 @@ var _background_asset: Dictionary = {}
 var _world
 var _roads
 var _travel
+var _simulation
 var _current_id := "veligrad"
 var _message := "Выберите точку назначения"
 var _test_fast_forward := true
@@ -37,12 +38,13 @@ var _input_counts := {"touch_press":0,"touch_release":0,"drag":0,"tap":0,"pinch"
 @onready var party: Node2D = $Viewport/Party
 @onready var status: Label = $HUD/Status
 
-func setup(region: Dictionary, world, roads, travel, background_asset: Dictionary = {}) -> void:
+func setup(region: Dictionary, world, roads, travel, simulation, background_asset: Dictionary = {}) -> void:
 	_region = region
 	_background_asset = background_asset.duplicate(true)
 	_world = world
 	_roads = roads
 	_travel = travel
+	_simulation = simulation
 	_restore_current_id()
 	_build_static_layers()
 	_apply_background()
@@ -59,7 +61,9 @@ func _process(delta: float) -> void:
 	if _travel == null: return
 	var snapshot: Dictionary = _travel.snapshot()
 	if snapshot.get("status") == "travelling":
-		_travel.tick(delta * (1800.0 if _test_fast_forward else 1.0))
+		if _simulation != null: _simulation.set_mode("travel_fast" if _test_fast_forward else "normal")
+		var simulation_delta := _simulation.step(delta) if _simulation != null else delta
+		_travel.tick(simulation_delta)
 		snapshot = _travel.snapshot()
 		if snapshot.get("status") == "arrived":
 			var destination := _point(str(snapshot.get("to_id", "")))
@@ -68,6 +72,8 @@ func _process(delta: float) -> void:
 				_current_id = str(destination.id)
 				_message = "Прибытие: %s" % destination.name
 		_refresh()
+	elif _simulation != null:
+		_simulation.set_mode("normal")
 
 # Raw _input is intentional on Android: GUI Controls may mark touch events handled
 # before _unhandled_input. The top screen inset is reserved for fixed HUD controls.
@@ -190,6 +196,9 @@ func _refresh() -> void:
 	if travel.get("status") == "travelling":
 		var progress: Dictionary = _travel.progress()
 		status.text += "   Путь: %.0f%% · осталось %.1f км · ТЕСТ ×1800" % [float(progress.ratio)*100.0,float(progress.left)/1000.0]
+	if _simulation != null:
+		var game_time: Dictionary = _simulation.time()
+		status.text += " · День %d %02d:%02d" % [int(game_time.day), int(game_time.hour), int(game_time.minute)]
 
 func _draw_route(travel: Dictionary) -> void:
 	for child in route_layer.get_children(): child.queue_free()
@@ -266,4 +275,4 @@ func _point(id: String)->Dictionary:
 	return {}
 
 func diagnostic_snapshot()->Dictionary:
-	return {"region_id":_region.get("region_id"),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true)}
+	return {"region_id":_region.get("region_id"),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true),"simulation":_simulation.snapshot() if _simulation != null else {}}
