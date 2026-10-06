@@ -57,3 +57,7 @@ assert.match(bootstrap,/DataRegistry\.resolve\("travel\.walk_speed_kmh"/);
 const installerTest=await read('godot/tests/package_installer_test.gd');
 assert.match(installerTest,/invalid JSON rejected before activation/);
 assert.match(installerTest,/invalid data preserves active package/);
+
+const androidWorkflow=await read('.github/workflows/godot-android-debug.yml');
+assert.doesNotMatch(androidWorkflow,/keytool -genkeypair/);
+for(const secret of ['EIRDAN_DEV_KEYSTORE_B64','EIRDAN_DEV_KEYSTORE_PASSWORD','EIRDAN_DEV_KEY_ALIAS']) assert.match(androidWorkflow,new RegExp(secret));
