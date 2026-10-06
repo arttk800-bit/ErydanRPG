@@ -9,7 +9,7 @@ assert.match(project,/config\/version="0\.1\.0-foundation"/);
 for(const autoload of ['Diagnostics','Packages','DataRegistry'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
 
 const manager=await read('godot/packages/package_manager.gd');
-for(const contract of [/ProjectSettings\.load_resource_pack/,/func install_archive\(/,/func rollback\(/,/PREVIOUS_FILE/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
+for(const contract of [/ProjectSettings\.load_resource_pack/,/func install_archive\(/,/func rollback\(/,/PREVIOUS_FILE/,/validate_package_candidate/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
 
 const installer=await read('godot/packages/package_installer.gd');
 assert.match(installer,/ZIPReader/);
@@ -23,7 +23,7 @@ assert.match(http,/HTTPRequest/);
 assert.match(http,/download_file/);
 
 const registry=await read('godot/data/data_registry.gd');
-for(const contract of [/func resolve\(/,/func provenance\(/,/func set_layer\(/]) assert.match(registry,contract);
+for(const contract of [/func resolve\(/,/func provenance\(/,/func set_layer\(/,/func validate_package_candidate\(/,/_validate_override_data/]) assert.match(registry,contract);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
@@ -53,3 +53,7 @@ assert.match(bootstrap,/diagnostics\.exported/);
 assert.match(registry,/reload_active_packages/);
 assert.match(registry,/walk_speed_provenance/);
 assert.match(bootstrap,/DataRegistry\.resolve\("travel\.walk_speed_kmh"/);
+
+const installerTest=await read('godot/tests/package_installer_test.gd');
+assert.match(installerTest,/invalid JSON rejected before activation/);
+assert.match(installerTest,/invalid data preserves active package/);
