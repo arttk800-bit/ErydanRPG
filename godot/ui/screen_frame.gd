@@ -5,11 +5,11 @@
 # ============================================================================
 extends VBoxContainer
 
-@export var title := "":
+@export var screen_title: String = "":
 @export var empty_message := ""
 
 func _ready() -> void:
-	$Header/Title.text = title
+	$Header/Title.text = screen_title
 	$Body/Empty.text = empty_message
 	Diagnostics.register_provider(StringName("screen_%s" % name.to_snake_case()), snapshot)
 
@@ -21,4 +21,4 @@ func set_empty_message(message: String) -> void:
 	$Body/Empty.text = message
 
 func snapshot() -> Dictionary:
-	return {"screen": name, "visible": visible, "title": title}
+	return {"screen": name, "visible": visible, "title": screen_title}
