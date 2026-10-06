@@ -22,22 +22,23 @@ func _ready() -> void:
 func active_packages() -> Array[Dictionary]:
 	return _active.duplicate(true)
 
-func install(manifest_path: String, payload_path: String) -> Dictionary:
-	var manifest_result := EirdanPackageInstaller.read_manifest(manifest_path)
-	if not manifest_result.ok:
-		return _reject("manifest", manifest_path, manifest_result.get("errors", []))
-	var manifest: EirdanPackageManifest = manifest_result.manifest
+func install_archive(archive_path: String) -> Dictionary:
+	Diagnostics.info("packages.install_started", {"source": archive_path})
+	var staged := EirdanPackageInstaller.stage_archive(archive_path)
+	if not staged.ok:
+		return _reject(str(staged.get("stage", "staging")), archive_path, [staged.get("error", staged.get("errors", "staging failure"))])
+	var manifest: EirdanPackageManifest = staged.manifest
 	if not _runtime_compatible(manifest.runtime_min):
 		return _reject("runtime", manifest.identity(), ["requires runtime >= %s" % manifest.runtime_min])
-	var integrity := EirdanPackageInstaller.verify_payload(manifest, payload_path)
-	if not integrity.ok:
-		return _reject("integrity", manifest.identity(), [integrity.get("error", "integrity failure")])
 
 	var install_dir := EirdanPackageInstaller.installed_path(manifest)
 	var installed_payload := install_dir.path_join(manifest.payload.get_file())
-	var copy_error := EirdanPackageInstaller.promote_file(payload_path, installed_payload)
+	var copy_error := EirdanPackageInstaller.promote_file(staged.payload_path, installed_payload)
 	if copy_error != OK:
 		return _reject("promotion", manifest.identity(), ["copy error %s" % copy_error])
+	var final_integrity := EirdanPackageInstaller.verify_payload(manifest, installed_payload)
+	if not final_integrity.ok:
+		return _reject("promotion-integrity", manifest.identity(), [final_integrity.get("error", "final integrity failure")])
 
 	var record := {
 		"id": manifest.id,
