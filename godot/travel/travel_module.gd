@@ -30,7 +30,14 @@ func stop() -> void:
 
 func begin(region_id: String, from_id: String, to_id: String, method: String = "walk") -> Dictionary:
 	var route: Dictionary = _roads.route(region_id, from_id, to_id)
-	return TravelState.start(_state, region_id, from_id, to_id, method, route)
+	var speed_kmh := _speed_kmh(method)
+	if speed_kmh <= 0.0:
+		Diagnostics.error("travel.invalid_speed", {"method": method, "speed_kmh": speed_kmh})
+		return {}
+	var trip := TravelState.start(_state, region_id, from_id, to_id, method, route, speed_kmh / 3.6)
+	if not trip.is_empty():
+		Diagnostics.info("travel.started", {"region_id": region_id, "from_id": from_id, "to_id": to_id, "method": method, "speed_kmh": speed_kmh, "distance_m": trip.get("distance_total", 0.0), "eta_seconds": trip.get("eta_seconds", 0.0)})
+	return trip
 
 func tick(delta_seconds: float) -> Dictionary:
 	return TravelState.tick(_state, delta_seconds)
@@ -60,4 +67,12 @@ func progress() -> Dictionary:
 
 func snapshot() -> Dictionary:
 	if _state.is_empty(): return {"status": "inactive"}
-	return TravelState.ensure(_state).duplicate(true)
+	var result := TravelState.ensure(_state).duplicate(true)
+	var method := str(result.get("method", "walk"))
+	result["configured_speed_kmh"] = _speed_kmh(method)
+	result["speed_provenance"] = DataRegistry.provenance("travel.%s_speed_kmh" % method)
+	return result
+
+func _speed_kmh(method: String) -> float:
+	if method not in ["walk", "horse"]: return 0.0
+	return float(DataRegistry.resolve("travel.%s_speed_kmh" % method, 0.0))
