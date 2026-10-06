@@ -6,7 +6,7 @@ import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const project=await read('godot/project.godot');
 assert.match(project,/config\/version="0\.1\.0-foundation"/);
-for(const autoload of ['Diagnostics','PackageValidators','Packages','DataRegistry'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
+for(const autoload of ['Diagnostics','PackageValidators','Packages','DataRegistry','SaveStore'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
 
 const manager=await read('godot/packages/package_manager.gd');
 for(const contract of [/ProjectSettings\.load_resource_pack/,/func install_archive\(/,/func rollback\(/,/PREVIOUS_FILE/,/PackageValidators\.validate/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
@@ -31,6 +31,13 @@ for(const contract of [/func resolve\(/,/func provenance\(/,/func entity\(/,/fun
 assert.doesNotMatch(registry,/walk_speed_kmh must be|damage must be numeric/);
 const dataSchema=await read('godot/data/data_schema.gd');
 for(const contract of [/func validate_base\(/,/func validate_override\(/,/unknown root domain/,/cannot override unknown id/]) assert.match(dataSchema,contract);
+
+const saveSchema=await read('godot/persistence/save_schema.gd');
+for(const contract of [/FORMAT := "eirdan-save"/,/FORMAT_VERSION := 1/,/STATE_VERSION := 1/,/func validate_state\(/]) assert.match(saveSchema,contract);
+const migrations=await read('godot/persistence/save_migrations.gd');
+assert.match(migrations,/func migrate\(/);
+const saveStore=await read('godot/persistence/save_store.gd');
+for(const contract of [/func save_state\(/,/func load_state\(/,/func list_saves\(/,/func delete_save\(/,/\.tmp/,/rename_absolute/,/SaveMigrations\.migrate/]) assert.match(saveStore,contract);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
