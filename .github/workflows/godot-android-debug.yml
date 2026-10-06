@@ -29,8 +29,6 @@ jobs:
           printf '4.7.2.stable.official.ed1daf0bf\n' > "$HOME/.local/share/godot/export_templates/4.7.2.stable/version.txt"
 
       - name: Restore stable development keystore
-        env:
-          EIRDAN_DEV_KEYSTORE_B64: ${{ secrets.EIRDAN_DEV_KEYSTORE_B64 }}
         run: |
           set -euo pipefail
           test -n "$EIRDAN_DEV_KEYSTORE_B64" || { echo "Missing EIRDAN_DEV_KEYSTORE_B64 repository secret"; exit 1; }
