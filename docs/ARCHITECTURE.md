@@ -109,3 +109,9 @@ Persistence does not import World, Travel, Character, Combat or UI rules. Those 
 `godot/modules/module_runtime.gd` is the only runtime composition boundary for optional Godot gameplay domains. `module_registry.gd` owns metadata, default enabled state and dependency validation; ModuleRuntime owns construction and start/stop lifecycle.
 
 Domain implementations register factories through the composition root. ModuleRuntime must not import concrete World, Map, Travel, Character, Combat or AI implementations. Disabled modules are not constructed and therefore cannot perform runtime side effects. Dependencies start before dependents and stop in reverse order. Module enabled state may later be persisted in session state, but the registry remains the authority for whether a configuration is legal.
+
+
+## Godot World / Map migration boundary
+The first gameplay migration slice is split by ownership. `godot/world/world_state.gd` owns physical hierarchy state and point knowledge; `godot/map/map_view_state.gd` owns browsing scope only. Browsing another region/location is therefore incapable of changing physical location through the Map API.
+
+Concrete World and Map adapters are registered in `godot/modules/game_module_catalog.gd`. Map declares a World dependency but receives shared canonical state through ModuleRuntime context instead of importing World internals. Roads and Travel will extend this vertical slice behind their own owners.
