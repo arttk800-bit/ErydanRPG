@@ -93,7 +93,12 @@ func snapshot() -> Dictionary:
 
 func _runtime_compatible(required: String) -> bool:
 	if required.is_empty(): return true
-	return _semver_tuple(RUNTIME_VERSION) >= _semver_tuple(required)
+	var current := _semver_tuple(RUNTIME_VERSION)
+	var minimum := _semver_tuple(required)
+	for i in 3:
+		if current[i] > minimum[i]: return true
+		if current[i] < minimum[i]: return false
+	return true
 
 func _semver_tuple(value: String) -> Array[int]:
 	var result: Array[int] = [0, 0, 0]
