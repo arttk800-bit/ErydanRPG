@@ -101,3 +101,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Startup is dependency ordered and shutdown is reverse ordered.
 - Composition runtime has no direct imports of future World/Map/Travel/Combat implementations.
 - Added dependency, optional-module, missing-dependency and cycle regression coverage.
+
+
+## Gameplay migration: World / Map slice
+- Started the actual PWA → Godot gameplay migration after foundation completion.
+- Ported canonical physical hierarchy and knowledge behavior into `godot/world/world_state.gd`.
+- Ported map browsing state into a separate `godot/map/map_view_state.gd`; browsing cannot mutate physical World state.
+- Added World/Map lifecycle adapters and registered them through the Godot composition root.
+- Added integration coverage proving Map can browse another region while World physical region remains unchanged.
+- Roads and Travel remain next in this same vertical slice; PWA remains the parity/reference implementation until the slice is complete.
