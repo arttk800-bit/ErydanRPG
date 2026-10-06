@@ -12,7 +12,7 @@ export function createPoiAuthoring({frame,panel,getItems,setItems,persist,getEdi
   if(!getEditing()||getMode()!=='poi')return false;
   const p=mapPoint(frame,event.clientX,event.clientY),choice=poiType.value;
   const point=createPoint({choice,label:name.value.trim(),x:+p.x.toFixed(5),y:+p.y.toFixed(5),slug:value=>mapPointSlug(value)});
-  setItems([...getItems(),point]);name.value='';persist();return true;
+  if(!point)return false;setItems([...getItems(),point]);name.value='';persist();return true;
  }
  function bindPin(pin,item){
   pin.onpointerdown=e=>{if(!getEditing()||getMode()!=='poi')return;e.preventDefault();e.stopPropagation();setDrag(item);pin.setPointerCapture?.(e.pointerId)};
