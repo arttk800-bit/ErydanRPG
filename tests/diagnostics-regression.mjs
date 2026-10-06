@@ -14,15 +14,15 @@ const worldReport=runWorldDiagnostics(state);
 assert.equal(worldReport.ok,true);
 assert.equal(worldReport.simulation.mode,'world');
 assert.equal(worldReport.clock.day,1);
-assert.equal(worldReport.clock.minute,480);
+assert.equal(worldReport.clock.minute,480);\nassert.equal(worldReport.clock.second,28800);
 
 const bad=structuredClone(state);
 bad.clock.minute=1440;
 bad.simulation.runtime.mode='sleep';
-bad.simulation.runtime.sleep=null;
+bad.clock.second=86400;\nbad.simulation.runtime.sleep=null;
 const badWorld=runWorldDiagnostics(bad);
 assert.equal(badWorld.ok,false);
-assert.ok(badWorld.checks.some(([name,ok])=>name==='Clock minute valid'&&!ok));
+assert.ok(badWorld.checks.some(([name,ok])=>name==='Clock minute valid'&&!ok));\nassert.ok(badWorld.checks.some(([name,ok])=>name==='Clock second valid'&&!ok));
 assert.ok(badWorld.checks.some(([name,ok])=>name==='Sleep state coherent'&&!ok));
 
 const audio={snapshot:()=>({context:'world',scene:'overworld',trackId:'track',playing:true,blocked:false})};
