@@ -44,13 +44,17 @@ func install_archive(archive_path: String) -> Dictionary:
 		return _reject("content", PackageManifest.identity(manifest), content_validation.get("errors", ["content validation failed"]))
 
 	var install_dir := PackageInstaller.installed_path(manifest)
-	var installed_payload := install_dir.path_join(manifest.payload.get_file())
-	var copy_error := PackageInstaller.promote_file(staged.payload_path, installed_payload)
+	var installed_payload := install_dir.path_join(manifest.payload)
+	var copy_error := PackageInstaller.promote_tree(staged.stage_dir, install_dir, manifest)
 	if copy_error != OK:
 		return _reject("promotion", PackageManifest.identity(manifest), ["copy error %s" % copy_error])
 	var final_integrity := PackageInstaller.verify_payload(manifest, installed_payload)
 	if not final_integrity.ok:
 		return _reject("promotion-integrity", PackageManifest.identity(manifest), [final_integrity.get("error", "final integrity failure")])
+	for declared in manifest.files:
+		var checked := PackageInstaller.verify_file(install_dir.path_join(str(declared.path)), str(declared.sha256))
+		if not checked.ok:
+			return _reject("promotion-integrity", PackageManifest.identity(manifest), ["%s: %s" % [declared.path, checked.get("error", "integrity failure")]])
 
 	var record := {
 		"id": manifest.id,
@@ -59,6 +63,7 @@ func install_archive(archive_path: String) -> Dictionary:
 		"sha256": manifest.sha256,
 		"path": installed_payload,
 		"priority": manifest.priority,
+		"root": install_dir,
 		"dependencies": manifest.dependencies.duplicate(),
 		"conflicts": manifest.conflicts.duplicate()
 	}
