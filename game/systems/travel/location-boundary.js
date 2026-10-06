@@ -1,9 +1,12 @@
 // ============================================================================
 // LOCATION BOUNDARY
-// A mapped location exits through its single authored transition point.
+// A mapped location exits through its one explicitly selected transition.
 // ============================================================================
-function transition(points){return points.find(p=>p.class==='transition'||p.type==='transition')||null}
+function transition(navigation,locationId,points){
+ const selected=navigation?.access?.[locationId]?.pointId;
+ return (selected&&points.find(p=>p.id===selected&&(p.class==='transition'||p.type==='transition')))||points.find(p=>p.class==='transition'||p.type==='transition')||null
+}
 export const LocationBoundarySystem={
- transition(points){return transition(points)},
- canExit(state,points,locationId){const pos=state.world?.position,gate=transition(points);return Boolean(gate&&pos?.locationId===locationId&&pos.locationPointId===gate.id)}
+ transition(navigation,locationId,points){return transition(navigation,locationId,points)},
+ canExit(state,navigation,points,locationId){const pos=state.world?.position,gate=transition(navigation,locationId,points);return Boolean(gate&&pos?.locationId===locationId&&pos.locationPointId===gate.id)}
 };
