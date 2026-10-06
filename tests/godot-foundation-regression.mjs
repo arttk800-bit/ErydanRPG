@@ -29,6 +29,9 @@ assert.doesNotMatch(manager,/DataRegistry\.validate_package_candidate/);
 const registry=await read('godot/data/data_registry.gd');
 for(const contract of [/func resolve\(/,/func provenance\(/,/func entity\(/,/func entity_provenance\(/,/func set_layer\(/,/func validate_package_candidate\(/,/DataSchema\.validate_override/,/PackageValidators\.register_validator/] ) assert.match(registry,contract);
 assert.doesNotMatch(registry,/walk_speed_kmh must be|damage must be numeric/);
+for(const contract of [/func region\(/,/func region_provenance\(/,/_validate_content_payload\(/,/_apply_content_payload\(/,/RegionSchema\.validate/]) assert.match(registry,contract);
+const regionSchema=await read('godot/data/region_schema.gd');
+for(const contract of [/func validate\(/,/region_id is required/,/must be normalized 0\.\.1/,/roads\.nodes must be an array/]) assert.match(regionSchema,contract);
 const dataSchema=await read('godot/data/data_schema.gd');
 for(const contract of [/func validate_base\(/,/func validate_override\(/,/unknown root domain/,/cannot override unknown id/]) assert.match(dataSchema,contract);
 
