@@ -35,6 +35,18 @@ func stop() -> void:
 	_roads = null
 	_world = null
 
+func preview(region_id: String, from_id: String, to_id: String, method: String = "walk") -> Dictionary:
+	var route: Dictionary = _roads.route(region_id, from_id, to_id)
+	var speed_kmh := _speed_kmh(method)
+	if route.is_empty() or route.get("polyline", []).is_empty() or speed_kmh <= 0.0: return {}
+	var distance := float(route.get("distance", 0.0))
+	return {
+		"region_id": region_id, "from_id": from_id, "to_id": to_id, "method": method,
+		"distance_total": distance, "speed_kmh": speed_kmh,
+		"duration_seconds": distance / (speed_kmh / 3.6),
+		"route": route.duplicate(true)
+	}
+
 func begin(region_id: String, from_id: String, to_id: String, method: String = "walk") -> Dictionary:
 	var route: Dictionary = _roads.route(region_id, from_id, to_id)
 	var speed_kmh := _speed_kmh(method)
