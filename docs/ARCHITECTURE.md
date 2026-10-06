@@ -137,3 +137,7 @@ Active automatic CI targets Godot/Android only. The preserved PWA campaign, brow
 
 ## Godot map presentation boundary
 Regional map presentation is isolated from gameplay ownership. Camera2D owns pan/zoom only; layered background, roads, route highlight, POIs, labels and party marker render public domain state. Roads has no dependency on Map browsing state. External regional backgrounds may be loaded at runtime from `user://map_assets/<region>/background.{webp,png,jpg,jpeg}`; absence or failure falls back to the native schematic presentation and never blocks World/Roads/Travel. Party marker screen size is compensated against camera zoom. Runtime-loaded visual assets are presentation content, not authoritative map geometry or travel distance.
+
+
+### Persistence boundary
+`SaveStore` owns durable serialization, schema/migration validation, crash-safe activation and backup recovery. Domain systems own their portions of the shared mutable state; UI only requests save/load. Loading replaces state only after modules are stopped, then the composition root restarts modules against the restored state.
