@@ -1,0 +1,56 @@
+# GODOT ANDROID DEBUG APK
+# Builds an installable infrastructure APK without touching the PWA release path.
+name: build godot android debug
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci/gate
+    paths:
+      - 'godot/**'
+      - '.github/workflows/godot-android-debug.yml'
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.2 and matching export templates
+        run: |
+          set -euxo pipefail
+          curl -fL -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+          curl -fL -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          unzip -q /tmp/templates.tpz -d /tmp/templates
+          cp -a /tmp/templates/templates/. "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
+          printf '4.7.2.stable.official.ed1daf0bf\n' > "$HOME/.local/share/godot/export_templates/4.7.2.stable/version.txt"
+
+      - name: Create debug keystore
+        run: |
+          keytool -genkeypair -v             -keystore /tmp/eirdan-debug.keystore             -storepass android -alias androiddebugkey -keypass android             -keyalg RSA -keysize 2048 -validity 10000             -dname "CN=Eirdan Debug,O=Eirdan,C=US"
+
+      - name: Export Android debug APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /tmp/eirdan-debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          set -o pipefail
+          mkdir -p build
+          LOG=/tmp/godot-android-export.log
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --export-debug "Android Debug" ../build/eirdan-runtime-debug.apk 2>&1 | tee "$LOG"
+          ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:.*export" "$LOG"
+          test -s build/eirdan-runtime-debug.apk
+          sha256sum build/eirdan-runtime-debug.apk | tee build/eirdan-runtime-debug.apk.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eirdan-runtime-debug-apk
+          path: |
+            build/eirdan-runtime-debug.apk
+            build/eirdan-runtime-debug.apk.sha256
+          if-no-files-found: error
+          retention-days: 14
