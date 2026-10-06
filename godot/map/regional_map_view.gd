@@ -64,7 +64,6 @@ func _process(delta: float) -> void:
 			if not destination.is_empty():
 				_travel.arrive(destination)
 				_current_id = str(destination.id)
-				_world.visit(destination)
 				_message = "Прибытие: %s" % destination.name
 		_refresh()
 
