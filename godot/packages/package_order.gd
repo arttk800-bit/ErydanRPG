@@ -53,7 +53,7 @@ static func resolve(records: Array[Dictionary]) -> Dictionary:
 	var ordered: Array[Dictionary] = []
 	while not ready.is_empty():
 		ready.sort_custom(func(a, b): return _less(by_id[a], by_id[b]))
-		var id := ready.pop_front()
+		var id: String = ready.pop_front()
 		ordered.append(by_id[id].duplicate(true))
 		for dependent in dependents[id]:
 			indegree[dependent] = int(indegree[dependent]) - 1
