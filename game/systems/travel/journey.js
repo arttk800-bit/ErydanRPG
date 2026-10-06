@@ -1,50 +1,35 @@
 // ============================================================================
 // JOURNEY COORDINATOR
-// Plans cross-scope journeys. It composes location and region travel without
-// duplicating movement simulation owned by TravelSystem.
+// Cross-scope travel uses one location transition and one regional access node.
 // ============================================================================
-import {buildTravelGraph,fastestPath} from './route-planner.js';
 import {LocationTravelSystem} from './location-travel.js';
-import {LocationBoundarySystem} from './location-boundary.js';
-import {accessPorts} from '../../map/access-points.js';
+import {accessNode} from '../../map/access-points.js';
 
 function byId(items,id){return items.find(x=>x.id===id)||null}
-function regionalPort(regionalRoads,locationId,portId){return accessPorts(regionalRoads,locationId).find(p=>p.id===portId)||null}
-function internalPort(locationNavigation,locationId,portId){return accessPorts(locationNavigation,locationId).find(p=>p.id===portId)||null}
-function regionalRouteFromPort(roads,port,targetId,method,zones){const targetPorts=accessPorts(roads,targetId),nodes=new Map((roads.nodes||[]).map(n=>[n.id,n])),graph=buildTravelGraph(roads,nodes,method,zones);let best=null;for(const tp of targetPorts){const core=fastestPath(graph,port.node,tp.node);if(core&&(!best||core.cost<best.cost))best={...core,fromPortId:port.id,toPortId:tp.id}}return best}
+function transition(points){return points.find(p=>p.class==='transition'||p.type==='transition')||null}
 
 export const JourneySystem={
- planExit(state,{location,locationNavigation,locationPoints,regionalRoads,regionalPoints,targetId,method='walk',terrainZones=[]}){
-  const pos=state.world?.position;if(pos?.locationId!==location.id)return null;
-  let best=null;
-  for(const rp of accessPorts(regionalRoads,location.id)){
-   const lp=internalPort(locationNavigation,location.id,rp.id);if(!lp?.pointId)continue;
-   const target=byId(regionalPoints,targetId);if(!target)continue;
-   const regionRoute=regionalRouteFromPort(regionalRoads,rp,targetId,method,terrainZones);
-   if(!regionRoute)continue;
-   const probe=structuredClone(state);
-   const local=LocationTravelSystem.start(probe,{locationId:location.id,navigation:locationNavigation,points:{items:locationPoints,location},targetId:lp.pointId,method});
-   if(!local)continue;
-   const cost=(local.travelCost||0)+(regionRoute.cost||0);
-   if(!best||cost<best.cost)best={cost,portId:rp.id,gatePointId:lp.pointId,localCost:local.travelCost||0,regionCost:regionRoute.cost||0,targetId,method}
-  }
-  return best
+ planExit(state,{location,locationNavigation,locationPoints,regionalRoads,regionalPoints,targetId,method='walk'}){
+  if(state.world?.position?.locationId!==location.id)return null;
+  const gate=transition(locationPoints),external=accessNode(regionalRoads,location.id),target=byId(regionalPoints,targetId);
+  if(!gate||!external||!target)return null;
+  const probe=structuredClone(state);
+  const local=LocationTravelSystem.start(probe,{locationId:location.id,navigation:locationNavigation,points:{items:locationPoints,location},targetId:gate.id,method});
+  if(!local)return null;
+  return{gatePointId:gate.id,targetId,method}
  },
  startExit(state,args){
   const plan=this.planExit(state,args);if(!plan)return null;
-  state.world.journey={status:'to-gate',kind:'location-to-region',locationId:args.location.id,regionId:args.regionalRoads.regionId,targetId:plan.targetId,method:plan.method,portId:plan.portId,gatePointId:plan.gatePointId};
+  state.world.journey={status:'to-gate',kind:'location-to-region',locationId:args.location.id,regionId:args.regionalRoads.regionId,targetId:plan.targetId,method:plan.method,gatePointId:plan.gatePointId};
   const travel=LocationTravelSystem.start(state,{locationId:args.location.id,navigation:args.locationNavigation,points:{items:args.locationPoints,location:args.location},targetId:plan.gatePointId,method:plan.method});
   return travel?state.world.journey:null
  },
- continueFromGate(state,{locationNavigation,regionalRoads,regionalPoints,terrainZones=[]}){
-  const j=state.world?.journey;if(j?.status!=='to-gate')return null;
-  const port=LocationBoundarySystem.exitPort(state,locationNavigation,j.locationId);if(!port||port.id!==j.portId)return null;
-  const external=regionalPort(regionalRoads,j.locationId,j.portId),target=byId(regionalPoints,j.targetId);if(!external||!target)return null;
-  const node=(regionalRoads.nodes||[]).find(n=>n.id===external.node);if(!node)return null;
-  state.world.position={regionId:j.regionId,pointId:null,position:{x:node.x,y:node.y}};
-  state.world.current.locationId=null;state.world.current.districtId=null;state.world.current.placeId=null;
-  j.status='region';
-  return {fromPosition:{x:node.x,y:node.y},target}
+ continueFromGate(state,{regionalRoads,regionalPoints}){
+  const j=state.world?.journey;if(j?.status!=='to-gate'||state.world?.position?.locationPointId!==j.gatePointId)return null;
+  const external=accessNode(regionalRoads,j.locationId),target=byId(regionalPoints,j.targetId);if(!external||!target)return null;
+  state.world.position={regionId:j.regionId,pointId:null,position:{x:external.x,y:external.y}};
+  state.world.current.locationId=null;state.world.current.districtId=null;state.world.current.placeId=null;j.status='region';
+  return{fromPosition:{x:external.x,y:external.y},target}
  },
  finish(state){if(state.world?.journey)state.world.journey={status:'idle'};return state.world.journey}
 };
