@@ -45,6 +45,16 @@ const moduleRuntime=await read('godot/modules/module_runtime.gd');
 for(const contract of [/func register_module\(/,/func configure\(/,/func set_enabled\(/,/func start\(/,/func stop\(/,/factory\.call\(\)/]) assert.match(moduleRuntime,contract);
 assert.doesNotMatch(moduleRuntime,/res:\/\/world|res:\/\/map|res:\/\/travel|res:\/\/combat/);
 
+const worldState=await read('godot/world/world_state.gd');
+for(const contract of [/func ensure\(/,/func discover_point\(/,/func mark_visited\(/,/func enter_region\(/,/func enter_map_point\(/]) assert.match(worldState,contract);
+const mapView=await read('godot/map/map_view_state.gd');
+for(const contract of [/never mutates physical World position/,/func show_world\(/,/func show_region\(/,/func show_location\(/]) assert.match(mapView,contract);
+assert.doesNotMatch(mapView,/world\["current"\]|world\.current\s*=/);
+const catalog=await read('godot/modules/game_module_catalog.gd');
+assert.match(catalog,/"id": "world"/);
+assert.match(catalog,/"id": "map"/);
+assert.match(catalog,/"dependencies": \["world"\]/);
+
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
 
