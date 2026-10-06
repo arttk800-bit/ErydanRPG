@@ -121,3 +121,12 @@ Concrete World and Map adapters are registered in `godot/modules/game_module_cat
 `godot/roads/road_graph.gd` owns road topology, access-node resolution, physical metric distance and deterministic shortest-path queries. Coordinates remain normalized map-space values; map metrics convert them to meters.
 
 Roads is read-only navigation computation. It does not mutate World location, Map browsing state or Travel progress. Terrain/method speed modifiers are intentionally not embedded in the topology owner; Travel conditions will consume Road routes and calculate traversal behavior separately.
+
+
+## Godot Travel migration boundary
+`godot/travel/travel_state.gd` owns regional travel lifecycle and progress. It does not build road graphs or directly mutate World hierarchy. `travel_module.gd` is the coordinator: it requests a route through the Roads public API and commits a completed destination through the World public API.
+
+The initial vertical slice deliberately covers deterministic regional start/tick/stop/resume/cancel/arrival. Terrain traversal modifiers, events, camp and cross-scope location journeys remain later Travel extensions and must stay behind the same boundary.
+
+## Android in-place update contract
+Godot Android builds keep the stable package ID `org.eirdan.runtime` and CI restores one stable development keystore from repository secrets. Debug APKs produced with that identity/signing pair are intended to install over prior Eirdan runtime builds rather than requiring uninstall/reinstall. Mutable saves remain under Godot `user://`; save-schema migration remains Persistence ownership.
