@@ -37,6 +37,12 @@ func set_world_active(active: bool) -> void:
 	$Layout/Top.visible = active
 	if not active: system_menu.visible = false
 
+func set_shell_visible(active: bool, gameplay_nav: bool) -> void:
+	visible = active
+	$Layout/Top.visible = active
+	nav.visible = active and gameplay_nav
+	if not active: system_menu.visible = false
+
 func show_screen(screen_id: String) -> void:
 	for child in screens.get_children():
 		if child is Control: child.visible = child.name.to_snake_case() == screen_id
