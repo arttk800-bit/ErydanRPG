@@ -6,6 +6,7 @@ extends RefCounted
 
 const WorldModule = preload("res://world/world_module.gd")
 const MapModule = preload("res://map/map_module.gd")
+const RoadsModule = preload("res://roads/roads_module.gd")
 
 static func register_foundation(runtime: Node) -> Dictionary:
 	var world := runtime.register_module({
@@ -23,4 +24,11 @@ static func register_foundation(runtime: Node) -> Dictionary:
 		"owns": ["map_view"],
 		"factory": func(): return MapModule.new()
 	})
-	return map
+	if not map.ok: return map
+	return runtime.register_module({
+		"id": "roads",
+		"enabled_by_default": true,
+		"dependencies": ["map"],
+		"owns": ["road_graph", "routing"],
+		"factory": func(): return RoadsModule.new()
+	})
