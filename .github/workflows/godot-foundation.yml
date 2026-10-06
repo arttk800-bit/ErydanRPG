@@ -41,3 +41,10 @@ jobs:
           timeout 45s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot -- --package-installer-test 2>&1 | tee "$LOG"
           ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ASSERT FAILED" "$LOG"
           grep -F "godot package installer integration: OK" "$LOG"
+      - name: Runtime updater integration
+        run: |
+          set -o pipefail
+          LOG=/tmp/godot-updater-test.log
+          timeout 45s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot -- --updater-test 2>&1 | tee "$LOG"
+          ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ASSERT FAILED" "$LOG"
+          grep -F "godot updater integration: OK" "$LOG"

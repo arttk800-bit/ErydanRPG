@@ -7,7 +7,10 @@ config_version=5
 config/name="Eirdan Runtime"
 run/main_scene="res://app/bootstrap.tscn"
 config/features=PackedStringArray("4.7")
-config/version="0.1.0-foundation"
+config/version="0.1.1-updater"
+
+[eirdan]
+update/manifest_url="https://github.com/arttk800-bit/ErydanRPG/releases/latest/download/runtime-update.json"
 
 [autoload]
 Diagnostics="*res://diagnostics/diagnostics.gd"

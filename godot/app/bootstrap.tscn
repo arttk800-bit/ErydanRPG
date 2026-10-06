@@ -83,3 +83,7 @@ text = "Загрузить"
 [node name="Diagnostics" type="Button" parent="HUD/TopBar"]
 layout_mode = 2
 text = "Диагностика"
+
+[node name="Update" type="Button" parent="HUD/TopBar"]
+layout_mode = 2
+text = "Обновление"

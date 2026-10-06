@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const project=await read('godot/project.godot');
-assert.match(project,/config\/version="0\.1\.0-foundation"/);
+assert.match(project,/config\/version="0\.1\.1-updater"/);
 for(const autoload of ['Diagnostics','PackageValidators','Packages','DataRegistry','SaveStore','Modules'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
 
 const manager=await read('godot/packages/package_manager.gd');
@@ -126,3 +126,11 @@ assert.match(installerTest,/invalid data preserves active package/);
 const androidWorkflow=await read('.github/workflows/godot-android-debug.yml');
 for(const contract of [/ANDROID_KEYSTORE_BASE64/,/GODOT_ANDROID_KEYSTORE_DEBUG_PATH/,/GODOT_ANDROID_KEYSTORE_DEBUG_USER/,/GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD/,/keytool -printcert/,/F3:2A:DE:FD:89:E7:1B:BB/]) assert.match(androidWorkflow,contract);
 assert.match(androidWorkflow,/--export-debug "Android Debug"/);
+
+// Runtime/platform ownership: updater cannot activate data packages or own saves.
+const updater=await read('godot/update/android_updater.gd');
+assert.doesNotMatch(updater,/Packages\.|SaveStore\.|DataRegistry\./);
+assert.match(updater,/save_before_install\.call\(\)/);
+assert.match(updater,/Manifest\.verify_file\(APK/);
+assert.match(androidPreset,/android\.permission\.REQUEST_INSTALL_PACKAGES/);
+assert.match(androidWorkflow,/node scripts\/runtime-release\.mjs manifest/);

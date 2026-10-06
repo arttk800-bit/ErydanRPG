@@ -7,6 +7,8 @@ extends Control
 
 const LocalImport = preload("res://packages/local_import.gd")
 const GameModuleCatalog = preload("res://modules/game_module_catalog.gd")
+const AndroidUpdater = preload("res://update/android_updater.gd")
+const UpdateDialog = preload("res://update/update_dialog.gd")
 
 @onready var status: Label = $HUD/TopBar/Status
 @onready var regional_map = $RegionalMap
@@ -17,14 +19,30 @@ var _state: Dictionary = {
 }
 
 func _ready() -> void:
+	if "--updater-test" in OS.get_cmdline_user_args():
+		get_tree().change_scene_to_file.call_deferred("res://tests/updater_test.tscn")
+		return
 	if "--package-installer-test" in OS.get_cmdline_user_args():
-		get_tree().change_scene_to_file("res://tests/package_installer_test.tscn")
+		get_tree().change_scene_to_file.call_deferred("res://tests/package_installer_test.tscn")
 		return
 	$HUD/TopBar/Reload.pressed.connect(_reload_runtime)
 	$HUD/TopBar/Import.pressed.connect(_import_package)
 	$HUD/TopBar/Save.pressed.connect(_save_game)
 	$HUD/TopBar/Load.pressed.connect(_load_game)
 	$HUD/TopBar/Diagnostics.pressed.connect(_export_diagnostics)
+	var updater := AndroidUpdater.new()
+	add_child(updater)
+	var update_dialog := UpdateDialog.new()
+	update_dialog.updater = updater
+	update_dialog.save_callback = _save_for_update
+	add_child(update_dialog)
+	$HUD/TopBar/Update.pressed.connect(func():
+		regional_map.set_process_input(false)
+		update_dialog.popup_centered()
+	)
+	update_dialog.visibility_changed.connect(func():
+		if not update_dialog.visible: regional_map.set_process_input(true)
+	)
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
 	_start_gameplay()
@@ -90,6 +108,11 @@ func _load_game() -> void:
 	_reload_data()
 	_start_gameplay()
 	status.text = "Мир загружен"
+
+func _save_for_update() -> Dictionary:
+	var result := SaveStore.save_state(_state)
+	if result.ok: _state["meta"] = result.state.get("meta", {}).duplicate(true)
+	return {"ok": result.ok}
 
 func _import_package() -> void:
 	var err := LocalImport.choose_package(_on_file_selected)

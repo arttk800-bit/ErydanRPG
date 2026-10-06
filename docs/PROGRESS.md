@@ -3,7 +3,7 @@
 The old “0.15 migration 99/100” percentage is retired because the project has moved beyond a one-time combat migration into continuous modular development.
 
 ## Active runtime
-- Product target: PWA.
+- Product target: Godot/Android. The PWA sections below describe the preserved reference implementation.
 - Current release metadata is defined by `game/data/version.json`; this document does not duplicate a potentially stale version number.
 - Shell/menu/settings/save flow is operational.
 - Combat/AI/simulation modular baseline and regression infrastructure exist.
@@ -21,6 +21,13 @@ The old “0.15 migration 99/100” percentage is retired because the project ha
 
 ## Definition of progress
 Progress is measured by working systems plus passing gates, not by file count or a single completion percentage. A feature is considered complete only after correct ownership, validation/regression checks and release metadata synchronization where applicable.
+
+## AndroidUpdater implementation (device acceptance pending)
+- Added isolated runtime APK check/download/integrity/platform-install ownership under `godot/update/`.
+- Actual APK identity and pinned signer are checked; world save must succeed before installer/settings handoff.
+- Explicit Android consent and retry after permission/cancel; offline/error states leave the current game usable.
+- Android CI produces a versioned APK manifest; publishing is an explicit manual workflow option after gates.
+- Physical Android verification and the first published feed are still required. See `godot/update/README.md`.
 
 
 ## 0.89 world simulation / spatial model
