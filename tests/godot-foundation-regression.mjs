@@ -69,14 +69,14 @@ const roadGraph=await read('godot/roads/road_graph.gd');
 for(const contract of [/func metric_distance\(/,/func access_node_id\(/,/func shortest_route\(/,/func validate\(/]) assert.match(roadGraph,contract);
 assert.doesNotMatch(roadGraph,/world_state|travel_state|res:\/\/world|res:\/\/travel/);
 const travelState=await read('godot/travel/travel_state.gd');
-for(const contract of [/func start\(/,/func tick\(/,/func stop\(/,/func resume\(/,/func cancel\(/,/func commit_arrival\(/,/func progress\(/]) assert.match(travelState,contract);
+for(const contract of [/func start\(/,/speed_mps/,/func tick\(/,/func stop\(/,/func resume\(/,/func cancel\(/,/func commit_arrival\(/,/func progress\(/]) assert.match(travelState,contract);\nassert.doesNotMatch(travelState,/WALK_SPEED_MPS|HORSE_SPEED_MPS/);
 assert.doesNotMatch(travelState,/RoadGraph|WorldState|MapViewState/);
 const gameTime=await read('godot/simulation/game_time_state.gd');
 for(const contract of [/SECONDS_PER_DAY/,/func advance\(/,/func snapshot\(/,/"day": 1/,/"second": 8\.0 \* 3600\.0/]) assert.match(gameTime,contract);
 const simulation=await read('godot/simulation/simulation_module.gd');
 for(const contract of [/func set_mode\(/,/travel_fast/,/sleep_fast/,/func step\(/,/GameTimeState\.advance/,/Diagnostics\.register_provider/] ) assert.match(simulation,contract);
 const travelModule=await read('godot/travel/travel_module.gd');
-for(const contract of [/_roads\.route\(/,/_world\.enter_map_point\(/,/func arrive\(/,/func snapshot\(/,/Diagnostics\.register_provider/] ) assert.match(travelModule,contract);
+for(const contract of [/_roads\.route\(/,/DataRegistry\.resolve\("travel\.%s_speed_kmh"/,/travel\.started/,/travel\.legacy_speed_migrated/,/_world\.enter_map_point\(/,/func arrive\(/,/func snapshot\(/,/Diagnostics\.register_provider/] ) assert.match(travelModule,contract);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
