@@ -2,6 +2,8 @@
 
 [ext_resource path="res://app/bootstrap.gd" type="Script" id="1"]
 [ext_resource path="res://map/regional_map_view.gd" type="Script" id="2"]
+[ext_resource path="res://ui/main_menu.gd" type="Script" id="3"]
+[ext_resource path="res://ui/game_shell.gd" type="Script" id="4"]
 
 [node name="Bootstrap" type="Control"]
 layout_mode = 3
@@ -20,6 +22,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+visible = false
 script = ExtResource("2")
 
 [node name="Viewport" type="Node2D" parent="RegionalMap"]
@@ -129,35 +132,135 @@ value = 0.0
 layout_mode = 2
 text = "Осталось"
 
-[node name="HUD" type="CanvasLayer" parent="."]
-layer = 20
-follow_viewport_enabled = false
-[node name="TopBar" type="HBoxContainer" parent="HUD"]
+[node name="GameShell" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4")
+
+[node name="Top" type="HBoxContainer" parent="GameShell"]
+visible = false
 offset_left = 18.0
 offset_top = 10.0
 offset_right = 1262.0
-offset_bottom = 50.0
-[node name="Status" type="Label" parent="HUD/TopBar"]
+offset_bottom = 56.0
+mouse_filter = 1
+
+[node name="Title" type="Label" parent="GameShell/Top"]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 2
-text = "Инициализация…"
-[node name="Reload" type="Button" parent="HUD/TopBar"]
+text = "ЭЙРДАН"
+
+[node name="Menu" type="Button" parent="GameShell/Top"]
 layout_mode = 2
-text = "Перезагрузить"
-[node name="Import" type="Button" parent="HUD/TopBar"]
+text = "≡"
+
+[node name="BottomNav" type="HBoxContainer" parent="GameShell"]
+visible = false
+offset_left = 360.0
+offset_top = 658.0
+offset_right = 920.0
+offset_bottom = 712.0
+mouse_filter = 1
+theme_override_constants/separation = 6
+
+[node name="World" type="Button" parent="GameShell/BottomNav"]
 layout_mode = 2
-text = "Пакет"
-[node name="Save" type="Button" parent="HUD/TopBar"]
+text = "Мир"
+[node name="Character" type="Button" parent="GameShell/BottomNav"]
+layout_mode = 2
+text = "Персонаж"
+[node name="Inventory" type="Button" parent="GameShell/BottomNav"]
+layout_mode = 2
+text = "Инвентарь"
+[node name="Journal" type="Button" parent="GameShell/BottomNav"]
+layout_mode = 2
+text = "Журнал"
+
+[node name="SystemMenu" type="PanelContainer" parent="GameShell"]
+visible = false
+offset_left = 914.0
+offset_top = 64.0
+offset_right = 1256.0
+offset_bottom = 458.0
+mouse_filter = 1
+
+[node name="Content" type="VBoxContainer" parent="GameShell/SystemMenu"]
+layout_mode = 2
+theme_override_constants/separation = 6
+[node name="Save" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
 text = "Сохранить"
-[node name="Load" type="Button" parent="HUD/TopBar"]
+[node name="Load" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
 text = "Загрузить"
-[node name="Diagnostics" type="Button" parent="HUD/TopBar"]
+[node name="Update" type="Button" parent="GameShell/SystemMenu/Content"]
+layout_mode = 2
+text = "Обновления"
+[node name="Packages" type="Button" parent="GameShell/SystemMenu/Content"]
+layout_mode = 2
+text = "Пакеты"
+[node name="Diagnostics" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
 text = "Диагностика"
-
-[node name="Update" type="Button" parent="HUD/TopBar"]
+[node name="MainMenu" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
-text = "Обновление"
+text = "Главное меню"
+
+[node name="MainMenu" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3")
+
+[node name="Center" type="VBoxContainer" parent="MainMenu"]
+offset_left = 430.0
+offset_top = 126.0
+offset_right = 850.0
+offset_bottom = 626.0
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="MainMenu/Center"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 52
+text = "ЭЙРДАН"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="MainMenu/Center"]
+layout_mode = 2
+text = "Мир помнит ваши решения"
+horizontal_alignment = 1
+
+[node name="Actions" type="VBoxContainer" parent="MainMenu/Center"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NewGame" type="Button" parent="MainMenu/Center/Actions"]
+layout_mode = 2
+text = "Новая игра"
+[node name="Continue" type="Button" parent="MainMenu/Center/Actions"]
+layout_mode = 2
+text = "Продолжить"
+[node name="Load" type="Button" parent="MainMenu/Center/Actions"]
+layout_mode = 2
+text = "Загрузить игру"
+[node name="Settings" type="Button" parent="MainMenu/Center/Actions"]
+layout_mode = 2
+text = "Настройки"
+[node name="Updates" type="Button" parent="MainMenu/Center/Actions"]
+layout_mode = 2
+text = "Обновления"
+
+[node name="Toast" type="Label" parent="."]
+offset_left = 24.0
+offset_top = 606.0
+offset_right = 850.0
+offset_bottom = 646.0
+mouse_filter = 2
