@@ -6,6 +6,7 @@ var save_callback: Callable
 var _check: Button
 var _download: Button
 var _install: Button
+var _progress: ProgressBar
 
 func _ready() -> void:
 	title = "Обновление приложения"
@@ -14,6 +15,12 @@ func _ready() -> void:
 	_check = add_button("Проверить", false, "check")
 	_download = add_button("Скачать", false, "download")
 	_install = add_button("Установить", false, "install")
+	_progress = ProgressBar.new()
+	_progress.min_value = 0.0
+	_progress.max_value = 100.0
+	_progress.show_percentage = true
+	_progress.custom_minimum_size = Vector2(0, 28)
+	add_child(_progress)
 	add_button("Отменить загрузку", true, "cancel")
 	custom_action.connect(_action)
 	updater.changed.connect(_render)
@@ -32,11 +39,16 @@ func _render(state: Dictionary) -> void:
 	_check.disabled = state.state in ["checking", "downloading"]
 	_download.disabled = state.state != "available"
 	_install.disabled = not state.state in ["ready", "permission_required", "installer_opened"]
+	var downloading := state.state == "downloading"
+	_progress.visible = downloading
+	_progress.value = float(state.get("progress", 0.0)) * 100.0
 	var messages := {
 		"idle": "Проверка обновлений запускается вручную.",
 		"checking": "Проверяем новую версию…",
 		"available": "Доступна версия %s. Скачать APK?" % state.version_name,
-		"downloading": "Загружаем APK. После загрузки проверим размер, SHA-256 и подпись.",
+		"downloading": "Загрузка: %s / %s (%d%%)" % [_format_bytes(int(state.get("downloaded_bytes", 0))), _format_bytes(int(state.get("size_bytes", 0))), int(round(float(state.get("progress", 0.0)) * 100.0))],
+		"verifying_hash": "Загрузка завершена. Проверяем размер и SHA-256…",
+		"verifying_apk": "Целостность подтверждена. Проверяем APK и подпись…",
 		"up_to_date": "Установлена актуальная или более новая версия.",
 		"ready": "APK проверена. Перед установкой текущий мир будет сохранён.",
 		"permission_required": "Разрешите установку из Eirdan в настройках Android.\nЗатем вернитесь и снова нажмите «Установить».",
@@ -45,3 +57,8 @@ func _render(state: Dictionary) -> void:
 	}
 	dialog_text = messages.get(state.state, state.state)
 	if state.error == "save_before_install_failed": dialog_text = "Не удалось сохранить мир. Установка не начата.\nПовторите сохранение или экспортируйте диагностику."
+
+func _format_bytes(value: int) -> String:
+	if value >= 1024 * 1024: return "%.1f МБ" % (float(value) / 1048576.0)
+	if value >= 1024: return "%.1f КБ" % (float(value) / 1024.0)
+	return "%d Б" % value
