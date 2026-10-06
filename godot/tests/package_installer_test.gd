@@ -14,6 +14,13 @@ func _ready() -> void:
 	_assert(install_v1.ok, "valid package installs")
 	_assert(Packages.active_packages().back().version == "1.0.0", "v1 active")
 
+	PackageValidators.register_validator(&"test_domain", _reject_test_domain)
+	var domain_rejected := _make_package("eirdan.test.balance", "1.0.1", "0.1.0", payload, hash)
+	var domain_result := Packages.install_archive(domain_rejected)
+	_assert(not domain_result.ok and domain_result.stage == "content", "registered domain validator rejects package")
+	_assert(Packages.active_packages().back().version == "1.0.0", "domain rejection preserves active package")
+	PackageValidators.unregister_validator(&"test_domain")
+
 	var invalid_json_payload := "{broken".to_utf8_buffer()
 	var invalid_json := _make_package("eirdan.test.balance", "1.1.0", "0.1.0", invalid_json_payload, _sha256_for_bytes(invalid_json_payload))
 	var invalid_json_result := Packages.install_archive(invalid_json)
@@ -45,6 +52,9 @@ func _ready() -> void:
 
 	print("godot package installer integration: OK")
 	get_tree().quit(0)
+
+func _reject_test_domain(_manifest: Dictionary, _payload_path: String) -> Dictionary:
+	return {"ok": false, "errors": ["test domain rejection"]}
 
 func _make_package(id: String, version: String, runtime_min: String, payload: PackedByteArray, hash: String) -> String:
 	var path := "user://%s-%s.zip" % [id.validate_filename(), version]
