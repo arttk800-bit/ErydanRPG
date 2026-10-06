@@ -6,6 +6,7 @@ extends Node
 
 const DataSchema = preload("res://data/data_schema.gd")
 const BASE_PATH := "res://data/examples/base.json"
+const REGION_PATHS := {"forest": "res://data/world/central_lands.json"}
 var _base: Dictionary = {}
 var _layers: Array[Dictionary] = []
 
@@ -79,6 +80,15 @@ func entity(domain: String, id: String, fallback = null):
 	var result: Dictionary = value.duplicate(true)
 	result["id"] = id
 	return result
+
+func region(id: String) -> Dictionary:
+	var path := str(REGION_PATHS.get(id, ""))
+	if path.is_empty(): return {}
+	var data = _read_json_file(path)
+	if data is not Dictionary:
+		Diagnostics.error("data.region_rejected", {"id": id, "path": path})
+		return {}
+	return data.duplicate(true)
 
 func entity_provenance(domain: String, id: String) -> Array[Dictionary]:
 	return provenance("%s.%s" % [domain, id])
