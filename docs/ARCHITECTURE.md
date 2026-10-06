@@ -133,3 +133,7 @@ Current CI Android builds use Godot's standard debug signing path. No project ke
 
 ## CI domain isolation
 Active automatic CI targets Godot/Android only. The preserved PWA campaign, browser smoke, combat regression, diagnostic mirror and Pages deployment are legacy/reference workflows and are manual-only. Promoting a Godot change to `ci/gate` must not execute legacy PWA validation. Legacy gates may be run explicitly when parity/reference work requires them.
+
+
+## Godot map presentation boundary
+Regional map presentation is isolated from gameplay ownership. Camera2D owns pan/zoom only; layered background, roads, route highlight, POIs, labels and party marker render public domain state. Roads has no dependency on Map browsing state. External regional backgrounds may be loaded at runtime from `user://map_assets/<region>/background.{webp,png,jpg,jpeg}`; absence or failure falls back to the native schematic presentation and never blocks World/Roads/Travel. Party marker screen size is compensated against camera zoom. Runtime-loaded visual assets are presentation content, not authoritative map geometry or travel distance.
