@@ -128,3 +128,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Integration test now exercises the complete Godot `World → Map → Roads → Travel` slice through physical arrival.
 - Android CI currently uses standard debug signing with no project keystore/secrets. Package ID remains `org.eirdan.runtime`; in-place updates are intentionally not guaranteed until stable signing is introduced later.
 - Terrain/event/camp/location-boundary parity remains a later Travel extension; it is not silently folded into Roads or World.
+
+
+## First playable Godot regional slice
+- Added authored Central Lands POIs, road topology and physical map metrics to the Godot data layer, migrated from the preserved PWA reference.
+- Replaced the infrastructure-only startup screen with a native schematic regional map for Android testing.
+- The UI forwards destination selection to Roads/Travel APIs; World remains authoritative for physical location and Travel owns progress/arrival.
+- The party marker follows Travel state, the selected route is rendered, and arrival commits through the World API.
+- A temporary clearly labelled test fast-forward is presentation/test scaffolding until the Simulation/time owner is migrated; it is not a new gameplay speed rule.
+- Travel diagnostics are registered and arrival target mismatches are rejected.
