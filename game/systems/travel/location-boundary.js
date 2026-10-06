@@ -1,10 +1,9 @@
 // ============================================================================
 // LOCATION BOUNDARY
-// Validates physical entry/exit through declared location access ports.
+// A mapped location exits through its single authored transition point.
 // ============================================================================
-import {accessPorts} from '../../map/access-points.js';
+function transition(points){return points.find(p=>p.class==='transition'||p.type==='transition')||null}
 export const LocationBoundarySystem={
- gatePointIds(navigation,locationId){return new Set(accessPorts(navigation,locationId).map(p=>p.pointId).filter(Boolean))},
- canExit(state,navigation,locationId){const pos=state.world?.position;if(pos?.locationId!==locationId)return false;return this.gatePointIds(navigation,locationId).has(pos.locationPointId)},
- exitPort(state,navigation,locationId){if(!this.canExit(state,navigation,locationId))return null;const id=state.world.position.locationPointId;return accessPorts(navigation,locationId).find(p=>p.pointId===id)||null}
+ transition(points){return transition(points)},
+ canExit(state,points,locationId){const pos=state.world?.position,gate=transition(points);return Boolean(gate&&pos?.locationId===locationId&&pos.locationPointId===gate.id)}
 };
