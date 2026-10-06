@@ -14,6 +14,7 @@ const TAP_SLOP := 22.0
 const MAP_TOP_INSET := 56.0
 
 var _region: Dictionary = {}
+var _background_asset: Dictionary = {}
 var _world
 var _roads
 var _travel
@@ -36,8 +37,9 @@ var _input_counts := {"touch_press":0,"touch_release":0,"drag":0,"tap":0,"pinch"
 @onready var party: Node2D = $Viewport/Party
 @onready var status: Label = $HUD/Status
 
-func setup(region: Dictionary, world, roads, travel) -> void:
+func setup(region: Dictionary, world, roads, travel, background_asset: Dictionary = {}) -> void:
 	_region = region
+	_background_asset = background_asset.duplicate(true)
 	_world = world
 	_roads = roads
 	_travel = travel
@@ -171,7 +173,7 @@ func _build_static_layers() -> void:
 		poi_layer.add_child(label)
 
 func _apply_background() -> void:
-	var asset := MapAssetLoader.background(str(_region.region_id))
+	var asset := MapAssetLoader.background(_background_asset)
 	background.texture = asset.texture
 	background.visible = asset.texture != null
 	if background.texture != null:
@@ -264,4 +266,4 @@ func _point(id: String)->Dictionary:
 	return {}
 
 func diagnostic_snapshot()->Dictionary:
-	return {"region_id":_region.get("region_id"),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"asset_directory":MapAssetLoader.asset_directory(str(_region.get("region_id","")))}
+	return {"region_id":_region.get("region_id"),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true)}
