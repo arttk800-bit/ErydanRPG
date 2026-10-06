@@ -29,24 +29,24 @@ func install_archive(archive_path: String) -> Dictionary:
 	var staged := PackageInstaller.stage_archive(archive_path)
 	if not staged.ok:
 		return _reject(str(staged.get("stage", "staging")), archive_path, [staged.get("error", staged.get("errors", "staging failure"))])
-	var manifest = staged.manifest
+	var manifest: Dictionary = staged.manifest
 	if not _runtime_compatible(manifest.runtime_min):
-		return _reject("runtime", manifest.identity(), ["requires runtime >= %s" % manifest.runtime_min])
+		return _reject("runtime", PackageInstaller.PackageManifest.identity(manifest), ["requires runtime >= %s" % manifest.runtime_min])
 
 	var install_dir := PackageInstaller.installed_path(manifest)
 	var installed_payload := install_dir.path_join(manifest.payload.get_file())
 	var copy_error := PackageInstaller.promote_file(staged.payload_path, installed_payload)
 	if copy_error != OK:
-		return _reject("promotion", manifest.identity(), ["copy error %s" % copy_error])
+		return _reject("promotion", PackageInstaller.PackageManifest.identity(manifest), ["copy error %s" % copy_error])
 	var final_integrity := PackageInstaller.verify_payload(manifest, installed_payload)
 	if not final_integrity.ok:
-		return _reject("promotion-integrity", manifest.identity(), [final_integrity.get("error", "final integrity failure")])
+		return _reject("promotion-integrity", PackageInstaller.PackageManifest.identity(manifest), [final_integrity.get("error", "final integrity failure")])
 
 	var record := {
 		"id": manifest.id,
 		"version": manifest.version,
 		"kind": manifest.kind,
-		"sha256": manifest.content_hash,
+		"sha256": manifest.sha256,
 		"path": installed_payload
 	}
 	return activate(record)
