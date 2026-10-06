@@ -153,7 +153,7 @@ func _show_main_menu() -> void:
 	_stop_simulation_runtime()
 	Modules.stop()
 	world_screen.set_active(false)
-	game_shell.set_world_active(false)
+	game_shell.set_shell_visible(false, false)
 	main_menu.visible = true
 	main_menu.set_continue_available(not SaveStore.list_saves().is_empty())
 	status.text = ""
@@ -170,7 +170,7 @@ func _show_structural_screen(_screen_id: String) -> void:
 func _open_save_browser(from_game: bool) -> void:
 	world_screen.set_active(false)
 	main_menu.visible = false
-	game_shell.set_world_active(true)
+	game_shell.set_shell_visible(true, from_game)
 	game_shell.show_screen("save_browser")
 	save_browser.set_meta("return_to_game", from_game)
 	save_browser.refresh(SaveStore.list_saves())
@@ -179,14 +179,15 @@ func _open_save_browser(from_game: bool) -> void:
 func _open_settings(from_game: bool) -> void:
 	world_screen.set_active(false)
 	main_menu.visible = false
-	game_shell.set_world_active(true)
+	game_shell.set_shell_visible(true, from_game)
 	game_shell.show_screen("settings")
 	settings_screen.set_meta("return_to_game", from_game)
 	status.clear()
 
 func _return_from_aux_screen() -> void:
-	var current_game := not str(_state.get("world", {}).get("current", {}).get("point_id", "")).is_empty() and Modules.snapshot().get("active", 0) != 0
-	if current_game:
+	var screen = save_browser if save_browser.visible else settings_screen
+	if bool(screen.get_meta("return_to_game", false)):
+		game_shell.set_shell_visible(true, true)
 		_show_world()
 	else:
 		_show_main_menu()
