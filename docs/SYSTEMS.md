@@ -7,7 +7,7 @@ This document is the index of system ownership. It describes responsibilities, n
 | Android runtime | `godot/app/` | bootstrap, Android-facing composition and presentation | package validation or gameplay rules |
 | Package Manager | `godot/packages/` | staging, integrity, validator orchestration, dependency/conflict resolution, deterministic active order, active/previous package set and rollback | domain validation rules, balance or transport policy |
 | Package Validators | `godot/packages/package_validators.gd` | registry and aggregation of domain package validators | domain-specific validation rules |\n| Data Schema | `godot/data/data_schema.gd` | authored data structure, stable entity-ID and override-target validation | layer ordering, package activation or gameplay algorithms |\n| Data Registry | `godot/data/data_registry.gd` | base + override resolution, entity lookup, provenance and data-domain package validation adapter | authored schema rules or gameplay algorithms |
-| Godot Diagnostics | `godot/diagnostics/` | runtime events and provider snapshots | domain rules |
+| Persistence | `godot/persistence/` | save envelope/schema, durable save I/O, ordered migrations, save metadata listing/deletion | gameplay rules, authored static data or UI state |\n| Godot Diagnostics | `godot/diagnostics/` | runtime events and provider snapshots | domain rules |
 | Legacy PWA app shell | `game/app/` | browser navigation, lifecycle, screen composition | world/combat rules |
 | Client | `game/client/` | PWA release detection, reload, revisioned asset cache/preload | gameplay state |
 | Core | `game/core/` | shared state/session primitives, persistence foundations, commands/events | feature-specific UI |
