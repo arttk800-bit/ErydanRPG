@@ -47,7 +47,7 @@ for(const contract of [/func register_module\(/,/func configure\(/,/func set_ena
 assert.doesNotMatch(moduleRuntime,/res:\/\/world|res:\/\/map|res:\/\/travel|res:\/\/combat/);
 
 const worldState=await read('godot/world/world_state.gd');
-for(const contract of [/func ensure\(/,/func current_position\(/,/func discover_point\(/,/func mark_visited\(/,/func enter_region\(/,/func enter_map_point\(/]) assert.match(worldState,contract);
+for(const contract of [/func ensure\(/,/func current_position\(/,/func initialize_at\(/,/func discover_point\(/,/func mark_visited\(/,/func enter_region\(/,/func enter_map_point\(/]) assert.match(worldState,contract);
 const mapView=await read('godot/map/map_view_state.gd');
 for(const contract of [/never mutates physical World position/,/func show_world\(/,/func show_region\(/,/func show_location\(/]) assert.match(mapView,contract);
 assert.doesNotMatch(mapView,/world\["current"\]|world\.current\s*=/);
@@ -94,6 +94,8 @@ const bootstrap=await read('godot/app/bootstrap.gd');
 assert.match(bootstrap,/FILE_DIALOG_MODE_SAVE_FILE/);
 assert.match(bootstrap,/diagnostics\.exported/);
 for(const contract of [/SaveStore\.save_state\(_state\)/,/SaveStore\.load_state\(world_id\)/,/Modules\.stop\(\)[\s\S]*?_state = result\.state[\s\S]*?_start_gameplay\(\)/]) assert.match(bootstrap,contract);
+assert.doesNotMatch(bootstrap,/func _save_game\(\)[\s\S]*?_state = result\.state/);
+assert.match(bootstrap,/saved_meta[\s\S]*?_state\["meta"\]/);
 
 assert.match(registry,/reload_active_packages/);
 assert.match(registry,/walk_speed_provenance/);
@@ -121,5 +123,5 @@ assert.match(installerTest,/invalid JSON rejected before activation/);
 assert.match(installerTest,/invalid data preserves active package/);
 
 const androidWorkflow=await read('.github/workflows/godot-android-debug.yml');
-assert.doesNotMatch(androidWorkflow,/EIRDAN_DEV_KEYSTORE|Restore stable development keystore|GODOT_ANDROID_KEYSTORE_DEBUG/);
+for(const contract of [/ANDROID_KEYSTORE_BASE64/,/GODOT_ANDROID_KEYSTORE_DEBUG_PATH/,/GODOT_ANDROID_KEYSTORE_DEBUG_USER/,/GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD/,/keytool -printcert/,/F3:2A:DE:FD:89:E7:1B:BB/]) assert.match(androidWorkflow,contract);
 assert.match(androidWorkflow,/--export-debug "Android Debug"/);
