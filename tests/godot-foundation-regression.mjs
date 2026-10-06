@@ -129,10 +129,12 @@ for(const contract of [/_travel\.preview\(/,/func _confirm_preview\(/,/travel_ca
 const mainMenu=await read('godot/ui/main_menu.gd');
 for(const contract of [/signal action_requested/,/set_continue_available/,/Diagnostics\.register_provider\(&"main_menu"/]) assert.match(mainMenu,contract);
 const gameShell=await read('godot/ui/game_shell.gd');
-for(const contract of [/signal system_action/,/signal world_requested/,/set_world_active/,/Diagnostics\.register_provider\(&"game_shell"/]) assert.match(gameShell,contract);
+for(const contract of [/signal system_action/,/signal world_requested/,/set_world_active/,/func show_screen\(/,/ui\.screen_changed/,/Diagnostics\.register_provider\(&"game_shell"/]) assert.match(gameShell,contract);
 const bootstrapScene=await read('godot/app/bootstrap.tscn');
-for(const contract of [/name="MainMenu"/,/name="GameShell"/,/name="BottomNav"/,/name="SystemMenu"/,/name="NewWorldDialog"/]) assert.match(bootstrapScene,contract);
+for(const contract of [/name="MainMenu"/,/name="GameShell"/,/name="ContentHost"/,/name="BottomNav"/,/name="SystemMenu"/,/name="Character"/,/name="Inventory"/,/name="Journal"/,/name="NewWorldDialog"/]) assert.match(bootstrapScene,contract);
 assert.doesNotMatch(bootstrapScene,/name="HUD" type="CanvasLayer" parent="\."/);
+const screenFrame=await read('godot/ui/screen_frame.gd');
+for(const contract of [/Reusable structural screen component/,/func set_empty_message\(/,/Diagnostics\.register_provider/]) assert.match(screenFrame,contract);
 for(const contract of [/_show_main_menu\(\)/,/_continue_last_save\(\)/,/_create_named_world\(\)/,/world-%d/,/SaveStore\.list_saves\(\)/]) assert.match(bootstrap,contract);
 const mapAssetLoader=await read('godot/map/map_asset_loader.gd');
 for(const contract of [/resolved by DataRegistry/,/Image\.load_from_file/,/ImageTexture\.create_from_image/] ) assert.match(mapAssetLoader,contract);
