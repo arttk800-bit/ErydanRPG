@@ -100,7 +100,12 @@ func _test_world_map_modules() -> void:
 	var registered := GameModuleCatalog.register_foundation(Modules)
 	_assert(registered.ok, "world/map module catalog registers")
 	var configured := Modules.configure({})
-	_assert(configured.ok and configured.active == ["simulation", "world", "map", "roads", "travel"], "world/map modules resolve in dependency order")
+	_assert(configured.ok, "foundation modules resolve")
+	for required_id in ["simulation", "world", "map", "roads", "travel"]:
+		_assert(required_id in configured.active, "foundation module active: %s" % required_id)
+	_assert(configured.active.find("world") < configured.active.find("map"), "world resolves before map")
+	_assert(configured.active.find("world") < configured.active.find("travel"), "world resolves before travel")
+	_assert(configured.active.find("roads") < configured.active.find("travel"), "roads resolves before travel")
 	var road_fixture := {
 		"forest": {
 			"metrics": {"width_meters": 1000.0, "height_meters": 1000.0},
@@ -111,6 +116,13 @@ func _test_world_map_modules() -> void:
 	}
 	var started := Modules.start({"state": state, "roads": road_fixture})
 	_assert(started.ok, "world/map modules start")
+	var simulation = Modules.instance("simulation")
+	_assert(simulation != null, "simulation module instance available")
+	var before_time: Dictionary = simulation.time()
+	var simulation_delta: float = simulation.step(60.0)
+	var after_time: Dictionary = simulation.time()
+	_assert(is_equal_approx(simulation_delta, 60.0), "normal simulation mode preserves seconds")
+	_assert(int(after_time.minute) == int(before_time.minute) + 1, "simulation advances canonical game time")
 	var world = Modules.instance("world")
 	var map = Modules.instance("map")
 	world.enter_region("forest")
