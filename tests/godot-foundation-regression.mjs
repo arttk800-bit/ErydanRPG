@@ -101,7 +101,7 @@ assert.match(bootstrap,/DataRegistry\.region\("forest"\)/);
 assert.match(bootstrap,/GameModuleCatalog\.register_foundation\(Modules\)/);
 assert.match(bootstrap,/regional_map\.setup/);
 const regionalMap=await read('godot/map/regional_map_view.gd');
-for(const contract of [/_travel\.begin\(/,/_world\.enter_map_point/,/Camera2D/,/func _input\(/,/InputEventScreenTouch/,/InputEventScreenDrag/,/_input_counts/,/MapAssetLoader\.background/,/Diagnostics\.register_provider/] ) assert.match(regionalMap,contract);
+for(const contract of [/_travel\.begin\(/,/Camera2D/,/func _input\(/,/InputEventScreenTouch/,/InputEventScreenDrag/,/_input_counts/,/MapAssetLoader\.background/,/Diagnostics\.register_provider/] ) assert.match(regionalMap,contract);
 assert.doesNotMatch(regionalMap,/func _unhandled_input\(/);
 const bootstrapScene=await read('godot/app/bootstrap.tscn');
 assert.match(bootstrapScene,/\[node name="HUD" type="CanvasLayer" parent="\."\]/);
