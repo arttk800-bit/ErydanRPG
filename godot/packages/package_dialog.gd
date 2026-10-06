@@ -7,7 +7,7 @@ extends Window
 
 signal local_import_requested
 
-var service: EirdanRemotePackageService
+var service
 var _status: Label
 var _list: VBoxContainer
 
@@ -59,7 +59,7 @@ func _ready() -> void:
 	close.pressed.connect(hide)
 	actions.add_child(close)
 
-func bind(remote_service: EirdanRemotePackageService) -> void:
+func bind(remote_service) -> void:
 	service = remote_service
 	service.catalog_changed.connect(_render)
 	service.operation_finished.connect(_on_operation)
@@ -75,7 +75,7 @@ func refresh_installed() -> void:
 func _refresh() -> void:
 	if service == null: return
 	_status.text = "Загрузка каталога…"
-	var started := service.refresh()
+	var started: Dictionary = service.refresh()
 	if not started.ok: _status.text = "Каталог недоступен: %s" % started.get("error", "unknown")
 
 func _render(entries: Array[Dictionary]) -> void:
@@ -100,7 +100,7 @@ func _render(entries: Array[Dictionary]) -> void:
 
 func _install(package_id: String) -> void:
 	_status.text = "Загрузка %s…" % package_id
-	var started := service.install(package_id)
+	var started: Dictionary = service.install(package_id)
 	if not started.ok: _status.text = "Не удалось начать загрузку: %s" % started.get("error", "unknown")
 
 func _on_operation(result: Dictionary) -> void:
