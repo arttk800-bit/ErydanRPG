@@ -49,3 +49,13 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Travel diagnostics now understands multi-port access records and uses canonical regional map metrics instead of normalized coordinates as meters.
 - Added regression coverage for regional arrival and destination-port persistence.
 
+## 0.90.0-alpha — Travel & Time Stabilization
+- Normal world time is 1:1 with real seconds; global game-speed multipliers were removed.
+- Travel/Sleep use an explicit binary fast-forward toggle; camp cancels travel fast-forward.
+- Pause reasons are runtime-only and cleared on save load.
+- Region↔location boundary is simplified to one regional access node and one selected location transition.
+- Regional access nodes may connect to multiple road edges; internal district multi-access remains supported.
+- Regional arrival now always commits canonical world.position; free-travel target remains visible.
+- Settings blur only over an active game; diagnostics moved to the main menu.
+- World selection artifact/current-region status and route-message stacking were corrected.
+- State schema: v4. Runtime build: travel-contract-0.90.0-alpha.
