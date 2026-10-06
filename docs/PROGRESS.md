@@ -119,3 +119,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Registered Roads as a separate runtime module after Map; it does not mutate World/Map/Travel state.
 - Added integration checks for 3-4-5 geometry, shortest path selection and invalid access references.
 - Terrain and travel-method modifiers remain for the upcoming Travel/conditions owner rather than contaminating road topology.
+
+
+## Gameplay migration: Travel vertical slice
+- Added `godot/travel/travel_state.gd` for deterministic regional travel lifecycle and progress.
+- Travel obtains routes from Roads and commits completed destination entry through the World module API.
+- Added start/tick/stop/resume/cancel/progress/arrival foundation behavior.
+- Integration test now exercises the complete Godot `World → Map → Roads → Travel` slice through physical arrival.
+- Android update identity is explicitly regression-checked: package ID remains `org.eirdan.runtime` and CI uses the stable development keystore secrets, allowing compatible debug APKs to install over previous builds without intentionally clearing `user://`.
+- Terrain/event/camp/location-boundary parity remains a later Travel extension; it is not silently folded into Roads or World.
