@@ -1,11 +1,8 @@
-# CAMPAIGN GATE
-# Runs only when the finished change block is promoted to the ci/gate branch.
-name: validate campaign
+# LEGACY PWA CAMPAIGN GATE
+# Reference implementation only. Manual validation; not part of Godot/Android CI.
+name: Legacy PWA campaign validation
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - ci/gate
 jobs:
   test:
     runs-on: ubuntu-latest
