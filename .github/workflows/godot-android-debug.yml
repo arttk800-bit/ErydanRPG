@@ -56,10 +56,10 @@ jobs:
           npm run test:godot-foundation
           GODOT_BIN=/tmp/godot/Godot_v4.7.2-stable_linux.x86_64
           "$GODOT_BIN" --headless --path godot --quit-after 2 2>&1 | tee /tmp/boot.log
-          ! grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|^ERROR:' /tmp/boot.log
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|^ERROR:' /tmp/boot.log; then exit 1; fi
           for TEST in package-installer-test updater-test; do
             timeout 45s "$GODOT_BIN" --headless --path godot -- --"$TEST" 2>&1 | tee /tmp/test.log
-            ! grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|ASSERT FAILED' /tmp/test.log
+            if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|ASSERT FAILED' /tmp/test.log; then exit 1; fi
             grep -F 'integration: OK' /tmp/test.log
           done
           node scripts/runtime-release.mjs prepare
@@ -74,7 +74,7 @@ jobs:
           mkdir -p build
           LOG=/tmp/godot-android-export.log
           /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --export-debug "Android Debug" ../build/eirdan-runtime-debug.apk 2>&1 | tee "$LOG"
-          ! grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:.*export" "$LOG"
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ERROR:.*export" "$LOG"; then exit 1; fi
           test -s build/eirdan-runtime-debug.apk
           sha256sum build/eirdan-runtime-debug.apk | tee build/eirdan-runtime-debug.apk.sha256
           keytool -printcert -jarfile build/eirdan-runtime-debug.apk | tee build/eirdan-runtime-debug.apk.cert.txt
