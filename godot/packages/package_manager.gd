@@ -1,11 +1,12 @@
 # ============================================================================
 # PACKAGE MANAGER
-# Owns validated package activation, active/previous slots and rollback.
+# Owns validated package activation, deterministic active order and rollback.
 # ============================================================================
 extends Node
 
 const PackageInstaller = preload("res://packages/package_installer.gd")
 const PackageManifest = preload("res://packages/package_manifest.gd")
+const PackageOrder = preload("res://packages/package_order.gd")
 
 const RUNTIME_VERSION := "0.1.0"
 const PACKAGE_DIR := "user://packages"
@@ -19,6 +20,11 @@ func _ready() -> void:
 	PackageInstaller.prepare_directories()
 	_active = _load_index(ACTIVE_FILE)
 	_previous = _load_index(PREVIOUS_FILE)
+	var resolved := PackageOrder.resolve(_active)
+	if resolved.ok:
+		_active = resolved.records
+	else:
+		Diagnostics.error("packages.active_order_invalid", {"errors": resolved.errors})
 	Diagnostics.register_provider(&"packages", snapshot)
 	Diagnostics.info("packages.ready", {"active_count": _active.size(), "runtime": RUNTIME_VERSION})
 
@@ -51,32 +57,50 @@ func install_archive(archive_path: String) -> Dictionary:
 		"version": manifest.version,
 		"kind": manifest.kind,
 		"sha256": manifest.sha256,
-		"path": installed_payload
+		"path": installed_payload,
+		"priority": manifest.priority,
+		"dependencies": manifest.dependencies.duplicate(),
+		"conflicts": manifest.conflicts.duplicate()
 	}
 	return activate(record)
 
 func activate(record: Dictionary) -> Dictionary:
-	_previous = _active.duplicate(true)
 	var next := _active.filter(func(item): return item.get("id") != record.get("id"))
 	next.append(record.duplicate(true))
-	if not _save_index(PREVIOUS_FILE, _previous):
+	var resolved := PackageOrder.resolve(next)
+	if not resolved.ok:
+		return _reject("activation-order", str(record.get("id")), resolved.errors)
+	next = resolved.records
+
+	var previous := _active.duplicate(true)
+	if not _save_index(PREVIOUS_FILE, previous):
 		return _reject("index", str(record.get("id")), ["cannot persist previous slot"])
 	if not _save_index(ACTIVE_FILE, next):
 		return _reject("index", str(record.get("id")), ["cannot persist active slot"])
+	_previous = previous
 	_active = next
-	Diagnostics.info("packages.activated", record)
-	return {"ok": true, "package": record}
+	Diagnostics.info("packages.activated", {
+		"id": record.get("id"),
+		"version": record.get("version"),
+		"priority": record.get("priority", 0),
+		"active_order": _active_ids()
+	})
+	return {"ok": true, "package": record, "active": active_packages()}
 
 func rollback() -> Dictionary:
 	if _previous.is_empty():
 		return {"ok": false, "error": "no previous package set"}
+	var resolved := PackageOrder.resolve(_previous)
+	if not resolved.ok:
+		return _reject("rollback-order", "previous", resolved.errors)
+	var restored: Array[Dictionary] = resolved.records
 	var current := _active
-	if not _save_index(ACTIVE_FILE, _previous):
+	if not _save_index(ACTIVE_FILE, restored):
 		return {"ok": false, "error": "cannot persist rollback"}
-	_active = _previous
+	_active = restored
 	_previous = current
 	_save_index(PREVIOUS_FILE, _previous)
-	Diagnostics.warn("packages.rollback", {"active_count": _active.size()})
+	Diagnostics.warn("packages.rollback", {"active_count": _active.size(), "active_order": _active_ids()})
 	return {"ok": true, "active": active_packages()}
 
 func load_active_resource_packs() -> Dictionary:
@@ -94,9 +118,16 @@ func snapshot() -> Dictionary:
 	return {
 		"runtime_version": RUNTIME_VERSION,
 		"active": active_packages(),
+		"active_order": _active_ids(),
 		"previous": _previous.duplicate(true),
 		"directory": PACKAGE_DIR
 	}
+
+func _active_ids() -> Array[String]:
+	var result: Array[String] = []
+	for record in _active:
+		result.append(str(record.get("id", "")))
+	return result
 
 func _runtime_compatible(required: String) -> bool:
 	if required.is_empty(): return true
