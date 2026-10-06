@@ -7,7 +7,7 @@ extends RefCounted
 
 static func choose_package(callback: Callable) -> Error:
 	var filters := PackedStringArray([
-		"*.json,*.zip,*.pck;Eirdan packages;application/json,application/zip,application/octet-stream"
+		"*.zip;Eirdan package;application/zip"
 	])
 	return DisplayServer.file_dialog_show(
 		"Import Eirdan package",
