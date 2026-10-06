@@ -100,7 +100,7 @@ func _test_world_map_modules() -> void:
 	var registered := GameModuleCatalog.register_foundation(Modules)
 	_assert(registered.ok, "world/map module catalog registers")
 	var configured := Modules.configure({})
-	_assert(configured.ok and configured.active == ["world", "map", "roads", "travel"], "world/map modules resolve in dependency order")
+	_assert(configured.ok and configured.active == ["simulation", "world", "map", "roads", "travel"], "world/map modules resolve in dependency order")
 	var road_fixture := {
 		"forest": {
 			"metrics": {"width_meters": 1000.0, "height_meters": 1000.0},
