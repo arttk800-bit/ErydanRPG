@@ -5,7 +5,8 @@
 # ============================================================================
 extends RefCounted
 
-const SPEED_MPS := {"walk": 1.4, "horse": 3.0}
+const WALK_SPEED_MPS := 1.4
+const HORSE_SPEED_MPS := 3.0
 
 static func ensure(state: Dictionary) -> Dictionary:
 	if state.get("world") is not Dictionary: state["world"] = {}
@@ -14,7 +15,7 @@ static func ensure(state: Dictionary) -> Dictionary:
 
 static func start(state: Dictionary, region_id: String, from_id: String, to_id: String, method: String, route: Dictionary) -> Dictionary:
 	if route.is_empty() or route.get("polyline", []).is_empty(): return {}
-	var speed: float = float(SPEED_MPS.get(method, 1.4))
+	var speed := _speed(method)
 	var total := float(route.get("distance", 0.0))
 	var travel := {
 		"status": "travelling", "region_id": region_id, "from_id": from_id, "to_id": to_id,
@@ -28,7 +29,7 @@ static func start(state: Dictionary, region_id: String, from_id: String, to_id: 
 static func tick(state: Dictionary, delta_seconds: float) -> Dictionary:
 	var travel := ensure(state)
 	if travel.get("status") != "travelling": return travel
-	var speed: float = float(SPEED_MPS.get(str(travel.get("method", "walk")), 1.4))
+	var speed := _speed(str(travel.get("method", "walk")))
 	var remaining_move := maxf(0.0, delta_seconds) * speed
 	var route: Dictionary = travel.get("route", {})
 	var polyline: Array = route.get("polyline", [])
@@ -85,6 +86,9 @@ static func progress(state: Dictionary) -> Dictionary:
 	var total := float(travel.get("distance_total", 0.0))
 	var done := float(travel.get("distance_done", 0.0))
 	return {"done": done, "total": total, "left": maxf(0.0, total - done), "ratio": done / total if total > 0.0 else 0.0, "eta_seconds": travel.get("eta_seconds")}
+
+static func _speed(method: String) -> float:
+	return HORSE_SPEED_MPS if method == "horse" else WALK_SPEED_MPS
 
 static func _segment_metric(travel: Dictionary, a: Dictionary, b: Dictionary) -> float:
 	var route: Dictionary = travel.route
