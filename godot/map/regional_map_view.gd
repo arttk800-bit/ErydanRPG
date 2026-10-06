@@ -65,10 +65,26 @@ func setup(region: Dictionary, world, roads, travel, simulation, background_asse
 	_refresh()
 	Diagnostics.register_provider(&"map_presentation", diagnostic_snapshot)
 	set_process(true)
-	set_process_input(true)
+	set_input_active(true)
+	camera.make_current()
+
+func set_input_active(active: bool) -> void:
+	set_process_input(active)
+	if active: return
+	_reset_gesture_state()
+
+func _reset_gesture_state() -> void:
+	_touches.clear()
+	_pinch_active = false
+	_pinch_distance = 0.0
+	_mouse_dragging = false
 
 func _exit_tree() -> void:
 	Diagnostics.unregister_provider(&"map_presentation")
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_reset_gesture_state()
 
 # Raw _input is intentional on Android: GUI Controls may mark touch events handled
 # before _unhandled_input. The top screen inset is reserved for fixed HUD controls.
@@ -100,7 +116,6 @@ func _handle_touch(event: InputEventScreenTouch) -> void:
 			_select_screen(event.position)
 		if _touches.size() < 2:
 			_pinch_distance = 0.0
-		if _touches.is_empty():
 			_pinch_active = false
 
 func _handle_drag(event: InputEventScreenDrag) -> void:

@@ -6,9 +6,11 @@
 extends Control
 
 var _map_view: Control
+var _input_target: Node
 
-func bind_map_view(map_view: Control) -> void:
+func bind_map_view(map_view: Control, input_target: Node = null) -> void:
 	_map_view = map_view
+	_input_target = input_target if input_target != null else map_view
 	_sync()
 
 func set_active(active: bool) -> void:
@@ -18,7 +20,10 @@ func set_active(active: bool) -> void:
 func _sync() -> void:
 	if _map_view == null: return
 	_map_view.visible = visible
-	_map_view.set_process_input(visible)
+	if _input_target.has_method("set_input_active"):
+		_input_target.set_input_active(visible)
+	else:
+		_input_target.set_process_input(visible)
 
 func snapshot() -> Dictionary:
 	return {"visible": visible, "map_bound": _map_view != null}

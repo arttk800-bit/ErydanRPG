@@ -16,7 +16,8 @@ const EirdanTheme = preload("res://ui/eirdan_theme.gd")
 @onready var world_screen = $WorldScreen
 @onready var save_browser = $GameShell/Layout/ContentHost/Screens/SaveBrowser
 @onready var settings_screen = $GameShell/Layout/ContentHost/Screens/Settings
-@onready var regional_map = $RegionalMap
+@onready var map_surface = $MapSurface
+@onready var regional_map = $MapSurface/MapViewport/RegionalMap
 @onready var main_menu = $MainMenu
 @onready var game_shell = $GameShell
 
@@ -47,7 +48,7 @@ func _ready() -> void:
 	game_shell.inventory_requested.connect(func(): _show_structural_screen("inventory"))
 	game_shell.journal_requested.connect(func(): _show_structural_screen("journal"))
 	_setup_updater()
-	world_screen.bind_map_view(regional_map)
+	world_screen.bind_map_view(map_surface, regional_map)
 	save_browser.save_selected.connect(_load_world)
 	save_browser.back_requested.connect(_return_from_aux_screen)
 	settings_screen.back_requested.connect(_return_from_aux_screen)
@@ -235,10 +236,10 @@ func _return_from_aux_screen() -> void:
 func _open_updates() -> void:
 	var update_dialog = get_meta("update_dialog", null)
 	if update_dialog == null: return
-	regional_map.set_process_input(false)
+	regional_map.set_input_active(false)
 	update_dialog.popup_centered()
 	update_dialog.visibility_changed.connect(func():
-		if not update_dialog.visible and regional_map.visible: regional_map.set_process_input(true)
+		if not update_dialog.visible and map_surface.visible: regional_map.set_input_active(true)
 	, CONNECT_ONE_SHOT)
 
 func _initialize_new_world_if_needed(region: Dictionary, world) -> void:

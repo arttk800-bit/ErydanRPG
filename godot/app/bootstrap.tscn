@@ -32,7 +32,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("6")
 
-[node name="RegionalMap" type="Control" parent="."]
+[node name="MapSurface" type="SubViewportContainer" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -40,93 +40,108 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 0
+stretch = true
+
+[node name="MapViewport" type="SubViewport" parent="MapSurface"]
+disable_3d = true
+handle_input_locally = true
+render_target_update_mode = 4
+
+[node name="RegionalMap" type="Control" parent="MapSurface/MapViewport"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2")
-[node name="Viewport" type="Node2D" parent="RegionalMap"]
-[node name="Background" type="Sprite2D" parent="RegionalMap/Viewport"]
+[node name="Viewport" type="Node2D" parent="MapSurface/MapViewport/RegionalMap"]
+[node name="Background" type="Sprite2D" parent="MapSurface/MapViewport/RegionalMap/Viewport"]
 z_index = -10
-[node name="Roads" type="Node2D" parent="RegionalMap/Viewport"]
+[node name="Roads" type="Node2D" parent="MapSurface/MapViewport/RegionalMap/Viewport"]
 z_index = -2
-[node name="Route" type="Node2D" parent="RegionalMap/Viewport"]
+[node name="Route" type="Node2D" parent="MapSurface/MapViewport/RegionalMap/Viewport"]
 z_index = -1
-[node name="POI" type="Node2D" parent="RegionalMap/Viewport"]
-[node name="Party" type="Node2D" parent="RegionalMap/Viewport"]
+[node name="POI" type="Node2D" parent="MapSurface/MapViewport/RegionalMap/Viewport"]
+[node name="Party" type="Node2D" parent="MapSurface/MapViewport/RegionalMap/Viewport"]
 z_index = 5
-[node name="Core" type="Polygon2D" parent="RegionalMap/Viewport/Party"]
+[node name="Core" type="Polygon2D" parent="MapSurface/MapViewport/RegionalMap/Viewport/Party"]
 polygon = PackedVector2Array(-8, 0, 0, -8, 8, 0, 0, 8)
 color = Color(0.95, 0.22, 0.12, 1)
-[node name="Ring" type="Line2D" parent="RegionalMap/Viewport/Party"]
+[node name="Ring" type="Line2D" parent="MapSurface/MapViewport/RegionalMap/Viewport/Party"]
 points = PackedVector2Array(0, -12, 8.5, -8.5, 12, 0, 8.5, 8.5, 0, 12, -8.5, 8.5, -12, 0, -8.5, -8.5, 0, -12)
 width = 2.0
 default_color = Color(1, 1, 1, 0.85)
-[node name="Camera2D" type="Camera2D" parent="RegionalMap/Viewport"]
+[node name="Camera2D" type="Camera2D" parent="MapSurface/MapViewport/RegionalMap/Viewport"]
 position = Vector2(800, 500)
 position_smoothing_enabled = true
 position_smoothing_speed = 12.0
-[node name="HUD" type="CanvasLayer" parent="RegionalMap"]
+[node name="HUD" type="CanvasLayer" parent="MapSurface/MapViewport/RegionalMap"]
 layer = 10
-[node name="Status" type="Label" parent="RegionalMap/HUD"]
+[node name="Status" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD"]
 offset_left = 22.0
 offset_top = 66.0
 offset_right = 980.0
 offset_bottom = 98.0
 mouse_filter = 2
 text = "Центральные земли"
-[node name="TravelCard" type="PanelContainer" parent="RegionalMap/HUD"]
+[node name="TravelCard" type="PanelContainer" parent="MapSurface/MapViewport/RegionalMap/HUD"]
 visible = false
 offset_left = 24.0
 offset_top = 500.0
 offset_right = 472.0
 offset_bottom = 696.0
-[node name="Margin" type="MarginContainer" parent="RegionalMap/HUD/TravelCard"]
+[node name="Margin" type="MarginContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 14
-[node name="Content" type="VBoxContainer" parent="RegionalMap/HUD/TravelCard/Margin"]
+[node name="Content" type="VBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 8
-[node name="Title" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+[node name="Title" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Пункт назначения"
-[node name="Meta" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+[node name="Meta" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
 text = "Расстояние · Время"
-[node name="Method" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+[node name="Method" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
 text = "Пешком"
-[node name="Actions" type="HBoxContainer" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+[node name="Actions" type="HBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
-[node name="Go" type="Button" parent="RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
+[node name="Go" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Отправиться"
-[node name="Cancel" type="Button" parent="RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
+[node name="Cancel" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
 layout_mode = 2
 text = "Отмена"
-[node name="Journey" type="PanelContainer" parent="RegionalMap/HUD"]
+[node name="Journey" type="PanelContainer" parent="MapSurface/MapViewport/RegionalMap/HUD"]
 visible = false
 offset_left = 24.0
 offset_top = 612.0
 offset_right = 640.0
 offset_bottom = 696.0
-[node name="Margin" type="MarginContainer" parent="RegionalMap/HUD/Journey"]
+[node name="Margin" type="MarginContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 10
-[node name="Content" type="VBoxContainer" parent="RegionalMap/HUD/Journey/Margin"]
+[node name="Content" type="VBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin"]
 layout_mode = 2
-[node name="Title" type="Label" parent="RegionalMap/HUD/Journey/Margin/Content"]
+[node name="Title" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 text = "В пути"
-[node name="Progress" type="ProgressBar" parent="RegionalMap/HUD/Journey/Margin/Content"]
+[node name="Progress" type="ProgressBar" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 show_percentage = false
-[node name="Meta" type="Label" parent="RegionalMap/HUD/Journey/Margin/Content"]
+[node name="Meta" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 text = "Осталось"
 

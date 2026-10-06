@@ -10,6 +10,8 @@ func _ready() -> void:
 	add_child(app)
 	await get_tree().process_frame
 	var shell = app.get_node("GameShell")
+	var map_surface = app.get_node("MapSurface")
+	var regional_map = app.get_node("MapSurface/MapViewport/RegionalMap")
 	_expect(app.get_node("MainMenu").visible and not shell.visible, "main menu owns startup composition")
 	var actions: Control = app.get_node("MainMenu/Center/Actions")
 	var viewport_center := get_viewport().get_visible_rect().size * 0.5
@@ -19,9 +21,10 @@ func _ready() -> void:
 	app.call("_start_gameplay")
 	await get_tree().process_frame
 	_expect(shell.visible and shell.get_node("Layout/Top").visible and shell.get_node("Layout/BottomNav").visible, "world shows shell and bottom navigation")
+	_expect(regional_map.get_viewport() != app.get_viewport(), "map camera is isolated in a subviewport")
 	app.call("_show_structural_screen", "character")
 	shell.handle_back()
-	_expect(shell.active_screen() == "world" and app.get_node("RegionalMap").visible, "character Back returns to world")
+	_expect(shell.active_screen() == "world" and map_surface.visible, "character Back returns to world")
 	app.call("_show_structural_screen", "character")
 	app.call("_open_settings", true)
 	shell.handle_back()
@@ -35,6 +38,7 @@ func _ready() -> void:
 	var events: Array = Diagnostics.snapshot().events
 	_expect(events.any(func(event): return event.event == "ui.screen_changed"), "navigation emits diagnostics")
 	app.call("_show_main_menu")
+	_expect(not map_surface.visible and regional_map.diagnostic_snapshot().touches_active == 0, "hidden map clears input gestures")
 	app.notification(NOTIFICATION_WM_GO_BACK_REQUEST)
 	_expect(app.get_node("ExitDialog").visible, "main menu Back opens exit confirmation")
 	app.queue_free()
