@@ -27,7 +27,10 @@ for(const contract of [/func register_validator\(/,/func unregister_validator\(/
 assert.doesNotMatch(manager,/DataRegistry\.validate_package_candidate/);
 
 const registry=await read('godot/data/data_registry.gd');
-for(const contract of [/func resolve\(/,/func provenance\(/,/func set_layer\(/,/func validate_package_candidate\(/,/_validate_override_data/,/PackageValidators\.register_validator/] ) assert.match(registry,contract);
+for(const contract of [/func resolve\(/,/func provenance\(/,/func entity\(/,/func entity_provenance\(/,/func set_layer\(/,/func validate_package_candidate\(/,/DataSchema\.validate_override/,/PackageValidators\.register_validator/] ) assert.match(registry,contract);
+assert.doesNotMatch(registry,/walk_speed_kmh must be|damage must be numeric/);
+const dataSchema=await read('godot/data/data_schema.gd');
+for(const contract of [/func validate_base\(/,/func validate_override\(/,/unknown root domain/,/cannot override unknown id/]) assert.match(dataSchema,contract);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
