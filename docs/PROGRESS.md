@@ -83,6 +83,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Independent packages use stable `priority` + package-ID ordering, removing activation-history precedence from DataRegistry overrides.
 - DataRegistry preserves Package Manager's resolved order and remains owner only of base/override data resolution and provenance.
 
+## Remote package catalog
+- Added source-neutral `eirdan-package-catalog` v1 with official/mod channel, category, semantic version, runtime floor, size, apply mode, HTTPS URL and full-archive SHA-256.
+- Added remote catalog/download orchestration without coupling PackageManager to GitHub; the initial catalog URL points to the repository and can later move to any HTTPS backend/CDN.
+- Added the native “Управление контентом” window for refresh, install/update and local SAF import.
+- Successful `hot` packages reload DataRegistry in place; `scene` packages rebuild only the active gameplay runtime. APK/runtime code remains outside this channel.
+
 
 ## Godot authored data schema
 - Extracted field/entity validation from DataRegistry into `godot/data/data_schema.gd`.

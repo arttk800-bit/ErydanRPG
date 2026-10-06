@@ -11,6 +11,8 @@ const AndroidUpdater = preload("res://update/android_updater.gd")
 const UpdateDialog = preload("res://update/update_dialog.gd")
 const SimulationRuntime = preload("res://simulation/simulation_runtime.gd")
 const EirdanTheme = preload("res://ui/eirdan_theme.gd")
+const RemotePackageService = preload("res://packages/remote_package_service.gd")
+const PackageDialog = preload("res://packages/package_dialog.gd")
 
 @onready var status = $Toast
 @onready var world_screen = $WorldScreen
@@ -23,6 +25,8 @@ const EirdanTheme = preload("res://ui/eirdan_theme.gd")
 @onready var game_shell = $GameShell
 
 var _simulation_runtime: Node
+var _package_service
+var _package_dialog
 var _aux_return_screen := "world"
 
 var _state: Dictionary = {
@@ -49,6 +53,7 @@ func _ready() -> void:
 	game_shell.inventory_requested.connect(func(): _show_structural_screen("inventory"))
 	game_shell.journal_requested.connect(func(): _show_structural_screen("journal"))
 	_setup_updater()
+	_setup_packages()
 	world_screen.bind_map_view(map_surface, regional_map)
 	save_browser.save_selected.connect(_load_world)
 	save_browser.back_requested.connect(_return_from_aux_screen)
@@ -73,6 +78,10 @@ func _notification(what: int) -> void:
 	if update_dialog != null and update_dialog.visible:
 		update_dialog.hide()
 		Diagnostics.info("ui.back", {"handled_by": "update_dialog"})
+		return
+	if _package_dialog != null and _package_dialog.visible:
+		_package_dialog.hide()
+		Diagnostics.info("ui.back", {"handled_by": "package_dialog"})
 		return
 	if $NewWorldDialog.visible:
 		$NewWorldDialog.hide()
@@ -134,6 +143,29 @@ func _setup_updater() -> void:
 	add_child(update_dialog)
 	set_meta("update_dialog", update_dialog)
 
+func _setup_packages() -> void:
+	_package_service = RemotePackageService.new()
+	add_child(_package_service)
+	_package_dialog = PackageDialog.new()
+	add_child(_package_dialog)
+	_package_dialog.bind(_package_service)
+	_package_dialog.local_import_requested.connect(_import_package)
+	_package_service.operation_finished.connect(_on_remote_package_operation)
+
+func _open_packages() -> void:
+	regional_map.set_input_active(false)
+	_package_dialog.open()
+	_package_dialog.visibility_changed.connect(func():
+		if not _package_dialog.visible and map_surface.visible: regional_map.set_input_active(true)
+	, CONNECT_ONE_SHOT)
+
+func _on_remote_package_operation(result: Dictionary) -> void:
+	if not result.get("ok", false) or result.get("action") != "install": return
+	if result.get("apply") == "scene" and not main_menu.visible: _reload_runtime()
+	_package_dialog.refresh_installed()
+	var package: Dictionary = result.get("package", {})
+	status.show_message("Пакет установлен: %s" % package.get("title", package.get("id", "")))
+
 func _on_main_menu_action(action: String) -> void:
 	match action:
 		"new_game":
@@ -181,7 +213,7 @@ func _on_system_action(action: String) -> void:
 		"save": _save_game()
 		"load": _open_save_browser(true)
 		"update": _open_updates()
-		"packages": _import_package()
+		"packages": _open_packages()
 		"diagnostics": _export_diagnostics()
 		"settings": _open_settings(true)
 		"main_menu": _show_main_menu()
@@ -302,7 +334,9 @@ func _import_package() -> void:
 func _on_file_selected(ok: bool, paths: PackedStringArray, _filter_index: int) -> void:
 	if not ok or paths.is_empty(): return
 	var result := Packages.install_archive(paths[0])
-	if result.ok: _reload_runtime()
+	if result.ok:
+		_reload_runtime()
+		if _package_dialog != null: _package_dialog.refresh_installed()
 	else: status.show_message("Пакет отклонён: %s" % result.get("errors", result.get("error", "unknown error")), 0.0)
 
 func _export_diagnostics() -> void:

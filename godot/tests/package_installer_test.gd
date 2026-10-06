@@ -9,9 +9,11 @@ const DataSchema = preload("res://data/data_schema.gd")
 const ModuleRegistry = preload("res://modules/module_registry.gd")
 const GameModuleCatalog = preload("res://modules/game_module_catalog.gd")
 const RoadGraph = preload("res://roads/road_graph.gd")
+const PackageCatalog = preload("res://packages/package_catalog.gd")
 
 func _ready() -> void:
 	_test_package_order()
+	_test_package_catalog()
 	_test_data_schema()
 	_test_save_store()
 	_test_module_registry()
@@ -276,6 +278,22 @@ func _test_package_order() -> void:
 		{"id": "mod.b", "dependencies": ["mod.a"]}
 	])
 	_assert(not cycle.ok, "dependency cycle rejected")
+
+func _test_package_catalog() -> void:
+	var value := {
+		"format": "eirdan-package-catalog", "format_version": 1,
+		"packages": [{
+			"id": "eirdan.world.events", "title": "World Events", "version": "1.2.0",
+			"channel": "official", "category": "world", "apply": "hot", "runtime_min": "0.1.0",
+			"size_bytes": 2048, "sha256": "a".repeat(64), "url": "https://example.invalid/world-events.zip"
+		}]
+	}
+	var parsed := PackageCatalog.parse_bytes(JSON.stringify(value).to_utf8_buffer())
+	_assert(parsed.ok and parsed.packages.size() == 1, "valid remote package catalog accepted")
+	_assert(PackageCatalog.compare_versions("1.1.9", "1.2.0") < 0, "catalog versions compare semantically")
+	var unsafe := value.duplicate(true)
+	unsafe.packages[0].url = "http://example.invalid/package.zip"
+	_assert(not PackageCatalog.normalize(unsafe).ok, "catalog rejects non-HTTPS package URL")
 
 func _reject_test_domain(_manifest: Dictionary, _payload_path: String) -> Dictionary:
 	return {"ok": false, "errors": ["test domain rejection"]}

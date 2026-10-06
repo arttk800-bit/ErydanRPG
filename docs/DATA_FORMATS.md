@@ -104,6 +104,13 @@ The manifest identifies format/version, stable package ID, package version, kind
 
 Install lifecycle: validation → staging → SHA-256 verification → installed storage → activation. PackageManager retains the previous active set for rollback. Mutable installed content lives under `user://packages`.
 
+## Remote package catalog v1
+`packages/catalog.json` is the source-neutral discovery index. The runtime currently reads it from the repository, while individual package URLs may point to GitHub Releases or another HTTPS CDN. Moving the catalog or payloads does not change PackageManager.
+
+Each entry declares stable ID/title, version, official/mod channel, category, `hot` or `scene` apply mode, minimum runtime, archive size, HTTPS URL and SHA-256 of the complete downloaded ZIP. The outer archive hash is verified before PackageManager performs its existing manifest, payload, dependency and content-validation transaction.
+
+`hot` reloads DataRegistry immediately. `scene` requests controlled gameplay-runtime reconstruction after activation. Executable/runtime changes are never catalog packages and remain signed APK updates.
+
 ## Godot data layers
 Base data is packaged read-only content. Active override packages may provide sparse nested values. DataRegistry resolves effective values without mutating base definitions and exposes provenance for queried paths.
 
