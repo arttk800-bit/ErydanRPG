@@ -125,7 +125,7 @@ func _test_world_map_modules() -> void:
 	world.visit(hidden)
 	_assert(state.world.knowledge["grey-ruins"].visited, "world visit persists knowledge")
 	var travel = Modules.instance("travel")
-	var trip := travel.begin("forest", "start", "finish", "walk")
+	var trip: Dictionary = travel.begin("forest", "start", "finish", "walk")
 	_assert(trip.status == "travelling", "travel begins from Roads route")
 	travel.tick(1000.0)
 	_assert(state.world.travel.status == "arrived", "travel reaches destination")
