@@ -83,3 +83,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Sparse override packages reject unknown roots, unsupported fields, invalid stable IDs and attempts to override unknown entity IDs.
 - Entity IDs are canonical dictionary keys; DataRegistry now exposes `entity(domain, id)` and entity provenance without coupling identity to display names.
 - Added schema/identity integration assertions and static ownership regression contracts.
+
+
+## Godot persistence foundation
+- Added dedicated `godot/persistence/` ownership: save schema, migrations and durable SaveStore.
+- Separated save envelope format version from mutable state schema version.
+- Kept stable internal `world_id` separate from player-visible `world_name`.
+- Save writes use temporary write → reread/validation → activation; invalid state is rejected before storage.
+- Loads validate and pass through the migration boundary before returning canonical state.
+- Added save/load/list/delete integration coverage and static architecture contracts.
