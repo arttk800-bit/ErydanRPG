@@ -10,7 +10,7 @@ const RoadsModule = preload("res://roads/roads_module.gd")
 const TravelModule = preload("res://travel/travel_module.gd")
 
 static func register_foundation(runtime: Node) -> Dictionary:
-	var world := runtime.register_module({
+	var world: Dictionary = runtime.register_module({
 		"id": "world",
 		"enabled_by_default": true,
 		"dependencies": [],
@@ -18,7 +18,7 @@ static func register_foundation(runtime: Node) -> Dictionary:
 		"factory": func(): return WorldModule.new()
 	})
 	if not world.ok: return world
-	var map := runtime.register_module({
+	var map: Dictionary = runtime.register_module({
 		"id": "map",
 		"enabled_by_default": true,
 		"dependencies": ["world"],
@@ -26,7 +26,7 @@ static func register_foundation(runtime: Node) -> Dictionary:
 		"factory": func(): return MapModule.new()
 	})
 	if not map.ok: return map
-	var roads := runtime.register_module({
+	var roads: Dictionary = runtime.register_module({
 		"id": "roads",
 		"enabled_by_default": true,
 		"dependencies": ["map"],
