@@ -78,7 +78,7 @@ func _draw() -> void:
 	for edge in roads.get("edges", []):
 		if edge is Array and edge.size() >= 2 and nodes.has(str(edge[0])) and nodes.has(str(edge[1])):
 			draw_line(_screen_point(nodes[str(edge[0])]), _screen_point(nodes[str(edge[1])]), Color(0.36, 0.32, 0.23), 3.0, true)
-	var travel := _travel.snapshot() if _travel != null else {}
+	var travel: Dictionary = _travel.snapshot() if _travel != null else {}
 	var route: Dictionary = travel.get("route", {})
 	var polyline: Array = route.get("polyline", [])
 	for index in range(1, polyline.size()):
