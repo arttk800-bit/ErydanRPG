@@ -140,7 +140,7 @@ func _test_world_map_modules() -> void:
 	var trip: Dictionary = travel.begin("forest", "start", "finish", "walk")
 	_assert(trip.status == "travelling", "travel begins from Roads route")
 	_assert(is_equal_approx(float(trip.speed_mps), 5.0 / 3.6), "travel resolves walk speed from DataRegistry")
-	_assert(is_equal_approx(float(trip.eta_seconds), 1000.0 / (5.0 / 3.6)), "travel ETA uses resolved data speed")
+	_assert(is_equal_approx(float(trip.duration_seconds), 1000.0 / (5.0 / 3.6)), "travel ETA uses resolved data speed")
 	travel.tick(1000.0)
 	_assert(state.world.travel.status == "arrived", "travel reaches destination")
 	var destination := {"id": "finish", "name": "Finish", "class": "location"}
