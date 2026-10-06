@@ -34,7 +34,7 @@ func _ready() -> void:
 		var invalid := release.duplicate(true)
 		invalid[pair[0]] = pair[1]
 		_expect(not Manifest.validate(invalid, 1).ok, "invalid " + str(pair[0]))
-	# Presentation regression: custom action must reach the updater command.
+	# Presentation regression: the actual primary button signal must reach the updater command.
 	var dialog_updater := Updater.new()
 	dialog_updater.installer = FakeInstaller.new()
 	add_child(dialog_updater)
@@ -42,8 +42,14 @@ func _ready() -> void:
 	dialog.updater = dialog_updater
 	dialog.save_callback = func(): return {"ok": true}
 	add_child(dialog)
-	dialog._action(&"check")
-	_expect(dialog_updater.snapshot().state == "checking", "update dialog check action reaches updater")
+	# Exercise the same Button.pressed signal used by touch/click input, not a helper method.
+	dialog._check.pressed.emit()
+	_expect(dialog_updater.snapshot().state == "checking", "update dialog check button reaches updater")
+	_expect(dialog.dialog_text == "Проверяем новую версию…", "checking state is visible immediately")
+	dialog_updater._current_code = 1
+	dialog_updater._release = release
+	dialog_updater._set_state("up_to_date")
+	_expect(dialog.dialog_text.begins_with("Обновлений нет."), "no-update result is explicit")
 	dialog_updater.cancel()
 	dialog.queue_free()
 	dialog_updater.queue_free()
