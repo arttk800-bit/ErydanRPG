@@ -48,7 +48,7 @@ func snapshot() -> Dictionary:
 
 func check() -> void:
 	Diagnostics.info("updater.check_entered", {"state": _state})
-	if _state in ["checking", "downloading"]: return
+	if not _state in ["idle", "up_to_date", "error"]: return
 	_release = {}
 	# Export CI embeds the immutable APK version code. Do not query PackageManager during update checks:
 	# JNI is an installation adapter concern, and a JNI failure must never make the Check button inert.
@@ -100,10 +100,6 @@ func install(save_before_install: Callable) -> void:
 	if not verified.ok:
 		_fail(str(verified.error))
 		return
-	var native: Dictionary = installer.verify_archive(APK, _release)
-	if not native.ok:
-		_fail(str(native.error))
-		return
 	var saved: Dictionary = save_before_install.call()
 	if not saved.get("ok", false):
 		_error = "save_before_install_failed"
@@ -145,10 +141,9 @@ func _completed(result: int, code: int, headers: PackedStringArray, body: Packed
 		_fail(str(verified.error))
 		return
 	_set_state("verifying_apk")
-	var native: Dictionary = installer.verify_archive(PART, _release)
-	if not native.ok:
-		_fail(str(native.error))
-		return
+	# APK identity and signer are verified by the release gate before this exact SHA-256 is published.
+	# Avoid PackageManager archive JNI here: it can block the Godot main thread on some Android builds.
+	Diagnostics.info("updater.apk_release_identity_trusted", {"application_id": _release.get("application_id", ""), "version_code": _release.get("version_code", 0)})
 	if DirAccess.rename_absolute(ProjectSettings.globalize_path(PART), ProjectSettings.globalize_path(APK)) != OK:
 		_fail("apk_staging_failed")
 		return
