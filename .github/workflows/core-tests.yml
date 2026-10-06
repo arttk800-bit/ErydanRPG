@@ -1,39 +1,8 @@
-# COMBAT GATE
-# Disabled combat is validated only when combat/AI/simulation code is changed
-# explicitly or this workflow is started manually.
-name: Combat regression
+# LEGACY PWA COMBAT GATE
+# Preserved for reference/parity work. Manual only; not part of Godot/Android CI.
+name: Legacy PWA combat regression
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'game/combat/**'
-      - 'game/ai/**'
-      - 'game/simulation/**'
-      - 'game/systems/combat/**'
-      - 'game/modules/combat.js'
-      - 'game/modules/combat-lab.js'
-      - 'game/ui/combat.js'
-      - 'scripts/run-mirror3000.mjs'
-      - 'scripts/validate-combat.mjs'
-      - 'scripts/validate-domain.mjs'
-      - 'scripts/domain-config.mjs'
-      - 'tests/damage-regression.mjs'
-      - 'tests/actions-regression.mjs'
-      - 'tests/ai-smoke.mjs'
-      - 'tests/skill-policy.mjs'
-      - 'tests/action-registry.mjs'
-      - 'tests/parity-reference.mjs'
-      - 'tests/view-model.mjs'
-      - 'tests/headless-battle.mjs'
-      - 'tests/seed-regression.mjs'
-      - 'tests/retreat-policy.mjs'
-      - 'tests/opportunity.mjs'
-      - 'tests/combat-movement.mjs'
-      - 'tests/parity-gate.mjs'
-      - 'tests/mirror-symmetry.mjs'
-      - 'tests/active-modules-regression.mjs'
-      - '.github/workflows/core-tests.yml'
 jobs:
   test:
     runs-on: ubuntu-latest
