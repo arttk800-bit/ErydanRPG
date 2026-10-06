@@ -35,9 +35,9 @@ func _ready() -> void:
 	main_menu.action_requested.connect(_on_main_menu_action)
 	game_shell.system_action.connect(_on_system_action)
 	game_shell.world_requested.connect(func(): _show_world())
-	game_shell.character_requested.connect(func(): _show_placeholder("Персонаж"))
-	game_shell.inventory_requested.connect(func(): _show_placeholder("Инвентарь"))
-	game_shell.journal_requested.connect(func(): _show_placeholder("Журнал"))
+	game_shell.character_requested.connect(func(): _show_structural_screen("character"))
+	game_shell.inventory_requested.connect(func(): _show_structural_screen("inventory"))
+	game_shell.journal_requested.connect(func(): _show_structural_screen("journal"))
 	_setup_updater()
 	$NewWorldDialog.confirmed.connect(_create_named_world)
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
@@ -48,6 +48,7 @@ func _start_gameplay() -> void:
 	main_menu.visible = false
 	regional_map.visible = true
 	game_shell.set_world_active(true)
+	game_shell.show_screen("world")
 	var region := DataRegistry.region("forest")
 	if region.is_empty():
 		status.text = "Ошибка: данные Центральных земель не загружены"
@@ -154,10 +155,13 @@ func _show_main_menu() -> void:
 func _show_world() -> void:
 	regional_map.visible = true
 	regional_map.set_process_input(true)
+	game_shell.show_screen("world")
 	status.text = ""
 
-func _show_placeholder(title: String) -> void:
-	status.text = "%s — экран будет подключён к своему домену" % title
+func _show_structural_screen(_screen_id: String) -> void:
+	regional_map.visible = false
+	regional_map.set_process_input(false)
+	status.text = ""
 
 func _open_updates() -> void:
 	var update_dialog = get_meta("update_dialog", null)
