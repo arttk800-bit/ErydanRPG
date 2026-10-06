@@ -68,3 +68,7 @@ Active campaign diagnostics aggregate separate read-only reports for State/Saves
 
 ## Migration rule
 The PWA remains the reference implementation for domains not yet migrated. Migration carries contracts, behavior and validated data into Godot; browser-specific DOM/cache ownership is not copied into the new runtime.
+
+
+## Godot Map Presentation
+`godot/map/regional_map_view.gd` owns native regional rendering and input only. It composes Camera2D with independent background, roads, active-route, POI/label and party-marker layers. `map_asset_loader.gd` is the runtime visual-asset adapter for replaceable region backgrounds under `user://map_assets`. Road topology and metric coordinates remain Roads/Data ownership; Travel remains movement authority. Roads intentionally has no dependency on Map browsing or presentation.
