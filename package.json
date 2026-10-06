@@ -16,7 +16,8 @@
     "assets:integrity": "node scripts/update-asset-integrity.mjs",
     "assets:integrity:check": "node scripts/update-asset-integrity.mjs --check",
     "test:all": "npm run test:campaign && npm run test:combat",
-    "validate:all": "npm run validate:campaign && npm run validate:combat"
+    "validate:all": "npm run validate:campaign && npm run validate:combat",
+    "test:godot-foundation": "node tests/godot-foundation-regression.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"
