@@ -5,7 +5,7 @@ This document is the index of system ownership. It describes responsibilities, n
 | System | Primary location | Owns | Must not own |
 | --- | --- | --- | --- |
 | Android runtime | `godot/app/` | bootstrap, Android-facing composition and presentation | package validation or gameplay rules |
-| Package Manager | `godot/packages/` | staging, integrity, validator orchestration, active/previous package set and rollback | domain validation rules, balance or transport policy |
+| Package Manager | `godot/packages/` | staging, integrity, validator orchestration, dependency/conflict resolution, deterministic active order, active/previous package set and rollback | domain validation rules, balance or transport policy |
 | Package Validators | `godot/packages/package_validators.gd` | registry and aggregation of domain package validators | domain-specific validation rules |\n| Data Registry | `godot/data/` | base + override resolution, provenance and data-domain package validation | gameplay algorithms |
 | Godot Diagnostics | `godot/diagnostics/` | runtime events and provider snapshots | domain rules |
 | Legacy PWA app shell | `game/app/` | browser navigation, lifecycle, screen composition | world/combat rules |
