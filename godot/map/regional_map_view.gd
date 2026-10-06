@@ -6,6 +6,7 @@
 extends Control
 
 const MapAssetLoader = preload("res://map/map_asset_loader.gd")
+const EirdanTheme = preload("res://ui/eirdan_theme.gd")
 const WORLD_SIZE := Vector2(1600.0, 1000.0)
 const MIN_ZOOM := 0.65
 const MAX_ZOOM := 2.5
@@ -20,7 +21,8 @@ var _roads
 var _travel
 var _simulation
 var _current_id := "veligrad"
-var _message := "Выберите точку назначения"
+var _message := "Центральные земли"
+var _preview: Dictionary = {}
 var _mouse_dragging := false
 var _mouse_start := Vector2.ZERO
 var _camera_start := Vector2.ZERO
@@ -36,6 +38,16 @@ var _input_counts := {"touch_press":0,"touch_release":0,"drag":0,"tap":0,"pinch"
 @onready var poi_layer: Node2D = $Viewport/POI
 @onready var party: Node2D = $Viewport/Party
 @onready var status: Label = $HUD/Status
+@onready var travel_card: PanelContainer = $HUD/TravelCard
+@onready var travel_title: Label = $HUD/TravelCard/Margin/Content/Title
+@onready var travel_meta: Label = $HUD/TravelCard/Margin/Content/Meta
+@onready var travel_method: Label = $HUD/TravelCard/Margin/Content/Method
+@onready var travel_go: Button = $HUD/TravelCard/Margin/Content/Actions/Go
+@onready var travel_cancel: Button = $HUD/TravelCard/Margin/Content/Actions/Cancel
+@onready var journey: PanelContainer = $HUD/Journey
+@onready var journey_title: Label = $HUD/Journey/Margin/Content/Title
+@onready var journey_progress: ProgressBar = $HUD/Journey/Margin/Content/Progress
+@onready var journey_meta: Label = $HUD/Journey/Margin/Content/Meta
 
 func setup(region: Dictionary, world, roads, travel, simulation, background_asset: Dictionary = {}) -> void:
 	_region = region
@@ -48,6 +60,10 @@ func setup(region: Dictionary, world, roads, travel, simulation, background_asse
 	_build_static_layers()
 	_apply_background()
 	_center_camera()
+	travel_card.add_theme_stylebox_override("panel", EirdanTheme.panel_style())
+	journey.add_theme_stylebox_override("panel", EirdanTheme.panel_style())
+	travel_go.pressed.connect(_confirm_preview)
+	travel_cancel.pressed.connect(_clear_preview)
 	_refresh()
 	Diagnostics.register_provider(&"map_presentation", diagnostic_snapshot)
 	set_process(true)
@@ -172,14 +188,22 @@ func _refresh() -> void:
 	var travel: Dictionary = _travel.snapshot() if _travel != null else {}
 	party.position = _party_position(travel)
 	party.scale = Vector2.ONE/camera.zoom
-	_draw_route(travel)
-	status.text = _message
-	if travel.get("status") == "travelling":
+	_draw_route(travel if travel.get("status") in ["travelling", "stopped", "arrived"] else _preview)
+	var game_time: Dictionary = _simulation.time() if _simulation != null else {}
+	status.text = "%s · День %d · %02d:%02d" % [_message, int(game_time.get("day", 1)), int(game_time.get("hour", 8)), int(game_time.get("minute", 0))]
+	travel_card.visible = not _preview.is_empty() and travel.get("status") != "travelling"
+	if travel_card.visible:
+		var destination := _point(str(_preview.get("to_id", "")))
+		travel_title.text = str(destination.get("name", "Пункт назначения"))
+		travel_meta.text = "%.1f км · %s" % [float(_preview.get("distance_total", 0.0)) / 1000.0, _format_duration(float(_preview.get("duration_seconds", 0.0)))]
+		travel_method.text = "Пешком · %.1f км/ч" % float(_preview.get("speed_kmh", 0.0))
+	journey.visible = travel.get("status") == "travelling"
+	if journey.visible:
 		var progress: Dictionary = _travel.progress()
-		status.text += "   Путь: %.0f%% · осталось %.1f км" % [float(progress.ratio)*100.0,float(progress.left)/1000.0]
-	if _simulation != null:
-		var game_time: Dictionary = _simulation.time()
-		status.text += " · День %d %02d:%02d" % [int(game_time.day), int(game_time.hour), int(game_time.minute)]
+		var destination := _point(str(travel.get("to_id", "")))
+		journey_title.text = "В пути · %s" % str(destination.get("name", ""))
+		journey_progress.value = clampf(float(progress.get("ratio", 0.0)) * 100.0, 0.0, 100.0)
+		journey_meta.text = "Осталось %.1f км · %s" % [float(progress.get("left", 0.0)) / 1000.0, _format_duration(float(progress.get("eta_seconds", 0.0)))]
 
 func _draw_route(travel: Dictionary) -> void:
 	for child in route_layer.get_children(): child.queue_free()
@@ -208,13 +232,37 @@ func _select_screen(screen_position: Vector2) -> void:
 			best_distance=distance
 			best_id=str(point.id)
 	if best_id.is_empty() or best_id==_current_id: return
-	var destination:=_point(best_id)
-	var trip: Dictionary=_travel.begin(str(_region.region_id),_current_id,best_id,"walk")
-	if trip.is_empty():
-		_message="Маршрут до «%s» не найден" % destination.name
+	var destination := _point(best_id)
+	_preview = _travel.preview(str(_region.region_id), _current_id, best_id, "walk")
+	if _preview.is_empty():
+		_message = "Маршрут до «%s» не найден" % destination.name
 	else:
-		_message="В путь: %s → %s · %.1f км" % [_point(_current_id).name,destination.name,float(trip.distance_total)/1000.0]
+		_message = "Выбран пункт: %s" % destination.name
 	_refresh()
+
+func _confirm_preview() -> void:
+	if _preview.is_empty() or _travel == null: return
+	var destination := _point(str(_preview.get("to_id", "")))
+	var trip: Dictionary = _travel.begin(str(_preview.region_id), str(_preview.from_id), str(_preview.to_id), str(_preview.method))
+	if trip.is_empty():
+		_message = "Не удалось начать путь до «%s»" % destination.get("name", "")
+	else:
+		_message = "Центральные земли"
+		_preview = {}
+	_refresh()
+
+func _clear_preview() -> void:
+	_preview = {}
+	_message = "Центральные земли"
+	_refresh()
+
+func _format_duration(seconds: float) -> String:
+	if not is_finite(seconds) or seconds < 0.0: return "—"
+	var total_minutes := int(round(seconds / 60.0))
+	var hours := total_minutes / 60
+	var minutes := total_minutes % 60
+	if hours > 0: return "%d ч %02d мин" % [hours, minutes]
+	return "%d мин" % minutes
 
 func _set_zoom(value: float) -> void:
 	var zoom:=clampf(value,MIN_ZOOM,MAX_ZOOM)
@@ -256,4 +304,4 @@ func _point(id: String)->Dictionary:
 	return {}
 
 func diagnostic_snapshot()->Dictionary:
-	return {"region_id":_region.get("region_id"),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true),"simulation":_simulation.snapshot() if _simulation != null else {}}
+	return {"region_id":_region.get("region_id"),"travel_preview":_preview.duplicate(true),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true),"simulation":_simulation.snapshot() if _simulation != null else {}}
