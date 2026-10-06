@@ -6,11 +6,13 @@ extends Node
 
 const PackageOrder = preload("res://packages/package_order.gd")
 const DataSchema = preload("res://data/data_schema.gd")
+const ModuleRegistry = preload("res://modules/module_registry.gd")
 
 func _ready() -> void:
 	_test_package_order()
 	_test_data_schema()
 	_test_save_store()
+	_test_module_registry()
 	var payload := "{\"travel\":{\"walk_speed_kmh\":4.2}}".to_utf8_buffer()
 	var hash := _sha256_for_bytes(payload)
 	_assert(not hash.is_empty(), "payload hash")
@@ -61,6 +63,29 @@ func _ready() -> void:
 
 
 
+
+
+func _test_module_registry() -> void:
+	var registry := ModuleRegistry.new()
+	_assert(registry.register({"id": "world", "enabled_by_default": true, "dependencies": []}).ok, "world module registers")
+	_assert(registry.register({"id": "map", "enabled_by_default": true, "dependencies": ["world"]}).ok, "map module registers")
+	_assert(registry.register({"id": "travel", "enabled_by_default": true, "dependencies": ["world", "map"]}).ok, "travel module registers")
+	_assert(registry.register({"id": "combat", "enabled_by_default": false, "dependencies": ["world"]}).ok, "disabled combat module registers")
+	var resolved := registry.resolve({})
+	_assert(resolved.ok, "default module set resolves")
+	var ids: Array[String] = []
+	for definition in resolved.modules: ids.append(definition.id)
+	_assert(ids == ["world", "map", "travel"], "dependencies resolve before dependents")
+	_assert(not registry.can_set_enabled({}, "world", false).ok, "required module cannot be disabled")
+	var combat := registry.can_set_enabled({}, "combat", true)
+	_assert(combat.ok and combat.modules.size() == 4, "optional module enables with dependency")
+	var missing := ModuleRegistry.new()
+	_assert(missing.register({"id": "travel", "enabled_by_default": true, "dependencies": ["world"]}).ok, "missing-dependency fixture registers")
+	_assert(not missing.resolve({}).ok, "unknown dependency rejects runtime composition")
+	var cycle := ModuleRegistry.new()
+	cycle.register({"id": "a", "enabled_by_default": true, "dependencies": ["b"]})
+	cycle.register({"id": "b", "enabled_by_default": true, "dependencies": ["a"]})
+	_assert(not cycle.resolve({}).ok, "module dependency cycle rejected")
 
 func _test_save_store() -> void:
 	var world_id := "test-world-persistence"
