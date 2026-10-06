@@ -37,7 +37,7 @@ static func tick(state: Dictionary, delta_seconds: float) -> Dictionary:
 		var index := int(travel.segment_index)
 		var a: Dictionary = polyline[index]
 		var b: Dictionary = polyline[index + 1]
-		var segment_length := _segment_metric(travel, a, b)
+		var segment_length := _segment_metric(travel, index, a, b)
 		var left := maxf(0.0, segment_length - float(travel.segment_distance))
 		if remaining_move >= left:
 			travel.distance_done = minf(float(travel.distance_total), float(travel.distance_done) + left)
@@ -90,8 +90,11 @@ static func progress(state: Dictionary) -> Dictionary:
 static func _speed(method: String) -> float:
 	return HORSE_SPEED_MPS if method == "horse" else WALK_SPEED_MPS
 
-static func _segment_metric(travel: Dictionary, a: Dictionary, b: Dictionary) -> float:
+static func _segment_metric(travel: Dictionary, index: int, a: Dictionary, b: Dictionary) -> float:
 	var route: Dictionary = travel.route
+	var segments: Array = route.get("segments", [])
+	if index >= 0 and index < segments.size() and segments[index] is Dictionary:
+		return float(segments[index].get("distance", 0.0))
 	var total_poly := 0.0
 	for i in range(1, route.polyline.size()):
 		var p: Dictionary = route.polyline[i - 1]
