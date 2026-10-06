@@ -14,6 +14,7 @@ var _base: Dictionary = {}
 var _layers: Array[Dictionary] = []
 var _regions: Dictionary = {}
 var _region_sources: Dictionary = {}
+var _region_assets: Dictionary = {}
 
 func _ready() -> void:
 	Diagnostics.register_provider(&"data_registry", snapshot)
@@ -61,7 +62,7 @@ func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 			set_layer(str(record.get("id")), int(record.get("priority", 0)), data, order)
 			order += 1
 		elif kind == "content" and path.get_extension().to_lower() == "json":
-			var loaded := _apply_content_payload(str(record.get("id")), path)
+			var loaded := _apply_content_payload(str(record.get("id")), path, str(record.get("root", path.get_base_dir())))
 			if not loaded.ok:
 				failures.append({"id": record.get("id"), "path": path, "errors": loaded.errors})
 	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "regions": _regions.size(), "failures": failures.size()})
@@ -102,6 +103,10 @@ func region(id: String) -> Dictionary:
 func region_provenance(id: String) -> Dictionary:
 	return _region_sources.get(id, {}).duplicate(true)
 
+func region_asset(id: String, role: String) -> Dictionary:
+	var key := "%s:%s" % [id, role]
+	return _region_assets.get(key, {}).duplicate(true)
+
 func entity_provenance(domain: String, id: String) -> Array[Dictionary]:
 	return provenance("%s.%s" % [domain, id])
 
@@ -131,6 +136,7 @@ func snapshot() -> Dictionary:
 		"layer_count": _layers.size(),
 		"regions": region_ids,
 		"region_sources": _region_sources.duplicate(true),
+		"region_assets": _region_assets.duplicate(true),
 		"walk_speed_kmh": resolve("travel.walk_speed_kmh"),
 		"iron_sword_damage": resolve("items.iron_sword.damage"),
 		"walk_speed_provenance": provenance("travel.walk_speed_kmh"),
@@ -140,6 +146,7 @@ func snapshot() -> Dictionary:
 func _load_builtin_regions() -> void:
 	_regions.clear()
 	_region_sources.clear()
+	_region_assets.clear()
 	for id in BUILTIN_REGION_PATHS:
 		var path := str(BUILTIN_REGION_PATHS[id])
 		var data = _read_json_file(path)
@@ -160,7 +167,7 @@ func _validate_content_payload(path: String) -> Dictionary:
 		return {"ok": false, "errors": ["content payload must be a JSON object"]}
 	var errors: Array[String] = []
 	for key in payload:
-		if str(key) != "regions": errors.append("unsupported content root: %s" % key)
+		if str(key) not in ["regions", "assets"]: errors.append("unsupported content root: %s" % key)
 	var regions = payload.get("regions")
 	if regions is not Dictionary or regions.is_empty():
 		errors.append("content.regions must be a non-empty object")
@@ -171,9 +178,26 @@ func _validate_content_payload(path: String) -> Dictionary:
 				continue
 			for error in RegionSchema.validate(regions[id], str(id)):
 				errors.append("regions.%s: %s" % [id, error])
+	var assets = payload.get("assets", {})
+	if assets is not Dictionary:
+		errors.append("content.assets must be an object")
+	elif assets.has("regions"):
+		if assets.regions is not Dictionary:
+			errors.append("content.assets.regions must be an object")
+		else:
+			for id in assets.regions:
+				var roles = assets.regions[id]
+				if roles is not Dictionary:
+					errors.append("content.assets.regions.%s must be an object" % id)
+					continue
+				for role in roles:
+					var relative := str(roles[role])
+					if role != "background": errors.append("unsupported region asset role: %s" % role)
+					if relative.is_empty() or relative.is_absolute_path() or ".." in relative.split("/"):
+						errors.append("unsafe region asset path: %s" % relative)
 	return {"ok": errors.is_empty(), "errors": errors}
 
-func _apply_content_payload(package_id: String, path: String) -> Dictionary:
+func _apply_content_payload(package_id: String, path: String, root: String = "") -> Dictionary:
 	var checked := _validate_content_payload(path)
 	if not checked.ok: return checked
 	var payload: Dictionary = _read_json_file(path)
@@ -181,6 +205,12 @@ func _apply_content_payload(package_id: String, path: String) -> Dictionary:
 		_regions[id] = payload.regions[id].duplicate(true)
 		_region_sources[id] = {"source": package_id, "path": path}
 		Diagnostics.info("data.region_changed", {"id": id, "source": package_id})
+	var assets: Dictionary = payload.get("assets", {})
+	var region_assets: Dictionary = assets.get("regions", {})
+	for id in region_assets:
+		for role in region_assets[id]:
+			var relative := str(region_assets[id][role])
+			_region_assets["%s:%s" % [id, role]] = {"source": package_id, "path": root.path_join(relative)}
 	return {"ok": true}
 
 func _read_json_file(path: String):
