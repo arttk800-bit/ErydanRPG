@@ -137,3 +137,11 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - The party marker follows Travel state, the selected route is rendered, and arrival commits through the World API.
 - A temporary clearly labelled test fast-forward is presentation/test scaffolding until the Simulation/time owner is migrated; it is not a new gameplay speed rule.
 - Travel diagnostics are registered and arrival target mismatches are rejected.
+
+
+## Native regional map presentation
+- Replaced the one-pass debug canvas with layered Godot presentation: Camera2D, background, road, active-route, POI/labels, party marker and HUD.
+- Added mouse/touch pan and zoom. Party marker compensates camera zoom so its screen size stays stable.
+- Added runtime external background loading from `user://map_assets/<region>/background.*` with a safe schematic fallback.
+- Decoupled Roads from Map browsing; routing now depends only on authored road data.
+- Map presentation exposes a read-only diagnostics snapshot and continues to call World/Roads/Travel public APIs rather than owning gameplay state.
