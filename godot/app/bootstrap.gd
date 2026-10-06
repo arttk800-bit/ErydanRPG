@@ -12,7 +12,10 @@ const UpdateDialog = preload("res://update/update_dialog.gd")
 const SimulationRuntime = preload("res://simulation/simulation_runtime.gd")
 const EirdanTheme = preload("res://ui/eirdan_theme.gd")
 
-@onready var status: Label = $Toast
+@onready var status = $Toast
+@onready var world_screen = $WorldScreen
+@onready var save_browser = $GameShell/Layout/ContentHost/Screens/SaveBrowser
+@onready var settings_screen = $GameShell/Layout/ContentHost/Screens/Settings
 @onready var regional_map = $RegionalMap
 @onready var main_menu = $MainMenu
 @onready var game_shell = $GameShell
@@ -39,6 +42,10 @@ func _ready() -> void:
 	game_shell.inventory_requested.connect(func(): _show_structural_screen("inventory"))
 	game_shell.journal_requested.connect(func(): _show_structural_screen("journal"))
 	_setup_updater()
+	world_screen.bind_map_view(regional_map)
+	save_browser.save_selected.connect(_load_world)
+	save_browser.back_requested.connect(_return_from_aux_screen)
+	settings_screen.back_requested.connect(_return_from_aux_screen)
 	$NewWorldDialog.confirmed.connect(_create_named_world)
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
@@ -46,7 +53,7 @@ func _ready() -> void:
 
 func _start_gameplay() -> void:
 	main_menu.visible = false
-	regional_map.visible = true
+	world_screen.set_active(true)
 	game_shell.set_world_active(true)
 	game_shell.show_screen("world")
 	var region := DataRegistry.region("forest")
@@ -75,7 +82,7 @@ func _start_gameplay() -> void:
 	add_child(_simulation_runtime)
 	_simulation_runtime.setup(simulation, travel, region)
 	regional_map.setup(region, world, Modules.instance("roads"), travel, simulation, DataRegistry.region_asset(str(region.region_id), "background"))
-	status.text = ""
+	status.clear()
 	Diagnostics.info("runtime.vertical_slice_ready", {"region": "forest", "modules": started.active})
 
 func _setup_updater() -> void:
@@ -95,11 +102,11 @@ func _on_main_menu_action(action: String) -> void:
 		"continue":
 			_continue_last_save()
 		"load":
-			status.text = "Выбор сохранения — следующий экран UI"
+			_open_save_browser(false)
 		"updates":
 			_open_updates()
 		"settings":
-			status.text = "Настройки — следующий экран UI"
+			_open_settings(false)
 
 func _create_named_world() -> void:
 	var world_name: String = str($NewWorldDialog/Content/Name.text).strip_edges()
@@ -131,12 +138,12 @@ func _load_world(world_id: String) -> void:
 	_state = result.state
 	_reload_data()
 	_start_gameplay()
-	status.text = "Мир загружен"
+	status.show_message("Мир загружен")
 
 func _on_system_action(action: String) -> void:
 	match action:
 		"save": _save_game()
-		"load": _load_game()
+		"load": _open_save_browser(true)
 		"update": _open_updates()
 		"packages": _import_package()
 		"diagnostics": _export_diagnostics()
@@ -145,23 +152,44 @@ func _on_system_action(action: String) -> void:
 func _show_main_menu() -> void:
 	_stop_simulation_runtime()
 	Modules.stop()
-	regional_map.visible = false
-	regional_map.set_process_input(false)
+	world_screen.set_active(false)
 	game_shell.set_world_active(false)
 	main_menu.visible = true
 	main_menu.set_continue_available(not SaveStore.list_saves().is_empty())
 	status.text = ""
 
 func _show_world() -> void:
-	regional_map.visible = true
-	regional_map.set_process_input(true)
+	world_screen.set_active(true)
 	game_shell.show_screen("world")
 	status.text = ""
 
 func _show_structural_screen(_screen_id: String) -> void:
-	regional_map.visible = false
-	regional_map.set_process_input(false)
+	world_screen.set_active(false)
 	status.text = ""
+
+func _open_save_browser(from_game: bool) -> void:
+	world_screen.set_active(false)
+	main_menu.visible = false
+	game_shell.set_world_active(true)
+	game_shell.show_screen("save_browser")
+	save_browser.set_meta("return_to_game", from_game)
+	save_browser.refresh(SaveStore.list_saves())
+	status.clear()
+
+func _open_settings(from_game: bool) -> void:
+	world_screen.set_active(false)
+	main_menu.visible = false
+	game_shell.set_world_active(true)
+	game_shell.show_screen("settings")
+	settings_screen.set_meta("return_to_game", from_game)
+	status.clear()
+
+func _return_from_aux_screen() -> void:
+	var current_game := not str(_state.get("world", {}).get("current", {}).get("point_id", "")).is_empty() and Modules.snapshot().get("active", 0) != 0
+	if current_game:
+		_show_world()
+	else:
+		_show_main_menu()
 
 func _open_updates() -> void:
 	var update_dialog = get_meta("update_dialog", null)
@@ -194,7 +222,7 @@ func _save_game() -> void:
 	if result.ok:
 		var saved_meta: Dictionary = result.state.get("meta", {})
 		_state["meta"] = saved_meta.duplicate(true)
-		status.text = "Мир сохранён"
+		status.show_message("Мир сохранён")
 	else:
 		status.text = "Ошибка сохранения: %s" % result.get("errors", [])
 
