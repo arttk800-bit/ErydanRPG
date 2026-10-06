@@ -125,10 +125,16 @@ layout_mode = 2
 text = "Отмена"
 [node name="Journey" type="PanelContainer" parent="MapSurface/MapViewport/RegionalMap/HUD"]
 visible = false
+anchors_preset = 3
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = 612.0
-offset_right = 640.0
-offset_bottom = 696.0
+offset_top = -154.0
+offset_right = -24.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
 [node name="Margin" type="MarginContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
@@ -137,6 +143,7 @@ theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 10
 [node name="Content" type="VBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin"]
 layout_mode = 2
+theme_override_constants/separation = 5
 [node name="Title" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 text = "В пути"
@@ -146,6 +153,18 @@ show_percentage = false
 [node name="Meta" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 text = "Осталось"
+[node name="Detail" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.67, 0.64, 0.55, 1)
+text = "Время и скорость"
+[node name="Actions" type="HBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
+layout_mode = 2
+[node name="Spacer" type="Control" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+[node name="Follow" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content/Actions"]
+layout_mode = 2
+text = "Следим"
 
 [node name="GameShell" type="Control" parent="."]
 visible = false

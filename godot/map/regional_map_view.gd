@@ -13,6 +13,8 @@ const MAX_ZOOM := 2.5
 const ZOOM_STEP := 1.15
 const TAP_SLOP := 22.0
 const MAP_TOP_INSET := 56.0
+const PARTY_LERP_SPEED := 10.0
+const CAMERA_FOLLOW_SPEED := 4.5
 
 var _region: Dictionary = {}
 var _background_asset: Dictionary = {}
@@ -29,6 +31,14 @@ var _touches: Dictionary = {}
 var _pinch_active := false
 var _pinch_distance := 0.0
 var _input_counts := {"touch_press":0,"touch_release":0,"drag":0,"tap":0,"pinch":0}
+var _presented_party_position := Vector2.ZERO
+var _target_party_position := Vector2.ZERO
+var _party_initialized := false
+var _follow_party := true
+var _last_travel_status := "idle"
+var _route_signature := ""
+var _route_base: Line2D
+var _route_progress: Line2D
 
 @onready var camera: Camera2D = $Viewport/Camera2D
 @onready var background: Sprite2D = $Viewport/Background
@@ -36,6 +46,7 @@ var _input_counts := {"touch_press":0,"touch_release":0,"drag":0,"tap":0,"pinch"
 @onready var route_layer: Node2D = $Viewport/Route
 @onready var poi_layer: Node2D = $Viewport/POI
 @onready var party: Node2D = $Viewport/Party
+@onready var party_ring: Line2D = $Viewport/Party/Ring
 @onready var status: Label = $HUD/Status
 @onready var travel_card: PanelContainer = $HUD/TravelCard
 @onready var travel_title: Label = $HUD/TravelCard/Margin/Content/Title
@@ -47,6 +58,8 @@ var _input_counts := {"touch_press":0,"touch_release":0,"drag":0,"tap":0,"pinch"
 @onready var journey_title: Label = $HUD/Journey/Margin/Content/Title
 @onready var journey_progress: ProgressBar = $HUD/Journey/Margin/Content/Progress
 @onready var journey_meta: Label = $HUD/Journey/Margin/Content/Meta
+@onready var journey_detail: Label = $HUD/Journey/Margin/Content/Detail
+@onready var journey_follow: Button = $HUD/Journey/Margin/Content/Actions/Follow
 
 func setup(region: Dictionary, world, roads, travel, simulation, background_asset: Dictionary = {}) -> void:
 	_region = region
@@ -62,6 +75,12 @@ func setup(region: Dictionary, world, roads, travel, simulation, background_asse
 	journey.add_theme_stylebox_override("panel", EirdanTheme.panel_style())
 	travel_go.pressed.connect(_confirm_preview)
 	travel_cancel.pressed.connect(_clear_preview)
+	journey_follow.pressed.connect(_enable_follow)
+	var initial_travel: Dictionary = _travel.snapshot() if _travel != null else {}
+	_target_party_position = _party_position(initial_travel)
+	_presented_party_position = _target_party_position
+	_party_initialized = true
+	party.position = _presented_party_position
 	_refresh()
 	Diagnostics.register_provider(&"map_presentation", diagnostic_snapshot)
 	set_process(true)
@@ -86,6 +105,13 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		_reset_gesture_state()
 
+func _process(delta: float) -> void:
+	if _travel == null: return
+	var travel: Dictionary = _travel.snapshot()
+	_update_party(delta, travel)
+	_update_camera_follow(delta, travel)
+	_refresh(travel)
+
 # Raw _input is intentional on Android: GUI Controls may mark touch events handled
 # before _unhandled_input. The top screen inset is reserved for fixed HUD controls.
 func _input(event: InputEvent) -> void:
@@ -96,6 +122,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		_handle_mouse_button(event)
 	elif event is InputEventMouseMotion and _mouse_dragging:
+		_follow_party = false
 		camera.position = _clamp_camera(_camera_start - (event.position - _mouse_start) / camera.zoom.x)
 
 func _handle_touch(event: InputEventScreenTouch) -> void:
@@ -127,6 +154,7 @@ func _handle_drag(event: InputEventScreenDrag) -> void:
 		touch.moved = true
 	_touches[event.index] = touch
 	if _touches.size() == 1 and not _pinch_active:
+		_follow_party = false
 		camera.position = _clamp_camera(camera.position - event.relative / camera.zoom.x)
 	elif _touches.size() >= 2:
 		_pinch_active = true
@@ -197,9 +225,8 @@ func _apply_background() -> void:
 		background.position = WORLD_SIZE*0.5
 		background.scale = Vector2(WORLD_SIZE.x/image_size.x,WORLD_SIZE.y/image_size.y)
 
-func _refresh() -> void:
-	var travel: Dictionary = _travel.snapshot() if _travel != null else {}
-	party.position = _party_position(travel)
+func _refresh(travel: Dictionary = {}) -> void:
+	if travel.is_empty() and _travel != null: travel = _travel.snapshot()
 	party.scale = Vector2.ONE/camera.zoom
 	_draw_route(travel if travel.get("status") in ["travelling", "stopped", "arrived"] else _preview)
 	var game_time: Dictionary = _simulation.time() if _simulation != null else {}
@@ -214,24 +241,84 @@ func _refresh() -> void:
 	if journey.visible:
 		var progress: Dictionary = _travel.progress()
 		var destination := _point(str(travel.get("to_id", "")))
+		var ratio := clampf(float(progress.get("ratio", 0.0)), 0.0, 1.0)
 		journey_title.text = "В пути · %s" % str(destination.get("name", ""))
 		journey_progress.value = clampf(float(progress.get("ratio", 0.0)) * 100.0, 0.0, 100.0)
-		journey_meta.text = "Осталось %.1f км · %s" % [float(progress.get("left", 0.0)) / 1000.0, _format_duration(float(progress.get("eta_seconds", 0.0)))]
+		journey_meta.text = "%d%% · %.1f / %.1f км" % [int(round(ratio * 100.0)), float(progress.get("done", 0.0)) / 1000.0, float(progress.get("total", 0.0)) / 1000.0]
+		journey_detail.text = "Осталось %.1f км · %s · Пешком %.1f км/ч" % [float(progress.get("left", 0.0)) / 1000.0, _format_duration(float(progress.get("eta_seconds", 0.0))), float(travel.get("speed_mps", 0.0)) * 3.6]
+		journey_follow.text = "Следим" if _follow_party else "Следить"
+	_last_travel_status = str(travel.get("status", "idle"))
 
 func _draw_route(travel: Dictionary) -> void:
-	for child in route_layer.get_children(): child.queue_free()
 	var route: Dictionary = travel.get("route",{})
 	var polyline: Array = route.get("polyline",[])
-	if polyline.size()<2: return
-	var line := Line2D.new()
-	line.width=7.0
-	line.default_color=Color(0.88,0.68,0.18)
-	line.antialiased=true
+	var signature := "%s:%s:%d" % [str(travel.get("from_id", "")), str(travel.get("to_id", "")), polyline.size()]
+	if polyline.size()<2:
+		_clear_route()
+		return
 	var points:=PackedVector2Array()
 	for value in polyline:
 		if value is Dictionary: points.append(_world_point(value))
-	line.points=points
-	route_layer.add_child(line)
+	if signature != _route_signature:
+		_clear_route()
+		_route_signature = signature
+		_route_base = Line2D.new()
+		_route_base.width = 7.0
+		_route_base.default_color = Color(0.30, 0.27, 0.20, 0.92)
+		_route_base.antialiased = true
+		_route_base.points = points
+		route_layer.add_child(_route_base)
+		_route_progress = Line2D.new()
+		_route_progress.width = 7.0
+		_route_progress.default_color = Color(0.78, 0.61, 0.24, 1.0)
+		_route_progress.antialiased = true
+		route_layer.add_child(_route_progress)
+	if _route_progress == null: return
+	if travel.get("status") != "travelling":
+		_route_progress.points = PackedVector2Array()
+		return
+	var completed := PackedVector2Array()
+	var segment_index := clampi(int(travel.get("segment_index", 0)), 0, points.size() - 1)
+	for index in range(segment_index + 1): completed.append(points[index])
+	var live_position = travel.get("position")
+	if live_position is Dictionary:
+		var live_point := _world_point(live_position)
+		if completed.is_empty() or completed[completed.size() - 1].distance_to(live_point) > 0.1:
+			completed.append(live_point)
+	_route_progress.points = completed
+
+func _clear_route() -> void:
+	for child in route_layer.get_children(): child.queue_free()
+	_route_base = null
+	_route_progress = null
+	_route_signature = ""
+
+func _update_party(delta: float, travel: Dictionary) -> void:
+	_target_party_position = _party_position(travel)
+	if not _party_initialized:
+		_presented_party_position = _target_party_position
+		_party_initialized = true
+	else:
+		var weight := 1.0 - exp(-PARTY_LERP_SPEED * maxf(delta, 0.0))
+		_presented_party_position = _presented_party_position.lerp(_target_party_position, weight)
+		if _presented_party_position.distance_to(_target_party_position) < 0.25:
+			_presented_party_position = _target_party_position
+	party.position = _presented_party_position
+	var moving := travel.get("status") == "travelling"
+	var pulse := 1.0 + sin(Time.get_ticks_msec() * 0.008) * 0.10 if moving else 1.0
+	party_ring.scale = Vector2.ONE * pulse
+	party_ring.modulate.a = 0.92 if moving else 0.72
+
+func _update_camera_follow(delta: float, travel: Dictionary) -> void:
+	if travel.get("status") == "travelling" and _last_travel_status != "travelling":
+		_follow_party = true
+	if not _follow_party: return
+	var weight := 1.0 - exp(-CAMERA_FOLLOW_SPEED * maxf(delta, 0.0))
+	camera.position = _clamp_camera(camera.position.lerp(_presented_party_position, weight))
+
+func _enable_follow() -> void:
+	_follow_party = true
+	Diagnostics.info("map.follow_enabled", {"party_position": _presented_party_position})
 
 func _select_screen(screen_position: Vector2) -> void:
 	if _travel==null or _travel.snapshot().get("status")=="travelling": return
@@ -317,4 +404,4 @@ func _point(id: String)->Dictionary:
 	return {}
 
 func diagnostic_snapshot()->Dictionary:
-	return {"region_id":_region.get("region_id"),"current_point_id":_current_point_id(),"world_position":_world.current_position() if _world != null else {},"travel_preview":_preview.duplicate(true),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true),"simulation":_simulation.snapshot() if _simulation != null else {}}
+	return {"region_id":_region.get("region_id"),"current_point_id":_current_point_id(),"world_position":_world.current_position() if _world != null else {},"travel_preview":_preview.duplicate(true),"camera_position":camera.position,"zoom":camera.zoom.x,"follow_party":_follow_party,"presented_party_position":_presented_party_position,"target_party_position":_target_party_position,"travel_status":_last_travel_status,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true),"simulation":_simulation.snapshot() if _simulation != null else {}}

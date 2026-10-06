@@ -22,6 +22,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_expect(shell.visible and shell.get_node("Layout/Top").visible and shell.get_node("Layout/BottomNav").visible, "world shows shell and bottom navigation")
 	_expect(regional_map.get_viewport() != app.get_viewport(), "map camera is isolated in a subviewport")
+	_expect(regional_map.has_method("_process") and regional_map.get_node("HUD/Journey/Margin/Content/Actions/Follow") != null, "map has live travel presentation and follow control")
 	var touch_press := InputEventScreenTouch.new()
 	touch_press.index = 0
 	touch_press.position = Vector2(320, 280)
