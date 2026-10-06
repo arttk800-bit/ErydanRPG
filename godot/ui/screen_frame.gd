@@ -5,8 +5,8 @@
 # ============================================================================
 extends VBoxContainer
 
-@export var screen_title: String = "":
-@export var empty_message := ""
+@export var screen_title: String = ""
+@export var empty_message: String = ""
 
 func _ready() -> void:
 	$Header/Title.text = screen_title
