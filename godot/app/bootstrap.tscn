@@ -186,7 +186,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5")
-title = "Персонаж"
+screen_title = "Персонаж"
 empty_message = "Здесь будет состояние персонажа, характеристики и навыки."
 
 [node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Character"]
@@ -211,7 +211,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5")
-title = "Инвентарь"
+screen_title = "Инвентарь"
 empty_message = "Здесь будет экипировка, рюкзак и предметы."
 [node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Inventory"]
 layout_mode = 2
@@ -235,7 +235,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("5")
-title = "Журнал"
+screen_title = "Журнал"
 empty_message = "Здесь будут задания, события и знания о мире."
 [node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Journal"]
 layout_mode = 2
