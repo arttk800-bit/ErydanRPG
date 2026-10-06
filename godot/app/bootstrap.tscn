@@ -74,6 +74,12 @@ text = "Перезагрузить"
 [node name="Import" type="Button" parent="HUD/TopBar"]
 layout_mode = 2
 text = "Пакет"
+[node name="Save" type="Button" parent="HUD/TopBar"]
+layout_mode = 2
+text = "Сохранить"
+[node name="Load" type="Button" parent="HUD/TopBar"]
+layout_mode = 2
+text = "Загрузить"
 [node name="Diagnostics" type="Button" parent="HUD/TopBar"]
 layout_mode = 2
 text = "Диагностика"
