@@ -94,7 +94,8 @@ const bootstrap=await read('godot/app/bootstrap.gd');
 assert.match(bootstrap,/FILE_DIALOG_MODE_SAVE_FILE/);
 assert.match(bootstrap,/diagnostics\.exported/);
 for(const contract of [/SaveStore\.save_state\(_state\)/,/SaveStore\.load_state\(world_id\)/,/Modules\.stop\(\)[\s\S]*?_state = result\.state[\s\S]*?_start_gameplay\(\)/]) assert.match(bootstrap,contract);
-assert.doesNotMatch(bootstrap,/func _save_game\(\)[\s\S]*?_state = result\.state/);
+const saveGameBody=bootstrap.match(/func _save_game\(\)[\s\S]*?(?=\nfunc _load_game\()/)?.[0] ?? "";
+assert.doesNotMatch(saveGameBody,/_state = result\.state/);
 assert.match(bootstrap,/saved_meta[\s\S]*?_state\["meta"\]/);
 
 assert.match(registry,/reload_active_packages/);
