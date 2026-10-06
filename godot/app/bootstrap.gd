@@ -10,6 +10,7 @@ const GameModuleCatalog = preload("res://modules/game_module_catalog.gd")
 const AndroidUpdater = preload("res://update/android_updater.gd")
 const UpdateDialog = preload("res://update/update_dialog.gd")
 const SimulationRuntime = preload("res://simulation/simulation_runtime.gd")
+const EirdanTheme = preload("res://ui/eirdan_theme.gd")
 
 @onready var status: Label = $HUD/TopBar/Status
 @onready var regional_map = $RegionalMap
@@ -22,6 +23,7 @@ var _state: Dictionary = {
 }
 
 func _ready() -> void:
+	theme = EirdanTheme.build()
 	if "--updater-test" in OS.get_cmdline_user_args():
 		get_tree().change_scene_to_file.call_deferred("res://tests/updater_test.tscn")
 		return
