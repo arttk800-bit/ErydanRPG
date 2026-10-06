@@ -45,3 +45,7 @@ assert.match(androidPreset,/name="Android Debug"/);
 assert.match(androidPreset,/architectures\/arm64-v8a=true/);
 assert.match(androidPreset,/permissions\/internet=true/);
 assert.match(androidPreset,/gradle_build\/use_gradle_build=false/);
+
+const bootstrap=await read('godot/app/bootstrap.gd');
+assert.match(bootstrap,/FILE_DIALOG_MODE_SAVE_FILE/);
+assert.match(bootstrap,/diagnostics\.exported/);
