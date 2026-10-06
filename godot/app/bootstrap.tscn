@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource path="res://app/bootstrap.gd" type="Script" id="1"]
 [ext_resource path="res://map/regional_map_view.gd" type="Script" id="2"]
@@ -21,6 +21,7 @@ grow_vertical = 2
 script = ExtResource("1")
 
 [node name="WorldScreen" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -28,10 +29,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-visible = false
 script = ExtResource("6")
 
 [node name="RegionalMap" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,9 +40,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-visible = false
 script = ExtResource("2")
-
 [node name="Viewport" type="Node2D" parent="RegionalMap"]
 [node name="Background" type="Sprite2D" parent="RegionalMap/Viewport"]
 z_index = -10
@@ -63,10 +62,8 @@ default_color = Color(1, 1, 1, 0.85)
 position = Vector2(800, 500)
 position_smoothing_enabled = true
 position_smoothing_speed = 12.0
-
 [node name="HUD" type="CanvasLayer" parent="RegionalMap"]
 layer = 10
-follow_viewport_enabled = false
 [node name="Status" type="Label" parent="RegionalMap/HUD"]
 offset_left = 22.0
 offset_top = 66.0
@@ -74,82 +71,66 @@ offset_right = 980.0
 offset_bottom = 98.0
 mouse_filter = 2
 text = "Центральные земли"
-
 [node name="TravelCard" type="PanelContainer" parent="RegionalMap/HUD"]
 visible = false
 offset_left = 24.0
 offset_top = 500.0
 offset_right = 472.0
 offset_bottom = 696.0
-
 [node name="Margin" type="MarginContainer" parent="RegionalMap/HUD/TravelCard"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 14
-
 [node name="Content" type="VBoxContainer" parent="RegionalMap/HUD/TravelCard/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 8
-
 [node name="Title" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Пункт назначения"
-
 [node name="Meta" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
 text = "Расстояние · Время"
-
 [node name="Method" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
 text = "Пешком"
-
 [node name="Actions" type="HBoxContainer" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
 layout_mode = 2
-theme_override_constants/separation = 8
-
 [node name="Go" type="Button" parent="RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Отправиться"
-
 [node name="Cancel" type="Button" parent="RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
 layout_mode = 2
 text = "Отмена"
-
 [node name="Journey" type="PanelContainer" parent="RegionalMap/HUD"]
 visible = false
 offset_left = 24.0
 offset_top = 612.0
 offset_right = 640.0
 offset_bottom = 696.0
-
 [node name="Margin" type="MarginContainer" parent="RegionalMap/HUD/Journey"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 10
-
 [node name="Content" type="VBoxContainer" parent="RegionalMap/HUD/Journey/Margin"]
 layout_mode = 2
-
 [node name="Title" type="Label" parent="RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 text = "В пути"
-
 [node name="Progress" type="ProgressBar" parent="RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 show_percentage = false
-value = 0.0
-
 [node name="Meta" type="Label" parent="RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
 text = "Осталось"
 
 [node name="GameShell" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -158,7 +139,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("4")
-
 [node name="Layout" type="VBoxContainer" parent="GameShell"]
 layout_mode = 1
 anchors_preset = 15
@@ -170,25 +150,20 @@ offset_right = -16.0
 offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
-
 [node name="Top" type="HBoxContainer" parent="GameShell/Layout"]
 visible = false
 layout_mode = 2
 custom_minimum_size = Vector2(0, 48)
-
 [node name="Title" type="Label" parent="GameShell/Layout/Top"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "ЭЙРДАН"
-
 [node name="Menu" type="Button" parent="GameShell/Layout/Top"]
 layout_mode = 2
 text = "≡"
-
 [node name="ContentHost" type="MarginContainer" parent="GameShell/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
-
 [node name="Screens" type="Control" parent="GameShell/Layout/ContentHost"]
 layout_mode = 2
 mouse_filter = 2
@@ -204,7 +179,6 @@ grow_vertical = 2
 script = ExtResource("5")
 screen_title = "Персонаж"
 empty_message = "Здесь будет состояние персонажа, характеристики и навыки."
-
 [node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Character"]
 layout_mode = 2
 [node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/Character/Header"]
@@ -217,7 +191,6 @@ size_flags_vertical = 3
 layout_mode = 2
 vertical_alignment = 1
 horizontal_alignment = 1
-script = ExtResource("10")
 
 [node name="Inventory" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
 visible = false
@@ -267,11 +240,71 @@ layout_mode = 2
 vertical_alignment = 1
 horizontal_alignment = 1
 
+[node name="SaveBrowser" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7")
+[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser"]
+layout_mode = 2
+[node name="Back" type="Button" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser/Header"]
+layout_mode = 2
+text = "←"
+[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser/Header"]
+layout_mode = 2
+text = "Загрузить игру"
+theme_override_font_sizes/font_size = 28
+[node name="List" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Settings" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8")
+[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Settings"]
+layout_mode = 2
+[node name="Back" type="Button" parent="GameShell/Layout/ContentHost/Screens/Settings/Header"]
+layout_mode = 2
+text = "←"
+[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Header"]
+layout_mode = 2
+text = "Настройки"
+theme_override_font_sizes/font_size = 28
+[node name="Sections" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Settings"]
+layout_mode = 2
+theme_override_constants/separation = 14
+[node name="Info" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Каркас настроек готов. Параметры будут подключаться к своим владельцам систем."
+autowrap_mode = 2
+[node name="Interface" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Интерфейс — параметры ещё не подключены"
+[node name="Audio" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Звук — параметры ещё не подключены"
+[node name="Gameplay" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Игровой процесс — параметры ещё не подключены"
+[node name="Development" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Разработка — диагностика и пакеты доступны через игровое меню"
+
 [node name="BottomNav" type="HBoxContainer" parent="GameShell/Layout"]
 visible = false
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 [node name="World" type="Button" parent="GameShell/Layout/BottomNav"]
 layout_mode = 2
 text = "Мир"
@@ -319,65 +352,6 @@ text = "Диагностика"
 layout_mode = 2
 text = "Главное меню"
 
-[node name="MainMenu" type="Button" parent="GameShell/SystemMenu/Content"]
-layout_mode = 2
-text = "Главное меню"
-
-[node name="SaveBrowser" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("7")
-[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser"]
-layout_mode = 2
-[node name="Back" type="Button" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser/Header"]
-layout_mode = 2
-text = "←"
-[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser/Header"]
-layout_mode = 2
-text = "Загрузить игру"
-theme_override_font_sizes/font_size = 28
-[node name="List" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Settings" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("8")
-[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Settings"]
-layout_mode = 2
-[node name="Back" type="Button" parent="GameShell/Layout/ContentHost/Screens/Settings/Header"]
-layout_mode = 2
-text = "←"
-[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Header"]
-layout_mode = 2
-text = "Настройки"
-theme_override_font_sizes/font_size = 28
-[node name="Sections" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Settings"]
-layout_mode = 2
-[node name="Interface" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Интерфейс"
-[node name="Audio" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Звук"
-[node name="Gameplay" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Игровой процесс"
-[node name="Development" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Разработка"
-
 [node name="ContextPanel" type="PanelContainer" parent="GameShell"]
 visible = false
 layout_mode = 1
@@ -399,7 +373,6 @@ layout_mode = 2
 layout_mode = 2
 [node name="Title" type="Label" parent="GameShell/ContextPanel/Margin/Content"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
 [node name="Body" type="Label" parent="GameShell/ContextPanel/Margin/Content"]
 layout_mode = 2
 autowrap_mode = 2
@@ -414,37 +387,30 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3")
-
-[node name="Center" type="VBoxContainer" parent="MainMenu"]
+[node name="Center" type="CenterContainer" parent="MainMenu"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -210.0
-offset_top = -250.0
-offset_right = 210.0
-offset_bottom = 250.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 24
-
-[node name="Title" type="Label" parent="MainMenu/Center"]
+[node name="Actions" type="VBoxContainer" parent="MainMenu/Center"]
+layout_mode = 2
+custom_minimum_size = Vector2(420, 0)
+theme_override_constants/separation = 10
+[node name="Title" type="Label" parent="MainMenu/Center/Actions"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 52
 text = "ЭЙРДАН"
 horizontal_alignment = 1
-
-[node name="Subtitle" type="Label" parent="MainMenu/Center"]
+[node name="Subtitle" type="Label" parent="MainMenu/Center/Actions"]
 layout_mode = 2
 text = "Мир помнит ваши решения"
 horizontal_alignment = 1
-
-[node name="Actions" type="VBoxContainer" parent="MainMenu/Center"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
 [node name="NewGame" type="Button" parent="MainMenu/Center/Actions"]
 layout_mode = 2
 text = "Новая игра"
@@ -466,7 +432,6 @@ title = "Новый мир"
 size = Vector2i(460, 180)
 ok_button_text = "Создать"
 cancel_button_text = "Отмена"
-
 [node name="Content" type="VBoxContainer" parent="NewWorldDialog"]
 offset_left = 16.0
 offset_top = 16.0
@@ -480,6 +445,7 @@ layout_mode = 2
 placeholder_text = "Эйрдан"
 
 [node name="Toast" type="Label" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 12
 anchor_right = 1.0
