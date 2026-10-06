@@ -44,12 +44,15 @@ func _process(delta: float) -> void:
 			return
 		var arrived := _travel.arrive(destination)
 		if not arrived.is_empty():
+			_simulation.set_mode("normal")
 			Diagnostics.info("simulation_runtime.travel_arrived", {"point_id": destination.get("id", ""), "time": _simulation.time()})
 
 func snapshot() -> Dictionary:
 	return {
 		"status": "active" if _simulation != null and _travel != null else "inactive",
 		"fast_travel": _fast_travel,
+		"time_owner": "simulation",
+		"travel_owner": "travel",
 		"simulation": _simulation.snapshot() if _simulation != null else {},
 		"travel": _travel.snapshot() if _travel != null else {}
 	}
