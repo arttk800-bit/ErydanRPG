@@ -131,3 +131,9 @@ Godot persistence uses a portable JSON envelope with `format: "eirdan-save"`, in
 `meta.world_id` is stable internal save identity and remains separate from `meta.world_name`. Save filenames are storage details derived from the internal ID; UI names never become storage identity.
 
 `SaveStore` validates before writing, writes a temporary file, rereads and validates it, then activates the verified file. Loading validates the envelope/state and passes state through `SaveMigrations`. New persistent schema changes must add an ordered migration and increment the Godot state schema version. Static authored DataRegistry data is not embedded as mutable ownership merely because a save references its stable IDs.
+
+
+### Godot save activation
+- Canonical saves live at `user://saves/<world_id>.json`; `world_id` is a stable identifier limited to ASCII letters, digits, `-` and `_` and is not a display name.
+- Writes use a verified temporary file plus `.bak` rollback. A previous valid save is not deleted before the replacement is verified and activated.
+- `meta.created_at` is established on the first successful write and `meta.updated_at` is refreshed on every write.
