@@ -36,7 +36,6 @@ func _on_file_selected(ok: bool, paths: PackedStringArray, _filter_index: int) -
 		status.text = "Пакет установлен: %s@%s" % [result.package.id, result.package.version]
 	else:
 		status.text = "Пакет отклонён на этапе %s:\n%s" % [result.get("stage", "unknown"), result.get("errors", result.get("error", "unknown error"))]
-	_refresh()
 
 func _export_diagnostics() -> void:
 	var path := "user://eirdan-diagnostics.json"
