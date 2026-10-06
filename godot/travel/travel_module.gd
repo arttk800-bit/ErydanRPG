@@ -1,6 +1,7 @@
 # ============================================================================
 # TRAVEL MODULE
 # Coordinates regional movement through Roads and commits arrival through World.
+# World is authoritative for the journey origin; presentation never owns it.
 # ============================================================================
 extends RefCounted
 
@@ -35,7 +36,18 @@ func stop() -> void:
 	_roads = null
 	_world = null
 
+func preview_to(region_id: String, to_id: String, method: String = "walk") -> Dictionary:
+	var origin := _origin(region_id)
+	if origin.is_empty(): return {}
+	return preview(region_id, origin, to_id, method)
+
+func begin_to(region_id: String, to_id: String, method: String = "walk") -> Dictionary:
+	var origin := _origin(region_id)
+	if origin.is_empty(): return {}
+	return begin(region_id, origin, to_id, method)
+
 func preview(region_id: String, from_id: String, to_id: String, method: String = "walk") -> Dictionary:
+	if not _origin_matches(region_id, from_id): return {}
 	var route: Dictionary = _roads.route(region_id, from_id, to_id)
 	var speed_kmh := _speed_kmh(method)
 	if route.is_empty() or route.get("polyline", []).is_empty() or speed_kmh <= 0.0: return {}
@@ -48,6 +60,7 @@ func preview(region_id: String, from_id: String, to_id: String, method: String =
 	}
 
 func begin(region_id: String, from_id: String, to_id: String, method: String = "walk") -> Dictionary:
+	if not _origin_matches(region_id, from_id): return {}
 	var route: Dictionary = _roads.route(region_id, from_id, to_id)
 	var speed_kmh := _speed_kmh(method)
 	if speed_kmh <= 0.0:
@@ -79,6 +92,7 @@ func arrive(point: Dictionary) -> Dictionary:
 	if position.is_empty(): return {}
 	_world.enter_map_point(point)
 	_state.world["travel"] = {"status": "idle"}
+	Diagnostics.info("travel.arrival_committed", {"region_id": position.get("region_id", ""), "point_id": position.get("point_id", "")})
 	return position
 
 func progress() -> Dictionary:
@@ -91,7 +105,23 @@ func snapshot() -> Dictionary:
 	result["configured_speed_kmh"] = _speed_kmh(method)
 	result["speed_provenance"] = DataRegistry.provenance("travel.%s_speed_kmh" % method)
 	result["progress_snapshot"] = TravelState.progress(_state)
+	result["world_position"] = _world.current_position() if _world != null else {}
 	return result
+
+func _origin(region_id: String) -> String:
+	if _world == null: return ""
+	var position: Dictionary = _world.current_position()
+	var point_id := str(position.get("point_id", ""))
+	if str(position.get("region_id", "")) != region_id or point_id.is_empty():
+		Diagnostics.warn("travel.origin_unavailable", {"requested_region_id": region_id, "world_position": position})
+		return ""
+	return point_id
+
+func _origin_matches(region_id: String, from_id: String) -> bool:
+	var authoritative := _origin(region_id)
+	if authoritative == from_id: return true
+	Diagnostics.warn("travel.origin_mismatch", {"requested_from_id": from_id, "authoritative_from_id": authoritative, "region_id": region_id})
+	return false
 
 func _speed_kmh(method: String) -> float:
 	if method not in ["walk", "horse"]: return 0.0
