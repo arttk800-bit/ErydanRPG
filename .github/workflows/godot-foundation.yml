@@ -30,3 +30,5 @@ jobs:
           /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --version
       - name: Headless project boot
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --quit-after 2
+      - name: Package installer integration
+        run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot tests/package_installer_test.tscn
