@@ -35,6 +35,7 @@ func validate_package_candidate(manifest: Dictionary, payload_path: String) -> D
 func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 	_layers.clear()
 	var failures: Array[Dictionary] = []
+	var order := 0
 	for record in records:
 		if record.get("kind") != "override": continue
 		var path := str(record.get("path", ""))
@@ -42,7 +43,8 @@ func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 		if data is not Dictionary:
 			failures.append({"id": record.get("id"), "path": path})
 			continue
-		set_layer(str(record.get("id")), int(record.get("priority", 0)), data)
+		set_layer(str(record.get("id")), int(record.get("priority", 0)), data, order)
+		order += 1
 	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "failures": failures.size()})
 	return {"ok": failures.is_empty(), "failures": failures}
 
@@ -50,10 +52,11 @@ func set_base(data: Dictionary, source: String = "base") -> void:
 	_base = data.duplicate(true)
 	Diagnostics.info("data.base_loaded", {"source": source})
 
-func set_layer(id: String, priority: int, data: Dictionary) -> void:
+func set_layer(id: String, priority: int, data: Dictionary, order: int = -1) -> void:
 	_layers = _layers.filter(func(layer): return layer.id != id)
-	_layers.append({"id": id, "priority": priority, "data": data.duplicate(true)})
-	_layers.sort_custom(func(a, b): return a.priority < b.priority)
+	var resolved_order := order if order >= 0 else _layers.size()
+	_layers.append({"id": id, "priority": priority, "order": resolved_order, "data": data.duplicate(true)})
+	_layers.sort_custom(func(a, b): return a.order < b.order)
 	Diagnostics.info("data.layer_changed", {"id": id, "priority": priority})
 
 func remove_layer(id: String) -> void:
