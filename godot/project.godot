@@ -15,6 +15,7 @@ PackageValidators="*res://packages/package_validators.gd"
 Packages="*res://packages/package_manager.gd"
 DataRegistry="*res://data/data_registry.gd"
 SaveStore="*res://persistence/save_store.gd"
+Modules="*res://modules/module_runtime.gd"
 
 [display]
 window/size/viewport_width=1280
