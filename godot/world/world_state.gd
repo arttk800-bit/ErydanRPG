@@ -19,6 +19,11 @@ static func ensure(state: Dictionary) -> Dictionary:
 static func current(state: Dictionary) -> Dictionary:
 	return ensure(state).current
 
+static func current_position(state: Dictionary) -> Dictionary:
+	var world := ensure(state)
+	var position = world.get("position", {})
+	return position if position is Dictionary else {}
+
 static func point_knowledge(state: Dictionary, id: String, discovered_by_default: bool = true) -> Dictionary:
 	var world := ensure(state)
 	if not world.knowledge.has(id):
