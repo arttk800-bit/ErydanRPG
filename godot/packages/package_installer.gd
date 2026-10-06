@@ -31,8 +31,8 @@ static func stage_archive(archive_path: String) -> Dictionary:
 	if parsed is not Dictionary:
 		reader.close()
 		return {"ok": false, "stage": "manifest", "error": "manifest is not a JSON object"}
-	var manifest := PackageManifest.from_dictionary(parsed, archive_path)
-	var errors := manifest.validate()
+	var manifest := PackageManifest.normalize(parsed, archive_path)
+	var errors := PackageManifest.validate(manifest)
 	if not errors.is_empty():
 		reader.close()
 		return {"ok": false, "stage": "manifest", "errors": errors}
@@ -65,8 +65,8 @@ static func verify_payload(manifest, payload_path: String) -> Dictionary:
 	var actual := FileAccess.get_sha256(payload_path).to_lower()
 	if actual.is_empty():
 		return {"ok": false, "error": "sha256 unavailable"}
-	if actual != manifest.content_hash:
-		return {"ok": false, "error": "sha256 mismatch", "expected": manifest.content_hash, "actual": actual}
+	if actual != manifest.sha256:
+		return {"ok": false, "error": "sha256 mismatch", "expected": manifest.sha256, "actual": actual}
 	return {"ok": true, "sha256": actual}
 
 static func installed_path(manifest) -> String:
