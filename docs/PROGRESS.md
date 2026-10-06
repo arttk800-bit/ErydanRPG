@@ -153,3 +153,10 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Added explicit single-touch pan, tap-slop selection, two-touch pinch state and post-pinch tap suppression.
 - Added read-only touch/drag/tap/pinch counters to map presentation diagnostics for device verification.
 - POI geometry/hit radius was intentionally not enlarged: this pass targets lost/consumed input rather than masking it with oversized targets.
+
+
+## Godot vertical-slice persistence
+- SaveStore now activates verified saves through a .bak rollback step; the previous valid save survives failed replacement and stale backups are recovered on startup/load.
+- Save world IDs are collision-safe: only explicit ASCII letters, digits, '-' and '_' are accepted instead of filename sanitization.
+- The active World/Travel shared state can now be saved and loaded from the Android vertical slice through fixed HUD controls.
+- Loading stops modules before replacing the shared state and then restarts the same composition root against the restored state.
