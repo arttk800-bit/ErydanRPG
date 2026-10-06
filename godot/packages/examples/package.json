@@ -1,0 +1,12 @@
+{
+  "format": "eirdan-package",
+  "format_version": 1,
+  "id": "eirdan.example.balance",
+  "version": "0.1.0",
+  "kind": "override",
+  "runtime_min": "0.1.0",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "data": [
+    "data/user-balance.json"
+  ]
+}
