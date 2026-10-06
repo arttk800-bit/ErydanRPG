@@ -30,6 +30,7 @@ func _ready() -> void:
 	_render(updater.snapshot())
 
 func _check_requested() -> void:
+	Diagnostics.info("updater.ui_check_pressed")
 	updater.check()
 
 func _download_requested() -> void:
