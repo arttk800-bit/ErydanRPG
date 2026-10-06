@@ -20,6 +20,9 @@ my-package.zip
   "version": "1.0.0",
   "kind": "content",
   "runtime_min": "0.1.0",
+  "priority": 0,
+  "dependencies": [],
+  "conflicts": [],
   "payload": "payload.pck",
   "sha256": "<64 lowercase hex characters>"
 }
@@ -35,7 +38,9 @@ my-package.zip
 6. Verified payload is promoted under `user://packages/installed/<id>/<version>/`.
 7. PackageManager persists the previous active set, then atomically replaces the active index.
 8. Rollback swaps the active and previous sets.
-9. Resource packs are mounted only from the active set.
+9. Before activation, the candidate active set is resolved deterministically: dependencies first, then priority, then package ID.
+10. Missing dependencies, dependency cycles and active conflicts reject activation without replacing the working active set.
+11. Resource packs are mounted only from the resolved active set.
 
 Remote HTTP/GitHub hosting and Android local import are sources. They do not own validation or activation.
 
@@ -46,3 +51,13 @@ Remote HTTP/GitHub hosting and Android local import are sources. They do not own
 - `development` — development-only package channel.
 
 Package code execution policy is intentionally not finalized in v1. The first Android proof focuses on data/resources and update safety.
+
+
+## Activation order
+
+Optional manifest fields:
+- `dependencies` — package IDs that must be active and ordered before this package.
+- `conflicts` — package IDs that cannot be active together with this package.
+- `priority` — integer ordering hint; lower values load earlier and higher values override later.
+
+Dependencies are hard constraints and take precedence over priority. Among packages whose dependency constraints are already satisfied, ordering is deterministic by `priority` and then lexicographic package `id`. Array position in `active.json` is persisted output, not user-authored priority.
