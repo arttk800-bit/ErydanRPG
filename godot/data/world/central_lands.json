@@ -1,0 +1,42 @@
+{
+  "region_id":"forest",
+  "metrics":{"width_meters":120000,"height_meters":80000},
+  "points":[
+    {"id":"veligrad","name":"Велиград","class":"location","type":"city","x":0.5195247751,"y":0.4638938824},
+    {"id":"berezovka","name":"Берёзовка","class":"location","type":"village","x":0.7030598663,"y":0.5952342993},
+    {"id":"rechnoe","name":"Речное","class":"location","type":"village","x":0.7166938301,"y":0.4408228811},
+    {"id":"dubrava","name":"Дубрава","class":"location","type":"village","x":0.7931413440,"y":0.5773161138},
+    {"id":"yuzhny-brod","name":"Южный Брод","class":"location","type":"village","x":0.8325824067,"y":0.6373943418},
+    {"id":"starolesye","name":"Старолесье","class":"location","type":"village","x":0.35821,"y":0.42498},
+    {"id":"west-watch","name":"Западный Дозор","class":"location","type":"fort","x":0.18397,"y":0.39281},
+    {"id":"north-gate","name":"Северные Врата","class":"location","type":"fort","x":0.36958,"y":0.2282},
+    {"id":"white-rock","name":"Белая Скала","class":"location","type":"fort","x":0.61326,"y":0.16197},
+    {"id":"east-watch","name":"Восточный Дозор","class":"location","type":"fort","x":0.84054,"y":0.26604},
+    {"id":"south-shield","name":"Южный Щит","class":"location","type":"fort","x":0.62968,"y":0.828},
+    {"id":"stone-guard","name":"Каменная Стража","class":"location","type":"fort","x":0.46049,"y":0.70312},
+    {"id":"ozernoe","name":"Озёрное","class":"location","type":"village","x":0.26099,"y":0.75232},
+    {"id":"old-river-tower","name":"Старая речная башня","class":"place","type":"tower","x":0.37715,"y":0.6596},
+    {"id":"grey-ruins","name":"Серые Руины","class":"place","type":"ruins","x":0.87589,"y":0.46661},
+    {"id":"sosnovy-bor","name":"Сосновый Бор","class":"location","type":"village","x":0.22564,"y":0.23577},
+    {"id":"kamenka","name":"Каменка","class":"location","type":"village","x":0.33549,"y":0.31145},
+    {"id":"medovye-luga","name":"Медовые Луга","class":"location","type":"village","x":0.49331,"y":0.32659},
+    {"id":"lesnoy-brod","name":"Лесной Брод","class":"location","type":"village","x":0.3115,"y":0.47039},
+    {"id":"malinovka","name":"Малиновка","class":"location","type":"village","x":0.37968,"y":0.51202},
+    {"id":"podgorye","name":"Подгорье","class":"location","type":"village","x":0.46806,"y":0.62176},
+    {"id":"vetrovo","name":"Ветрово","class":"location","type":"village","x":0.7269,"y":0.3001},
+    {"id":"zarechye","name":"Заречье","class":"location","type":"village","x":0.64104,"y":0.26036},
+    {"id":"western-ruins","name":"Западные руины","class":"place","type":"ruins","x":0.15746,"y":0.65203},
+    {"id":"high-pass","name":"Высокий перевал","class":"location","type":"mountain_pass","x":0.4668,"y":0.12035},
+    {"id":"eastern-marshes","name":"Восточные топи","class":"location","type":"marsh","x":0.7269,"y":0.72015}
+  ],
+  "roads":{
+    "metrics":{"width_meters":120000,"height_meters":80000},
+    "nodes":[
+      {"id":"r01","x":.205,"y":.244},{"id":"r02","x":.265,"y":.274},{"id":"r03","x":.315,"y":.316},{"id":"r04","x":.365,"y":.344},{"id":"r05","x":.423,"y":.365},{"id":"r06","x":.470,"y":.390},{"id":"r07","x":.515,"y":.420},
+      {"id":"r10","x":.558,"y":.535},{"id":"r11","x":.520,"y":.575},{"id":"r12","x":.480,"y":.610},{"id":"r13","x":.430,"y":.625},{"id":"r14","x":.375,"y":.620},{"id":"r15","x":.325,"y":.595},{"id":"r16","x":.285,"y":.555},{"id":"r17","x":.245,"y":.505},{"id":"r18","x":.215,"y":.455},{"id":"r19","x":.270,"y":.430},{"id":"r20","x":.330,"y":.445},{"id":"r21","x":.390,"y":.455},{"id":"r22","x":.455,"y":.465},{"id":"r23","x":.610,"y":.455},{"id":"r24","x":.675,"y":.450},{"id":"r26","x":.790,"y":.420},{"id":"r27","x":.835,"y":.405},{"id":"r28","x":.705,"y":.365},{"id":"r29","x":.665,"y":.320},{"id":"r30","x":.625,"y":.275},{"id":"r31","x":.590,"y":.235},{"id":"r32","x":.535,"y":.215},{"id":"r33","x":.475,"y":.235},{"id":"r34","x":.420,"y":.265},{"id":"r35","x":.365,"y":.285},{"id":"r36","x":.605,"y":.535},{"id":"r37","x":.650,"y":.575},{"id":"r38","x":.690,"y":.615},{"id":"r39","x":.735,"y":.645},{"id":"r40","x":.665,"y":.690},{"id":"r41","x":.610,"y":.720},{"id":"r42","x":.550,"y":.735},{"id":"r43","x":.495,"y":.710},{"id":"r44","x":.445,"y":.675},{"id":"r45","x":.385,"y":.700},{"id":"r46","x":.325,"y":.735},{"id":"r47","x":.275,"y":.760},{"id":"r48","x":.235,"y":.705},{"id":"r49","x":.195,"y":.650},{"id":"r50","x":.760,"y":.705},
+      {"id":"bridge-central-n","x":.548,"y":.472},{"id":"bridge-central-s","x":.557,"y":.510},{"id":"bridge-east-w","x":.742,"y":.438},{"id":"bridge-east-e","x":.770,"y":.426},{"id":"bridge-south-w","x":.520,"y":.660},{"id":"bridge-south-e","x":.545,"y":.680},{"id":"bridge-north-w","x":.585,"y":.350},{"id":"bridge-north-e","x":.610,"y":.365}
+    ],
+    "edges":[["r01","r02"],["r02","r03"],["r03","r04"],["r04","r05"],["r05","r06"],["r06","r07"],["r07","bridge-central-n"],["bridge-central-n","bridge-central-s"],["bridge-central-s","r10"],["r10","r11"],["r11","r12"],["r12","r13"],["r13","r14"],["r14","r15"],["r15","r16"],["r16","r17"],["r17","r18"],["r18","r19"],["r19","r20"],["r20","r21"],["r21","r22"],["r22","r07"],["r22","r23"],["r23","r24"],["r24","bridge-east-w"],["bridge-east-w","bridge-east-e"],["bridge-east-e","r26"],["r26","r27"],["r24","r28"],["r28","r29"],["r29","bridge-north-e"],["bridge-north-e","bridge-north-w"],["bridge-north-w","r30"],["r30","r31"],["r31","r32"],["r32","r33"],["r33","r34"],["r34","r35"],["r35","r04"],["r10","r36"],["r36","r37"],["r37","r38"],["r38","r39"],["r39","r50"],["r37","r40"],["r40","r41"],["r41","r42"],["r42","r43"],["r43","bridge-south-e"],["bridge-south-e","bridge-south-w"],["bridge-south-w","r44"],["r44","r45"],["r45","r46"],["r46","r47"],["r47","r48"],["r48","r49"],["r49","r16"]],
+    "access":{"sosnovy-bor":{"node":"r01"},"north-gate":{"node":"r34"},"kamenka":{"node":"r03"},"high-pass":{"node":"r33"},"medovye-luga":{"node":"r05"},"starolesye":{"node":"r19"},"west-watch":{"node":"r18"},"lesnoy-brod":{"node":"r20"},"malinovka":{"node":"r21"},"veligrad":{"node":"r22"},"zarechye":{"node":"r30"},"white-rock":{"node":"r31"},"vetrovo":{"node":"r29"},"east-watch":{"node":"r27"},"rechnoe":{"node":"r28"},"grey-ruins":{"node":"r26"},"berezovka":{"node":"r37"},"dubrava":{"node":"r39"},"yuzhny-brod":{"node":"r50"},"eastern-marshes":{"node":"r40"},"podgorye":{"node":"r12"},"stone-guard":{"node":"r44"},"old-river-tower":{"node":"r45"},"ozernoe":{"node":"r47"},"south-shield":{"node":"r42"},"western-ruins":{"node":"r49"}}
+  }
+}
