@@ -1,6 +1,15 @@
 # Eirdan project layout
 
-## Application and infrastructure
+## Active Godot/Android foundation
+- `godot/app/` — runtime/bootstrap UI and Android-facing composition.
+- `godot/packages/` — package format, installer, PackageManager and local import adapter.
+- `godot/data/` — base definitions, DataRegistry, override resolution and provenance.
+- `godot/diagnostics/` — runtime events, provider snapshots and export data.
+- `godot/tests/` — headless Godot integration scenes.
+- `godot/export_presets.cfg` — Android export contract.
+
+
+## Legacy PWA application and infrastructure
 - `game/app/` — PWA shell, navigation, lifecycle and game-screen composition.
 - `game/client/` — client/runtime infrastructure: release detection, forced reload updates and revisioned asset cache management.
 - `game/core/` — shared state/session/persistence and reusable engine primitives.
@@ -35,4 +44,6 @@ Startup-critical visual assets are preloaded through `game/client/asset-loader.j
 - Compatibility files must not acquire independent gameplay logic and should be removed after their importers move to the canonical domain API.
 
 ## Current platform
-The browser-installed PWA is the only maintained client target. The obsolete Android/APK client and executable 0.14/0.15 migration runtime have been removed from the active tree.
+Godot/Android is the active development target. The PWA under `game/` remains preserved and runnable as a reference implementation while systems are migrated deliberately. It is not deleted until relevant behavior and data have been transferred and verified.
+
+APK binaries are runtime releases. Authorable content and balance use package/data layers where practical rather than requiring an APK rebuild.
