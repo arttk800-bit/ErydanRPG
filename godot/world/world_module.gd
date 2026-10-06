@@ -21,6 +21,9 @@ func stop() -> void:
 func current() -> Dictionary:
 	return WorldState.current(_state).duplicate(true)
 
+func current_position() -> Dictionary:
+	return WorldState.current_position(_state).duplicate(true)
+
 func discover(point: Dictionary, source: String = "unknown") -> bool:
 	return WorldState.discover_point(_state, point, source)
 
