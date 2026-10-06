@@ -1,19 +1,19 @@
 // ============================================================================
 // WORLD SIMULATION
-// Converts active real time into game time and provides temporal event ticks.
-// Gameplay systems consume the elapsed game minutes; UI never owns the clock.
+// Advances normal world time 1:1 with real time. Travel/sleep fast-forward is
+// explicit and owned by those modes; there is no global game-speed multiplier.
 // ============================================================================
 import {PauseSystem} from './pause.js';
-import {GameSpeedSystem} from './game-speed.js';
 import {WorldClockSystem} from './world/clock.js';
-const BASE_GAME_MINUTES_PER_REAL_SECOND=2/3; // 1 game hour = 90 real seconds at x1.
-const PASSIVE_FACTOR=.5;
-const EVENT_STEP_MINUTES=15;
+const EVENT_STEP_SECONDS=15*60;
+const FAST_FORWARD=16;
 export const SimulationSystem={
- ensure(state){state.simulation=state.simulation||{};state.simulation.runtime=state.simulation.runtime||{mode:'world',eventAccumulator:0,sleep:null};return state.simulation.runtime},
- setMode(state,mode){const r=this.ensure(state);r.mode=mode||'world';return r.mode},
- startSleep(state,{hours=8}={}){const r=this.ensure(state);r.sleep={remainingMinutes:Math.max(1,Number(hours)||8)*60,startedDay:state.clock.day,startedMinute:state.clock.minute};r.mode='sleep';return r.sleep},
- stopSleep(state){const r=this.ensure(state);r.sleep=null;r.mode='world'},
- factor(state){const r=this.ensure(state);if(r.mode==='sleep')return 32;if(r.mode==='travel')return GameSpeedSystem.get(state)*8;if(r.mode==='inventory'||r.mode==='character'||r.mode==='dialogue')return PASSIVE_FACTOR;return GameSpeedSystem.get(state)},
- tick(state,realSeconds,{active=true,onTemporalStep}={}){if(!active||PauseSystem.isPaused(state))return{gameMinutes:0,steps:0};const r=this.ensure(state),gameMinutes=Math.max(0,realSeconds)*BASE_GAME_MINUTES_PER_REAL_SECOND*this.factor(state),advanced=WorldClockSystem.advance(state,gameMinutes,r.mode);r.eventAccumulator=(r.eventAccumulator||0)+gameMinutes;let steps=0;while(r.eventAccumulator>=EVENT_STEP_MINUTES){r.eventAccumulator-=EVENT_STEP_MINUTES;steps++;onTemporalStep?.({minutes:EVENT_STEP_MINUTES,mode:r.mode,day:state.clock.day,minute:state.clock.minute})}if(r.sleep&&advanced>0){r.sleep.remainingMinutes-=advanced;if(r.sleep.remainingMinutes<=0)this.stopSleep(state)}return{gameMinutes:advanced,steps}}
+ ensure(state){state.simulation=state.simulation||{};state.simulation.runtime=state.simulation.runtime||{mode:'world',eventAccumulator:0,sleep:null,fastForward:false};return state.simulation.runtime},
+ setMode(state,mode){const r=this.ensure(state);r.mode=mode||'world';if(r.mode!=='travel'&&r.mode!=='sleep')r.fastForward=false;return r.mode},
+ setFastForward(state,on){const r=this.ensure(state);r.fastForward=Boolean(on&&(r.mode==='travel'||r.mode==='sleep'));return r.fastForward},
+ toggleFastForward(state){return this.setFastForward(state,!this.ensure(state).fastForward)},
+ multiplier(state){const r=this.ensure(state);return r.fastForward&&(r.mode==='travel'||r.mode==='sleep')?FAST_FORWARD:1},
+ startSleep(state,{hours=8}={}){const r=this.ensure(state);r.sleep={remainingSeconds:Math.max(1,Number(hours)||8)*3600,startedDay:state.clock.day,startedMinute:state.clock.minute};r.mode='sleep';r.fastForward=false;return r.sleep},
+ stopSleep(state){const r=this.ensure(state);r.sleep=null;r.mode='world';r.fastForward=false},
+ tick(state,realSeconds,{active=true,onTemporalStep}={}){if(!active||PauseSystem.isPaused(state))return{gameSeconds:0,steps:0};const r=this.ensure(state),gameSeconds=Math.max(0,realSeconds)*this.multiplier(state),advanced=WorldClockSystem.advanceSeconds(state,gameSeconds,r.mode);r.eventAccumulator=(r.eventAccumulator||0)+advanced;let steps=0;while(r.eventAccumulator>=EVENT_STEP_SECONDS){r.eventAccumulator-=EVENT_STEP_SECONDS;steps++;onTemporalStep?.({seconds:EVENT_STEP_SECONDS,mode:r.mode,day:state.clock.day,minute:state.clock.minute})}if(r.sleep&&advanced>0){r.sleep.remainingSeconds-=advanced;if(r.sleep.remainingSeconds<=0)this.stopSleep(state)}return{gameSeconds:advanced,steps}}
 };
