@@ -3,6 +3,7 @@ extends Node
 
 const Manifest = preload("res://update/runtime_manifest.gd")
 const Updater = preload("res://update/android_updater.gd")
+const UpdateDialog = preload("res://update/update_dialog.gd")
 var failures := 0
 
 class FakeInstaller extends RefCounted:
@@ -33,6 +34,19 @@ func _ready() -> void:
 		var invalid := release.duplicate(true)
 		invalid[pair[0]] = pair[1]
 		_expect(not Manifest.validate(invalid, 1).ok, "invalid " + str(pair[0]))
+	# Presentation regression: custom action must reach the updater command.
+	var dialog_updater := Updater.new()
+	dialog_updater.installer = FakeInstaller.new()
+	add_child(dialog_updater)
+	var dialog := UpdateDialog.new()
+	dialog.updater = dialog_updater
+	dialog.save_callback = func(): return {"ok": true}
+	add_child(dialog)
+	dialog._action(&"check")
+	_expect(dialog_updater.snapshot().state == "checking", "update dialog check action reaches updater")
+	dialog_updater.cancel()
+	dialog.queue_free()
+	dialog_updater.queue_free()
 	var updater := Updater.new()
 	var native := FakeInstaller.new()
 	updater.installer = native
