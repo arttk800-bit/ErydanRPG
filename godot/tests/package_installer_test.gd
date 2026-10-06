@@ -10,6 +10,7 @@ const DataSchema = preload("res://data/data_schema.gd")
 func _ready() -> void:
 	_test_package_order()
 	_test_data_schema()
+	_test_save_store()
 	var payload := "{\"travel\":{\"walk_speed_kmh\":4.2}}".to_utf8_buffer()
 	var hash := _sha256_for_bytes(payload)
 	_assert(not hash.is_empty(), "payload hash")
@@ -59,6 +60,33 @@ func _ready() -> void:
 	get_tree().quit(0)
 
 
+
+
+func _test_save_store() -> void:
+	var world_id := "test-world-persistence"
+	SaveStore.delete_save(world_id)
+	var state := {
+		"meta": {
+			"state_version": 1,
+			"world_id": world_id,
+			"world_name": "Persistence Test",
+			"created_at": "2026-01-01T00:00:00Z",
+			"updated_at": "2026-01-01T00:00:00Z"
+		},
+		"world": {}
+	}
+	var saved := SaveStore.save_state(state)
+	_assert(saved.ok, "valid state saves")
+	var loaded := SaveStore.load_state(world_id)
+	_assert(loaded.ok and loaded.state.meta.world_id == world_id, "saved state loads")
+	_assert(loaded.state.meta.state_version == 1, "state schema version preserved")
+	var listed := SaveStore.list_saves().filter(func(item): return item.world_id == world_id)
+	_assert(listed.size() == 1 and listed[0].world_name == "Persistence Test", "save metadata lists independently of UI")
+	var invalid := state.duplicate(true)
+	invalid.meta.world_id = ""
+	_assert(not SaveStore.save_state(invalid).ok, "invalid state rejected before write")
+	_assert(SaveStore.delete_save(world_id), "save deletion succeeds")
+	_assert(not SaveStore.load_state(world_id).ok, "deleted save is unavailable")
 
 func _test_data_schema() -> void:
 	var base := {
