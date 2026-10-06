@@ -91,8 +91,10 @@ func _on_main_menu_action(action: String) -> void:
 		"new_game":
 			$NewWorldDialog/Content/Name.text = ""
 			$NewWorldDialog.popup_centered()
-		"continue", "load":
-			_load_game()
+		"continue":
+			_continue_last_save()
+		"load":
+			status.text = "Выбор сохранения — следующий экран UI"
 		"updates":
 			_open_updates()
 		"settings":
@@ -105,6 +107,30 @@ func _create_named_world() -> void:
 	_state = {"meta": {"state_version": 1, "world_id": world_id, "world_name": world_name}, "world": {}}
 	Diagnostics.info("world.created", {"world_id": world_id, "world_name": world_name})
 	_start_gameplay()
+
+func _continue_last_save() -> void:
+	var saves: Array = SaveStore.list_saves()
+	if saves.is_empty():
+		status.text = "Нет доступных сохранений"
+		return
+	var selected: Dictionary = saves[0]
+	var world_id := str(selected.get("world_id", ""))
+	if world_id.is_empty():
+		status.text = "Сохранение не содержит идентификатор мира"
+		return
+	_load_world(world_id)
+
+func _load_world(world_id: String) -> void:
+	var result := SaveStore.load_state(world_id)
+	if not result.ok:
+		status.text = "Ошибка загрузки: %s" % result.get("errors", [])
+		return
+	_stop_simulation_runtime()
+	Modules.stop()
+	_state = result.state
+	_reload_data()
+	_start_gameplay()
+	status.text = "Мир загружен"
 
 func _on_system_action(action: String) -> void:
 	match action:
@@ -170,16 +196,10 @@ func _save_game() -> void:
 
 func _load_game() -> void:
 	var world_id := str(_state.get("meta", {}).get("world_id", ""))
-	var result := SaveStore.load_state(world_id)
-	if not result.ok:
-		status.text = "Ошибка загрузки: %s" % result.get("errors", [])
+	if world_id.is_empty():
+		status.text = "Нет активного мира для загрузки"
 		return
-	_stop_simulation_runtime()
-	Modules.stop()
-	_state = result.state
-	_reload_data()
-	_start_gameplay()
-	status.text = "Мир загружен"
+	_load_world(world_id)
 
 func _stop_simulation_runtime() -> void:
 	if _simulation_runtime == null: return
