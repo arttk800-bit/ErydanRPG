@@ -37,7 +37,8 @@ for(const contract of [/FORMAT := "eirdan-save"/,/FORMAT_VERSION := 1/,/STATE_VE
 const migrations=await read('godot/persistence/save_migrations.gd');
 assert.match(migrations,/func migrate\(/);
 const saveStore=await read('godot/persistence/save_store.gd');
-for(const contract of [/func save_state\(/,/func load_state\(/,/func list_saves\(/,/func delete_save\(/,/\.tmp/,/rename_absolute/,/SaveMigrations\.migrate/]) assert.match(saveStore,contract);
+for(const contract of [/func save_state\(/,/func load_state\(/,/func list_saves\(/,/func delete_save\(/,/\.tmp/,/\.bak/,/_recover_backups\(/,/_valid_world_id\(/,/rename_absolute/,/SaveMigrations\.migrate/]) assert.match(saveStore,contract);
+assert.doesNotMatch(saveStore,/validate_filename\(/);
 
 const moduleRegistry=await read('godot/modules/module_registry.gd');
 for(const contract of [/func register\(/,/func resolve\(/,/func can_set_enabled\(/,/module dependency cycle/]) assert.match(moduleRegistry,contract);
@@ -92,6 +93,7 @@ assert.match(androidPreset,/gradle_build\/use_gradle_build=false/);
 const bootstrap=await read('godot/app/bootstrap.gd');
 assert.match(bootstrap,/FILE_DIALOG_MODE_SAVE_FILE/);
 assert.match(bootstrap,/diagnostics\.exported/);
+for(const contract of [/SaveStore\.save_state\(_state\)/,/SaveStore\.load_state\(world_id\)/,/Modules\.stop\(\)[\s\S]*?_state = result\.state[\s\S]*?_start_gameplay\(\)/]) assert.match(bootstrap,contract);
 
 assert.match(registry,/reload_active_packages/);
 assert.match(registry,/walk_speed_provenance/);
@@ -104,6 +106,8 @@ assert.doesNotMatch(regionalMap,/func _unhandled_input\(/);
 const bootstrapScene=await read('godot/app/bootstrap.tscn');
 assert.match(bootstrapScene,/\[node name="HUD" type="CanvasLayer" parent="\."\]/);
 assert.match(bootstrapScene,/follow_viewport_enabled = false/);
+assert.match(bootstrapScene,/name="Save"/);
+assert.match(bootstrapScene,/name="Load"/);
 assert.match(bootstrap,/\$HUD\/TopBar\/Diagnostics/);
 const mapAssetLoader=await read('godot/map/map_asset_loader.gd');
 for(const contract of [/user:\/\/map_assets/,/Image\.load_from_file/,/ImageTexture\.create_from_image/] ) assert.match(mapAssetLoader,contract);
