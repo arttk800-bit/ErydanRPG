@@ -41,10 +41,7 @@ func setup(region: Dictionary, world, roads, travel) -> void:
 	_world = world
 	_roads = roads
 	_travel = travel
-	_world.enter_region(str(region.region_id))
-	var start := _point(_current_id)
-	_world.enter_map_point(start)
-	_world.visit(start)
+	_restore_current_id()
 	_build_static_layers()
 	_apply_background()
 	_center_camera()
@@ -251,6 +248,16 @@ func _party_position(travel: Dictionary)->Vector2:
 		return _world_point(travel.position)
 	var current:=_point(_current_id)
 	return _world_point(current) if not current.is_empty() else WORLD_SIZE*0.5
+
+func _restore_current_id() -> void:
+	var position: Dictionary = _world.current_position() if _world != null else {}
+	var point_id := str(position.get("point_id", ""))
+	if not point_id.is_empty() and not _point(point_id).is_empty():
+		_current_id = point_id
+		return
+	var current: Dictionary = _world.current() if _world != null else {}
+	var location_id := str(current.get("location_id", ""))
+	if not location_id.is_empty() and not _point(location_id).is_empty(): _current_id = location_id
 
 func _point(id: String)->Dictionary:
 	for point in _region.get("points",[]):
