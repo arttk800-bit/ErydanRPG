@@ -4,6 +4,7 @@
 [ext_resource path="res://map/regional_map_view.gd" type="Script" id="2"]
 [ext_resource path="res://ui/main_menu.gd" type="Script" id="3"]
 [ext_resource path="res://ui/game_shell.gd" type="Script" id="4"]
+[ext_resource path="res://ui/screen_frame.gd" type="Script" id="5"]
 
 [node name="Bootstrap" type="Control"]
 layout_mode = 3
@@ -142,53 +143,143 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("4")
 
-[node name="Top" type="HBoxContainer" parent="GameShell"]
-visible = false
-offset_left = 18.0
-offset_top = 10.0
-offset_right = 1262.0
-offset_bottom = 56.0
-mouse_filter = 1
+[node name="Layout" type="VBoxContainer" parent="GameShell"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="Title" type="Label" parent="GameShell/Top"]
+[node name="Top" type="HBoxContainer" parent="GameShell/Layout"]
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+
+[node name="Title" type="Label" parent="GameShell/Layout/Top"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "ЭЙРДАН"
 
-[node name="Menu" type="Button" parent="GameShell/Top"]
+[node name="Menu" type="Button" parent="GameShell/Layout/Top"]
 layout_mode = 2
 text = "≡"
 
-[node name="BottomNav" type="HBoxContainer" parent="GameShell"]
-visible = false
-offset_left = 360.0
-offset_top = 658.0
-offset_right = 920.0
-offset_bottom = 712.0
-mouse_filter = 1
-theme_override_constants/separation = 6
+[node name="ContentHost" type="MarginContainer" parent="GameShell/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
 
-[node name="World" type="Button" parent="GameShell/BottomNav"]
+[node name="Screens" type="Control" parent="GameShell/Layout/ContentHost"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Character" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5")
+title = "Персонаж"
+empty_message = "Здесь будет состояние персонажа, характеристики и навыки."
+
+[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Character"]
+layout_mode = 2
+[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/Character/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+[node name="Body" type="MarginContainer" parent="GameShell/Layout/ContentHost/Screens/Character"]
+layout_mode = 2
+size_flags_vertical = 3
+[node name="Empty" type="Label" parent="GameShell/Layout/ContentHost/Screens/Character/Body"]
+layout_mode = 2
+vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="Inventory" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5")
+title = "Инвентарь"
+empty_message = "Здесь будет экипировка, рюкзак и предметы."
+[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Inventory"]
+layout_mode = 2
+[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/Inventory/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+[node name="Body" type="MarginContainer" parent="GameShell/Layout/ContentHost/Screens/Inventory"]
+layout_mode = 2
+size_flags_vertical = 3
+[node name="Empty" type="Label" parent="GameShell/Layout/ContentHost/Screens/Inventory/Body"]
+layout_mode = 2
+vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="Journal" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5")
+title = "Журнал"
+empty_message = "Здесь будут задания, события и знания о мире."
+[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Journal"]
+layout_mode = 2
+[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/Journal/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+[node name="Body" type="MarginContainer" parent="GameShell/Layout/ContentHost/Screens/Journal"]
+layout_mode = 2
+size_flags_vertical = 3
+[node name="Empty" type="Label" parent="GameShell/Layout/ContentHost/Screens/Journal/Body"]
+layout_mode = 2
+vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="BottomNav" type="HBoxContainer" parent="GameShell/Layout"]
+visible = false
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 6
+[node name="World" type="Button" parent="GameShell/Layout/BottomNav"]
 layout_mode = 2
 text = "Мир"
-[node name="Character" type="Button" parent="GameShell/BottomNav"]
+[node name="Character" type="Button" parent="GameShell/Layout/BottomNav"]
 layout_mode = 2
 text = "Персонаж"
-[node name="Inventory" type="Button" parent="GameShell/BottomNav"]
+[node name="Inventory" type="Button" parent="GameShell/Layout/BottomNav"]
 layout_mode = 2
 text = "Инвентарь"
-[node name="Journal" type="Button" parent="GameShell/BottomNav"]
+[node name="Journal" type="Button" parent="GameShell/Layout/BottomNav"]
 layout_mode = 2
 text = "Журнал"
 
 [node name="SystemMenu" type="PanelContainer" parent="GameShell"]
 visible = false
-offset_left = 914.0
-offset_top = 64.0
-offset_right = 1256.0
-offset_bottom = 458.0
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -330.0
+offset_top = 66.0
+offset_right = -16.0
+offset_bottom = 430.0
+grow_horizontal = 0
 mouse_filter = 1
-
 [node name="Content" type="VBoxContainer" parent="GameShell/SystemMenu"]
 layout_mode = 2
 theme_override_constants/separation = 6
@@ -207,6 +298,10 @@ text = "Пакеты"
 [node name="Diagnostics" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
 text = "Диагностика"
+[node name="MainMenu" type="Button" parent="GameShell/SystemMenu/Content"]
+layout_mode = 2
+text = "Главное меню"
+
 [node name="MainMenu" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
 text = "Главное меню"
