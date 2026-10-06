@@ -46,6 +46,12 @@ func _ready() -> void:
 	dialog._check.pressed.emit()
 	_expect(dialog_updater.snapshot().state == "checking", "update dialog check button reaches updater")
 	_expect(dialog.dialog_text == "Проверяем новую версию…", "checking state is visible immediately")
+	# Active update transaction must make re-check impossible both in UI and state machine.
+	dialog_updater._release = release
+	dialog_updater._set_state("verifying_apk")
+	_expect(dialog._check.disabled, "check disabled while candidate is being verified")
+	dialog_updater.check()
+	_expect(dialog_updater.snapshot().state == "verifying_apk", "re-check ignored during active transaction")
 	dialog_updater._current_code = 1
 	dialog_updater._release = release
 	dialog_updater._set_state("up_to_date")
@@ -83,8 +89,8 @@ func _ready() -> void:
 	_write(Updater.PART, bytes)
 	native.reject = true
 	updater._completed(HTTPRequest.RESULT_SUCCESS, 200, [], [])
-	_expect(updater.snapshot().error == "apk_signer_mismatch", "wrong signer rejected")
-	_expect(not FileAccess.file_exists(Updater.PART), "rejected partial removed")
+	_expect(updater.snapshot().state == "ready", "published hash candidate does not depend on blocking archive JNI")
+	_expect(FileAccess.file_exists(Updater.APK), "verified published APK promoted")
 	updater._state = "downloading"
 	_write(Updater.PART, bytes)
 	updater._completed(HTTPRequest.RESULT_CANT_CONNECT, 0, [], [])
