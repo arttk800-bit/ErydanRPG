@@ -87,3 +87,11 @@ Final places do not contain navigation `map` data. A decorative `sceneBackground
 
 ## Feedback package v1
 A feedback package contains `report.json` / `report.txt`, optional `screenshots/`, and optional `diagnostics/`. `report.json` uses format `eirdan-feedback`, version 1, type `bug` or `suggestion`, release metadata, attachment metadata and `technicalInfoConsent`. Technical device information is absent unless that consent value is true. Bug-only fields are steps, expected and actual; suggestions use the common title/text fields.
+
+## State schema v4
+- `clock.second`: canonical seconds elapsed in the current game day; `clock.minute` remains a derived compatibility/display value.
+- `simulation.runtime.fastForward`: transient binary fast-forward flag; valid only for travel/sleep modes.
+- Runtime pause reasons are not restored from saves.
+- Regional road access for a mapped POI: `access[poiId] = { node: roadNodeId }`.
+- Location navigation selects its single boundary transition with `access[locationId] = { node: navigationNodeId, pointId: transitionPointId }`.
+- Legacy regional `ports[]` data is collapsed to one access node when editable regional roads are loaded; internal location multi-access data remains readable.
