@@ -11,10 +11,6 @@ extends VBoxContainer
 func _ready() -> void:
 	$Header/Title.text = screen_title
 	$Body/Empty.text = empty_message
-	Diagnostics.register_provider(StringName("screen_%s" % name.to_snake_case()), snapshot)
-
-func _exit_tree() -> void:
-	Diagnostics.unregister_provider(StringName("screen_%s" % name.to_snake_case()))
 
 func set_empty_message(message: String) -> void:
 	empty_message = message
