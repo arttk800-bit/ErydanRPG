@@ -11,6 +11,7 @@ config/version="0.1.0-foundation"
 
 [autoload]
 Diagnostics="*res://diagnostics/diagnostics.gd"
+PackageValidators="*res://packages/package_validators.gd"
 Packages="*res://packages/package_manager.gd"
 DataRegistry="*res://data/data_registry.gd"
 
