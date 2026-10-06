@@ -42,22 +42,30 @@ static func stage_archive(archive_path: String) -> Dictionary:
 
 	var stage_dir := STAGING.path_join(_safe_segment(manifest.id)).path_join(_safe_segment(manifest.version))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(stage_dir))
-	var payload_path := stage_dir.path_join(manifest.payload.get_file())
-	var payload_bytes := reader.read_file(manifest.payload)
-	reader.close()
-
-	var file := FileAccess.open(payload_path, FileAccess.WRITE)
-	if file == null:
+	var payload_path := stage_dir.path_join(manifest.payload)
+	var write_error := _write_staged_file(payload_path, reader.read_file(manifest.payload))
+	if write_error != OK:
+		reader.close()
 		return {"ok": false, "stage": "staging", "error": "cannot write payload"}
-	file.store_buffer(payload_bytes)
-	file.flush()
-	file = null
+	for declared in manifest.files:
+		var relative := str(declared.path)
+		if relative not in files:
+			reader.close()
+			return {"ok": false, "stage": "assets", "error": "declared file missing: %s" % relative}
+		write_error = _write_staged_file(stage_dir.path_join(relative), reader.read_file(relative))
+		if write_error != OK:
+			reader.close()
+			return {"ok": false, "stage": "staging", "error": "cannot write file: %s" % relative}
+	reader.close()
 
 	var integrity := verify_payload(manifest, payload_path)
 	if not integrity.ok:
-		_remove_file(payload_path)
 		return integrity.merged({"stage": "integrity"})
-	return {"ok": true, "manifest": manifest, "payload_path": payload_path}
+	for declared in manifest.files:
+		var checked := verify_file(stage_dir.path_join(str(declared.path)), str(declared.sha256))
+		if not checked.ok:
+			return checked.merged({"stage": "integrity", "file": declared.path})
+	return {"ok": true, "manifest": manifest, "payload_path": payload_path, "stage_dir": stage_dir}
 
 static func verify_payload(manifest, payload_path: String) -> Dictionary:
 	if not FileAccess.file_exists(payload_path):
@@ -69,8 +77,23 @@ static func verify_payload(manifest, payload_path: String) -> Dictionary:
 		return {"ok": false, "error": "sha256 mismatch", "expected": manifest.sha256, "actual": actual}
 	return {"ok": true, "sha256": actual}
 
+static func verify_file(path: String, expected_sha256: String) -> Dictionary:
+	if not FileAccess.file_exists(path): return {"ok": false, "error": "file missing"}
+	var actual := FileAccess.get_sha256(path).to_lower()
+	if actual != expected_sha256.to_lower():
+		return {"ok": false, "error": "sha256 mismatch", "expected": expected_sha256, "actual": actual}
+	return {"ok": true, "sha256": actual}
+
 static func installed_path(manifest) -> String:
 	return INSTALLED.path_join(_safe_segment(manifest.id)).path_join(_safe_segment(manifest.version))
+
+static func promote_tree(source_dir: String, destination_dir: String, manifest: Dictionary) -> Error:
+	var paths: Array[String] = [str(manifest.payload)]
+	for declared in manifest.files: paths.append(str(declared.path))
+	for relative in paths:
+		var error := promote_file(source_dir.path_join(relative), destination_dir.path_join(relative))
+		if error != OK: return error
+	return OK
 
 static func promote_file(source: String, destination: String) -> Error:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(destination.get_base_dir()))
@@ -80,6 +103,14 @@ static func promote_file(source: String, destination: String) -> Error:
 	var file := FileAccess.open(destination, FileAccess.WRITE)
 	if file == null:
 		return FileAccess.get_open_error()
+	file.store_buffer(bytes)
+	file.flush()
+	return OK
+
+static func _write_staged_file(path: String, bytes: PackedByteArray) -> Error:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path.get_base_dir()))
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null: return FileAccess.get_open_error()
 	file.store_buffer(bytes)
 	file.flush()
 	return OK
