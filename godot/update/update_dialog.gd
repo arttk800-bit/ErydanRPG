@@ -22,18 +22,24 @@ func _ready() -> void:
 	_progress.custom_minimum_size = Vector2(0, 28)
 	add_child(_progress)
 	add_button("Отменить загрузку", true, "cancel")
-	custom_action.connect(_action)
+	_check.pressed.connect(_check_requested)
+	_download.pressed.connect(_download_requested)
+	_install.pressed.connect(_install_requested)
+	custom_action.connect(_secondary_action)
 	updater.changed.connect(_render)
 	_render(updater.snapshot())
 
-func _action(action: StringName) -> void:
-	# AcceptDialog emits the action identifier supplied to add_button as StringName.
-	# Normalize once at the presentation boundary so UI commands cannot silently miss.
-	match str(action):
-		"check": updater.check()
-		"download": updater.download()
-		"install": updater.install(save_callback)
-		"cancel": updater.cancel()
+func _check_requested() -> void:
+	updater.check()
+
+func _download_requested() -> void:
+	updater.download()
+
+func _install_requested() -> void:
+	updater.install(save_callback)
+
+func _secondary_action(action: StringName) -> void:
+	if str(action) == "cancel": updater.cancel()
 
 func _render(state: Dictionary) -> void:
 	_check.disabled = state.state in ["checking", "downloading"]
@@ -49,7 +55,7 @@ func _render(state: Dictionary) -> void:
 		"downloading": "Загрузка: %s / %s (%d%%)" % [_format_bytes(int(state.get("downloaded_bytes", 0))), _format_bytes(int(state.get("size_bytes", 0))), int(round(float(state.get("progress", 0.0)) * 100.0))],
 		"verifying_hash": "Загрузка завершена. Проверяем размер и SHA-256…",
 		"verifying_apk": "Целостность подтверждена. Проверяем APK и подпись…",
-		"up_to_date": "Установлена актуальная или более новая версия.",
+		"up_to_date": "Обновлений нет. Установлена актуальная версия (код %d)." % int(state.get("current_version_code", 0)),
 		"ready": "APK проверена. Перед установкой текущий мир будет сохранён.",
 		"permission_required": "Разрешите установку из Eirdan в настройках Android.\nЗатем вернитесь и снова нажмите «Установить».",
 		"installer_opened": "Открыт установщик Android. Завершите установку в нём.\nЕсли вы отменили её, можно повторить.",
