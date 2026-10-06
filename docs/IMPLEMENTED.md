@@ -2,7 +2,15 @@
 
 This file is a concise inventory of functionality that exists in the repository now. It is not a changelog, implementation diary or roadmap.
 
-## Application
+## Godot / Android foundation
+- Installable Godot Android runtime with automated arm64 debug APK build.
+- Portable ZIP package import through the Android system file picker.
+- Package validation, SHA-256 integrity checking, compatibility checking, activation and rollback.
+- Base + override data resolution with provenance through DataRegistry.
+- Runtime diagnostics with registered system snapshots and Android system-file export.
+- Headless Godot boot and real package-installer integration gates.
+
+## Legacy PWA application
 - Browser-installed PWA client with main menu, game session and settings.
 - World creation, loading and deletion with persistent saves.
 - Version/build metadata, update detection and forced refresh.
@@ -42,7 +50,8 @@ This file is a concise inventory of functionality that exists in the repository 
 - Runtime/action traces and domain diagnostics for state, world/simulation, maps, travel, PWA/cache and audio.
 - Downloadable diagnostic archive.
 - Bug/suggestion packages with optional screenshots and diagnostics.
-- Automated campaign regression, syntax/module and browser smoke gates.
+- Automated campaign regression, syntax/module and browser smoke gates for the preserved PWA.
+- Godot headless/runtime integration and Android export gates for the active Android foundation.
 
 ## Data and persistence
 - Versioned persistent state with migrations.
