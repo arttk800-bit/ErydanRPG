@@ -47,7 +47,7 @@ for(const contract of [/func register_module\(/,/func configure\(/,/func set_ena
 assert.doesNotMatch(moduleRuntime,/res:\/\/world|res:\/\/map|res:\/\/travel|res:\/\/combat/);
 
 const worldState=await read('godot/world/world_state.gd');
-for(const contract of [/func ensure\(/,/func discover_point\(/,/func mark_visited\(/,/func enter_region\(/,/func enter_map_point\(/]) assert.match(worldState,contract);
+for(const contract of [/func ensure\(/,/func current_position\(/,/func discover_point\(/,/func mark_visited\(/,/func enter_region\(/,/func enter_map_point\(/]) assert.match(worldState,contract);
 const mapView=await read('godot/map/map_view_state.gd');
 for(const contract of [/never mutates physical World position/,/func show_world\(/,/func show_region\(/,/func show_location\(/]) assert.match(mapView,contract);
 assert.doesNotMatch(mapView,/world\["current"\]|world\.current\s*=/);
@@ -112,6 +112,9 @@ assert.match(bootstrap,/\$HUD\/TopBar\/Diagnostics/);
 const mapAssetLoader=await read('godot/map/map_asset_loader.gd');
 for(const contract of [/user:\/\/map_assets/,/Image\.load_from_file/,/ImageTexture\.create_from_image/] ) assert.match(mapAssetLoader,contract);
 assert.doesNotMatch(regionalMap,/state\.world|world\["current"\]/);
+assert.doesNotMatch(regionalMap,/_world\.enter_region|_world\.enter_map_point|_world\.visit/);
+assert.match(regionalMap,/_world\.current_position\(\)/);
+assert.match(bootstrap,/_initialize_new_world_if_needed/);
 
 const installerTest=await read('godot/tests/package_installer_test.gd');
 assert.match(installerTest,/invalid JSON rejected before activation/);
