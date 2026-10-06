@@ -68,3 +68,10 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Added runtime diagnostics and Android system-file import/export.
 - Added real Godot headless integration validation and automated arm64 debug APK export.
 - Verified the foundation on a physical Android device: runtime startup, package picker and diagnostic save flow.
+
+
+## Deterministic package order
+- Godot package activation now resolves explicit `dependencies`, `conflicts` and integer `priority`.
+- Dependencies are hard ordering constraints; missing dependencies, cycles and active conflicts reject the candidate set before persistence.
+- Independent packages use stable `priority` + package-ID ordering, removing activation-history precedence from DataRegistry overrides.
+- DataRegistry preserves Package Manager's resolved order and remains owner only of base/override data resolution and provenance.
