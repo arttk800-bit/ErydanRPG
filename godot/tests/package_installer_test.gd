@@ -67,7 +67,4 @@ func _sha256_for_bytes(bytes: PackedByteArray) -> String:
 	return FileAccess.get_sha256(path)
 
 func _assert(condition: bool, label: String) -> void:
-	if condition: return
-	push_error("ASSERT FAILED: " + label)
-	get_tree().quit(1)
-	await get_tree().process_frame
+	assert(condition, label)
