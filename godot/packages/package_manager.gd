@@ -4,6 +4,8 @@
 # ============================================================================
 extends Node
 
+const PackageInstaller = preload("res://packages/package_installer.gd")
+
 const RUNTIME_VERSION := "0.1.0"
 const PACKAGE_DIR := "user://packages"
 const ACTIVE_FILE := PACKAGE_DIR + "/active.json"
@@ -13,7 +15,7 @@ var _active: Array[Dictionary] = []
 var _previous: Array[Dictionary] = []
 
 func _ready() -> void:
-	EirdanPackageInstaller.prepare_directories()
+	PackageInstaller.prepare_directories()
 	_active = _load_index(ACTIVE_FILE)
 	_previous = _load_index(PREVIOUS_FILE)
 	Diagnostics.register_provider(&"packages", snapshot)
@@ -24,19 +26,19 @@ func active_packages() -> Array[Dictionary]:
 
 func install_archive(archive_path: String) -> Dictionary:
 	Diagnostics.info("packages.install_started", {"source": archive_path})
-	var staged := EirdanPackageInstaller.stage_archive(archive_path)
+	var staged := PackageInstaller.stage_archive(archive_path)
 	if not staged.ok:
 		return _reject(str(staged.get("stage", "staging")), archive_path, [staged.get("error", staged.get("errors", "staging failure"))])
-	var manifest: EirdanPackageManifest = staged.manifest
+	var manifest = staged.manifest
 	if not _runtime_compatible(manifest.runtime_min):
 		return _reject("runtime", manifest.identity(), ["requires runtime >= %s" % manifest.runtime_min])
 
-	var install_dir := EirdanPackageInstaller.installed_path(manifest)
+	var install_dir := PackageInstaller.installed_path(manifest)
 	var installed_payload := install_dir.path_join(manifest.payload.get_file())
-	var copy_error := EirdanPackageInstaller.promote_file(staged.payload_path, installed_payload)
+	var copy_error := PackageInstaller.promote_file(staged.payload_path, installed_payload)
 	if copy_error != OK:
 		return _reject("promotion", manifest.identity(), ["copy error %s" % copy_error])
-	var final_integrity := EirdanPackageInstaller.verify_payload(manifest, installed_payload)
+	var final_integrity := PackageInstaller.verify_payload(manifest, installed_payload)
 	if not final_integrity.ok:
 		return _reject("promotion-integrity", manifest.identity(), [final_integrity.get("error", "final integrity failure")])
 
