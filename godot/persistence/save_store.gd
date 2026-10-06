@@ -114,7 +114,7 @@ func _recover_world(world_id: String) -> void:
 	var final_path:=_path_for(world_id)
 	var backup_path:=final_path+".bak"
 	if not FileAccess.file_exists(backup_path): return
-	var final_ok:=FileAccess.file_exists(final_path) and _read_envelope(final_path).ok
+	var final_ok: bool = FileAccess.file_exists(final_path) and bool(_read_envelope(final_path).get("ok", false))
 	if final_ok:
 		_remove_if_exists(backup_path)
 		return
