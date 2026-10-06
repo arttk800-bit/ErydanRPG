@@ -48,9 +48,25 @@ func _start_gameplay() -> void:
 	if not started.ok:
 		status.text = "Ошибка запуска: %s" % started.get("errors", [])
 		return
-	regional_map.setup(region, Modules.instance("world"), Modules.instance("roads"), Modules.instance("travel"))
+	var world = Modules.instance("world")
+	_initialize_new_world_if_needed(region, world)
+	regional_map.setup(region, world, Modules.instance("roads"), Modules.instance("travel"))
 	status.text = "Центральные земли · нажмите на точку для путешествия"
 	Diagnostics.info("runtime.vertical_slice_ready", {"region": "forest", "modules": started.active})
+
+func _initialize_new_world_if_needed(region: Dictionary, world) -> void:
+	var position: Dictionary = world.current_position()
+	if not str(position.get("point_id", "")).is_empty(): return
+	var start: Dictionary = {}
+	for point in region.get("points", []):
+		if point is Dictionary and str(point.get("id", "")) == "veligrad":
+			start = point
+			break
+	world.enter_region(str(region.region_id))
+	if not start.is_empty():
+		world.enter_map_point(start)
+		world.visit(start)
+		_state.world["position"] = {"region_id": str(region.region_id), "point_id": str(start.id)}
 
 func _reload_runtime() -> void:
 	_reload_data()
