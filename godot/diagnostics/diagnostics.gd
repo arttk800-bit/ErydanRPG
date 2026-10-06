@@ -45,7 +45,11 @@ func snapshot() -> Dictionary:
 		"version": 1,
 		"runtime": {
 			"godot": Engine.get_version_info(),
-			"platform": OS.get_name()
+			"platform": OS.get_name(),
+			"model": OS.get_model_name(),
+			"locale": OS.get_locale(),
+			"distribution": OS.get_distribution_name(),
+			"cmdline": OS.get_cmdline_user_args()
 		},
 		"systems": systems,
 		"events": _events.duplicate(true)
