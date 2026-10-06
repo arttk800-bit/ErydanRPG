@@ -21,6 +21,7 @@ var _background_asset: Dictionary = {}
 var _world
 var _roads
 var _travel
+var _travel_events
 var _simulation
 var _message := "Центральные земли"
 var _preview: Dictionary = {}
@@ -59,23 +60,34 @@ var _route_progress: Line2D
 @onready var journey_progress: ProgressBar = $HUD/Journey/Margin/Content/Progress
 @onready var journey_meta: Label = $HUD/Journey/Margin/Content/Meta
 @onready var journey_detail: Label = $HUD/Journey/Margin/Content/Detail
+@onready var journey_pause: Button = $HUD/Journey/Margin/Content/Actions/Pause
+@onready var journey_camp: Button = $HUD/Journey/Margin/Content/Actions/Camp
 @onready var journey_follow: Button = $HUD/Journey/Margin/Content/Actions/Follow
+@onready var event_card: PanelContainer = $HUD/EventCard
+@onready var event_title: Label = $HUD/EventCard/Margin/Content/Title
+@onready var event_text: Label = $HUD/EventCard/Margin/Content/Text
+@onready var event_choices: Array[Button] = [$HUD/EventCard/Margin/Content/Choices/Choice1, $HUD/EventCard/Margin/Content/Choices/Choice2, $HUD/EventCard/Margin/Content/Choices/Choice3]
 
-func setup(region: Dictionary, world, roads, travel, simulation, background_asset: Dictionary = {}) -> void:
+func setup(region: Dictionary, world, roads, travel, travel_events, simulation, background_asset: Dictionary = {}) -> void:
 	_region = region
 	_background_asset = background_asset.duplicate(true)
 	_world = world
 	_roads = roads
 	_travel = travel
+	_travel_events = travel_events
 	_simulation = simulation
 	_build_static_layers()
 	_apply_background()
 	_center_camera()
 	travel_card.add_theme_stylebox_override("panel", EirdanTheme.panel_style())
 	journey.add_theme_stylebox_override("panel", EirdanTheme.panel_style())
+	event_card.add_theme_stylebox_override("panel", EirdanTheme.panel_style())
 	travel_go.pressed.connect(_confirm_preview)
 	travel_cancel.pressed.connect(_clear_preview)
+	journey_pause.pressed.connect(_toggle_travel_pause)
+	journey_camp.pressed.connect(_toggle_camp)
 	journey_follow.pressed.connect(_enable_follow)
+	for index in event_choices.size(): event_choices[index].pressed.connect(_resolve_event.bind(index))
 	var initial_travel: Dictionary = _travel.snapshot() if _travel != null else {}
 	_target_party_position = _party_position(initial_travel)
 	_presented_party_position = _target_party_position
@@ -228,7 +240,7 @@ func _apply_background() -> void:
 func _refresh(travel: Dictionary = {}) -> void:
 	if travel.is_empty() and _travel != null: travel = _travel.snapshot()
 	party.scale = Vector2.ONE/camera.zoom
-	_draw_route(travel if travel.get("status") in ["travelling", "stopped", "arrived"] else _preview)
+	_draw_route(travel if travel.get("status") in ["travelling", "stopped", "camped", "arrived"] else _preview)
 	var game_time: Dictionary = _simulation.time() if _simulation != null else {}
 	status.text = "%s · День %d · %02d:%02d" % [_message, int(game_time.get("day", 1)), int(game_time.get("hour", 8)), int(game_time.get("minute", 0))]
 	travel_card.visible = not _preview.is_empty() and travel.get("status") != "travelling"
@@ -237,16 +249,33 @@ func _refresh(travel: Dictionary = {}) -> void:
 		travel_title.text = str(destination.get("name", "Пункт назначения"))
 		travel_meta.text = "%.1f км · %s" % [float(_preview.get("distance_total", 0.0)) / 1000.0, _format_duration(float(_preview.get("duration_seconds", 0.0)))]
 		travel_method.text = "Пешком · %.1f км/ч" % float(_preview.get("speed_kmh", 0.0))
-	journey.visible = travel.get("status") == "travelling"
+	journey.visible = travel.get("status") in ["travelling", "stopped", "camped"]
 	if journey.visible:
 		var progress: Dictionary = _travel.progress()
 		var destination := _point(str(travel.get("to_id", "")))
 		var ratio := clampf(float(progress.get("ratio", 0.0)), 0.0, 1.0)
-		journey_title.text = "В пути · %s" % str(destination.get("name", ""))
+		var travel_status := str(travel.get("status", "travelling"))
+		var status_label := "В пути" if travel_status == "travelling" else ("Лагерь" if travel_status == "camped" else "Остановка")
+		journey_title.text = "%s · %s" % [status_label, str(destination.get("name", ""))]
 		journey_progress.value = clampf(float(progress.get("ratio", 0.0)) * 100.0, 0.0, 100.0)
 		journey_meta.text = "%d%% · %.1f / %.1f км" % [int(round(ratio * 100.0)), float(progress.get("done", 0.0)) / 1000.0, float(progress.get("total", 0.0)) / 1000.0]
 		journey_detail.text = "Осталось %.1f км · %s · Пешком %.1f км/ч" % [float(progress.get("left", 0.0)) / 1000.0, _format_duration(float(progress.get("eta_seconds", 0.0))), float(travel.get("speed_mps", 0.0)) * 3.6]
+		journey_pause.text = "Остановиться" if travel_status == "travelling" else "Продолжить путь"
+		journey_camp.visible = travel_status in ["stopped", "camped"]
+		journey_camp.text = "Свернуть лагерь" if travel_status == "camped" else "Разбить лагерь"
 		journey_follow.text = "Следим" if _follow_party else "Следить"
+	var active_event: Dictionary = _travel_events.current() if _travel_events != null else {}
+	event_card.visible = not active_event.is_empty()
+	if event_card.visible:
+		journey.visible = false
+		travel_card.visible = false
+		event_title.text = str(active_event.get("title", "Событие в пути"))
+		event_text.text = str(active_event.get("text", ""))
+		var choices: Array = active_event.get("choices", [])
+		for index in event_choices.size():
+			var button := event_choices[index]
+			button.visible = index < choices.size()
+			if button.visible and choices[index] is Dictionary: button.text = str(choices[index].get("label", "Продолжить"))
 	_last_travel_status = str(travel.get("status", "idle"))
 
 func _draw_route(travel: Dictionary) -> void:
@@ -274,7 +303,7 @@ func _draw_route(travel: Dictionary) -> void:
 		_route_progress.antialiased = true
 		route_layer.add_child(_route_progress)
 	if _route_progress == null: return
-	if travel.get("status") != "travelling":
+	if travel.get("status") not in ["travelling", "stopped", "camped"]:
 		_route_progress.points = PackedVector2Array()
 		return
 	var completed := PackedVector2Array()
@@ -320,7 +349,31 @@ func _enable_follow() -> void:
 	_follow_party = true
 	Diagnostics.info("map.follow_enabled", {"party_position": _presented_party_position})
 
+func _toggle_travel_pause() -> void:
+	var travel: Dictionary = _travel.snapshot()
+	match str(travel.get("status", "idle")):
+		"travelling": _travel.pause()
+		"stopped": _travel.resume()
+		"camped": _travel.break_camp(true)
+	_refresh()
+
+func _toggle_camp() -> void:
+	var travel: Dictionary = _travel.snapshot()
+	if travel.get("status") == "stopped": _travel.make_camp()
+	elif travel.get("status") == "camped": _travel.break_camp(false)
+	_refresh()
+
+func _resolve_event(index: int) -> void:
+	if _travel_events == null: return
+	var active_event: Dictionary = _travel_events.current()
+	var choices: Array = active_event.get("choices", [])
+	if index < 0 or index >= choices.size() or choices[index] is not Dictionary: return
+	var result: Dictionary = _travel_events.resolve(str(choices[index].get("id", "")))
+	if not result.is_empty(): _message = str(result.get("result", "Центральные земли"))
+	_refresh()
+
 func _select_screen(screen_position: Vector2) -> void:
+	if _travel_events != null and not _travel_events.current().is_empty(): return
 	if _travel==null or _travel.snapshot().get("status")=="travelling": return
 	var world_position:=get_viewport().get_canvas_transform().affine_inverse()*screen_position
 	var best_id:=""
@@ -384,7 +437,7 @@ func _world_point(value: Dictionary)->Vector2:
 	return Vector2(float(value.get("x",0.0))*WORLD_SIZE.x,float(value.get("y",0.0))*WORLD_SIZE.y)
 
 func _party_position(travel: Dictionary)->Vector2:
-	if travel.get("status") in ["travelling","stopped","arrived"] and travel.get("position") is Dictionary:
+	if travel.get("status") in ["travelling","stopped","camped","arrived"] and travel.get("position") is Dictionary:
 		return _world_point(travel.position)
 	var current:=_point(_current_point_id())
 	return _world_point(current) if not current.is_empty() else WORLD_SIZE*0.5

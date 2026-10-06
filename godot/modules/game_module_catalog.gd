@@ -9,6 +9,7 @@ const MapModule = preload("res://map/map_module.gd")
 const RoadsModule = preload("res://roads/roads_module.gd")
 const TravelModule = preload("res://travel/travel_module.gd")
 const SimulationModule = preload("res://simulation/simulation_module.gd")
+const TravelEventModule = preload("res://events/travel_event_module.gd")
 
 static func register_foundation(runtime: Node) -> Dictionary:
 	var simulation: Dictionary = runtime.register_module({
@@ -43,10 +44,18 @@ static func register_foundation(runtime: Node) -> Dictionary:
 		"factory": func(): return RoadsModule.new()
 	})
 	if not roads.ok: return roads
-	return runtime.register_module({
+	var travel: Dictionary = runtime.register_module({
 		"id": "travel",
 		"enabled_by_default": true,
 		"dependencies": ["world", "roads"],
 		"owns": ["regional_travel", "travel_progress", "arrival"],
 		"factory": func(): return TravelModule.new()
+	})
+	if not travel.ok: return travel
+	return runtime.register_module({
+		"id": "travel_events",
+		"enabled_by_default": true,
+		"dependencies": ["simulation", "travel"],
+		"owns": ["travel_event_schedule", "travel_event_choices"],
+		"factory": func(): return TravelEventModule.new()
 	})

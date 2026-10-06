@@ -1,7 +1,31 @@
 {
   "travel": {
     "walk_speed_kmh": 5.0,
-    "horse_speed_kmh": 12.0
+    "horse_speed_kmh": 12.0,
+    "event_interval_km": 18.0,
+    "event_chance": 0.45
+  },
+  "travel_events": {
+    "abandoned_cart": {
+      "title": "Брошенная телега",
+      "text": "У обочины стоит телега со сломанной осью. Следы хозяев теряются в высокой траве.",
+      "weight": 3,
+      "min_distance_km": 8.0,
+      "choices": [
+        {"id": "inspect", "label": "Осмотреть", "result": "Полезного почти не осталось, но короткая передышка пошла на пользу.", "time_seconds": 600},
+        {"id": "continue", "label": "Не задерживаться", "result": "Отряд оставляет телегу позади.", "time_seconds": 0}
+      ]
+    },
+    "roadside_shrine": {
+      "title": "Придорожный камень",
+      "text": "Старый камень у дороги покрыт выцветшими лентами и знаком путников.",
+      "weight": 2,
+      "min_distance_km": 5.0,
+      "choices": [
+        {"id": "rest", "label": "Передохнуть", "result": "Несколько спокойных минут возвращают порядок мыслям.", "time_seconds": 900},
+        {"id": "continue", "label": "Продолжить путь", "result": "Дорога зовёт дальше.", "time_seconds": 0}
+      ]
+    }
   },
   "items": {
     "iron_sword": {

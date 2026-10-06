@@ -7,6 +7,7 @@ This file is a concise inventory of functionality that exists in the repository 
 - Portable ZIP package import through the Android system file picker.
 - Package validation, SHA-256 integrity checking, compatibility checking, activation and rollback.
 - Base + override data resolution with provenance through DataRegistry.
+- Schema-validated content definitions for package-delivered travel events without an APK rebuild.
 - Runtime diagnostics with registered system snapshots and Android system-file export.
 - Headless Godot boot and real package-installer integration gates.
 
@@ -34,6 +35,7 @@ This file is a concise inventory of functionality that exists in the repository 
 - Physical travel distance and progressive movement.
 - Named-destination and free-position travel.
 - Stop, camp, resume and cancel flow.
+- Deterministic package-defined road events with choice results and game-time costs.
 - Region-to-location transition through one regional access node and one selected location transition.
 
 ## Combat development baseline

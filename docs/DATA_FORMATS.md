@@ -107,6 +107,10 @@ Install lifecycle: validation → staging → SHA-256 verification → installed
 ## Godot data layers
 Base data is packaged read-only content. Active override packages may provide sparse nested values. DataRegistry resolves effective values without mutating base definitions and exposes provenance for queried paths.
 
+Content JSON may add complete `definitions` domains independently of an APK. The first supported expandable domain is `travel_events`; each event has stable identity, title/text, selection weight, minimum route distance and 1–3 declarative choices with result text and time cost. Overrides may patch existing events sparsely, while new event IDs must arrive through base/content data.
+
+`DataRegistry.entity(domain, id)` deep-merges sparse entity patches over their complete base/content definition. `DataRegistry.entities(domain)` returns the effective merged catalog. Package v1 does not execute GDScript: new algorithms, UI contracts and platform behavior remain signed APK updates.
+
 Stable IDs are identity; player-visible names are data and may change without changing references. Save/session state and package/content definitions remain separate contracts.
 
 ## Version separation
@@ -123,6 +127,8 @@ Package manifests may declare `dependencies[]`, `conflicts[]` and integer `prior
 Entity collections use stable IDs as dictionary keys (for example `items.iron_sword`). The key is canonical identity; localized/player-visible names are mutable data. `DataRegistry.entity(domain, id)` exposes the canonical key as the returned entity's `id` without requiring duplicate identity fields in authored JSON.
 
 Override payloads are sparse patches. They may replace supported fields of existing entity IDs but may not silently create an entity through override data. New definitions belong to base/content data rather than an override package. Unknown root domains and unsupported fields are rejected until their owning domain extends the schema intentionally.
+
+The Godot Travel state persists `stopped` and `camped` lifecycle states. A camp records canonical normalized travel position and game time under mutable world state; it never changes authored road or event definitions.
 
 
 ## Godot save contract v1

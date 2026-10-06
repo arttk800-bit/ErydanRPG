@@ -50,7 +50,29 @@ Remote HTTP/GitHub hosting and Android local import are sources. They do not own
 - `override` — user-editable values layered over base data.
 - `development` — development-only package channel.
 
-Package code execution policy is intentionally not finalized in v1. The first Android proof focuses on data/resources and update safety.
+Package code execution is intentionally disabled in v1. The Android runtime accepts validated data/resources; new executable behavior remains a signed APK update.
+
+JSON `content` payloads may contain complete regions/assets and packageable definition domains:
+
+```json
+{
+  "definitions": {
+    "travel_events": {
+      "event-id": {
+        "title": "Event title",
+        "text": "Event description",
+        "weight": 1,
+        "min_distance_km": 5,
+        "choices": [
+          {"id": "continue", "label": "Continue", "result": "Result text", "time_seconds": 0}
+        ]
+      }
+    }
+  }
+}
+```
+
+Definitions are schema-validated before activation and then resolved by `DataRegistry`. Invalid packages never replace the active set.
 
 
 ## Activation order

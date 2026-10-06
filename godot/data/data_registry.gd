@@ -65,6 +65,9 @@ func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 			var loaded := _apply_content_payload(str(record.get("id")), path, str(record.get("root", path.get_base_dir())))
 			if not loaded.ok:
 				failures.append({"id": record.get("id"), "path": path, "errors": loaded.errors})
+			elif loaded.get("definitions") is Dictionary and not loaded.definitions.is_empty():
+				set_layer(str(record.get("id")), int(record.get("priority", 0)), loaded.definitions, order)
+				order += 1
 	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "regions": _regions.size(), "failures": failures.size()})
 	return {"ok": failures.is_empty(), "failures": failures}
 
@@ -89,11 +92,29 @@ func remove_layer(id: String) -> void:
 	Diagnostics.info("data.layer_removed", {"id": id})
 
 func entity(domain: String, id: String, fallback = null):
-	var value = resolve("%s.%s" % [domain, id], fallback)
-	if value is not Dictionary:
-		return value
-	var result: Dictionary = value.duplicate(true)
+	var base_value = _read_path(_base, "%s.%s" % [domain, id], null)
+	var result: Dictionary = base_value.duplicate(true) if base_value is Dictionary else {}
+	var found := base_value is Dictionary
+	for layer in _layers:
+		var candidate = _read_path(layer.data, "%s.%s" % [domain, id], null)
+		if candidate is Dictionary:
+			result.merge(candidate, true)
+			found = true
+	if not found: return resolve("%s.%s" % [domain, id], fallback)
 	result["id"] = id
+	return result
+
+func entities(domain: String) -> Dictionary:
+	var ids: Dictionary = {}
+	var base_domain = _base.get(domain, {})
+	if base_domain is Dictionary:
+		for id in base_domain: ids[str(id)] = true
+	for layer in _layers:
+		var layer_domain = layer.data.get(domain, {})
+		if layer_domain is Dictionary:
+			for id in layer_domain: ids[str(id)] = true
+	var result: Dictionary = {}
+	for id in ids: result[id] = entity(domain, id)
 	return result
 
 func region(id: String) -> Dictionary:
@@ -138,6 +159,7 @@ func snapshot() -> Dictionary:
 		"region_sources": _region_sources.duplicate(true),
 		"region_assets": _region_assets.duplicate(true),
 		"walk_speed_kmh": resolve("travel.walk_speed_kmh"),
+		"travel_event_count": entities("travel_events").size(),
 		"iron_sword_damage": resolve("items.iron_sword.damage"),
 		"walk_speed_provenance": provenance("travel.walk_speed_kmh"),
 		"iron_sword_damage_provenance": provenance("items.iron_sword.damage")
@@ -167,17 +189,23 @@ func _validate_content_payload(path: String) -> Dictionary:
 		return {"ok": false, "errors": ["content payload must be a JSON object"]}
 	var errors: Array[String] = []
 	for key in payload:
-		if str(key) not in ["regions", "assets"]: errors.append("unsupported content root: %s" % key)
-	var regions = payload.get("regions")
-	if regions is not Dictionary or regions.is_empty():
-		errors.append("content.regions must be a non-empty object")
-	else:
+		if str(key) not in ["regions", "assets", "definitions"]: errors.append("unsupported content root: %s" % key)
+	var regions = payload.get("regions", {})
+	var definitions = payload.get("definitions", {})
+	if regions is not Dictionary: errors.append("content.regions must be an object")
+	elif not regions.is_empty():
 		for id in regions:
 			if regions[id] is not Dictionary:
 				errors.append("regions.%s must be an object" % id)
 				continue
 			for error in RegionSchema.validate(regions[id], str(id)):
 				errors.append("regions.%s: %s" % [id, error])
+	if definitions is not Dictionary:
+		errors.append("content.definitions must be an object")
+	elif not definitions.is_empty():
+		for error in DataSchema.validate_content(definitions): errors.append("definitions: %s" % error)
+	if regions is Dictionary and regions.is_empty() and definitions is Dictionary and definitions.is_empty():
+		errors.append("content must define at least one region or definition domain")
 	var assets = payload.get("assets", {})
 	if assets is not Dictionary:
 		errors.append("content.assets must be an object")
@@ -201,8 +229,9 @@ func _apply_content_payload(package_id: String, path: String, root: String = "")
 	var checked := _validate_content_payload(path)
 	if not checked.ok: return checked
 	var payload: Dictionary = _read_json_file(path)
-	for id in payload.regions:
-		_regions[id] = payload.regions[id].duplicate(true)
+	var regions: Dictionary = payload.get("regions", {})
+	for id in regions:
+		_regions[id] = regions[id].duplicate(true)
 		_region_sources[id] = {"source": package_id, "path": path}
 		Diagnostics.info("data.region_changed", {"id": id, "source": package_id})
 	var assets: Dictionary = payload.get("assets", {})
@@ -211,7 +240,7 @@ func _apply_content_payload(package_id: String, path: String, root: String = "")
 		for role in region_assets[id]:
 			var relative := str(region_assets[id][role])
 			_region_assets["%s:%s" % [id, role]] = {"source": package_id, "path": root.path_join(relative)}
-	return {"ok": true}
+	return {"ok": true, "definitions": payload.get("definitions", {}).duplicate(true)}
 
 func _read_json_file(path: String):
 	var file := FileAccess.open(path, FileAccess.READ)

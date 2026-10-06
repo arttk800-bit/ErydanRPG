@@ -134,7 +134,10 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Added start/tick/stop/resume/cancel/progress/arrival foundation behavior.
 - Integration test now exercises the complete Godot `World → Map → Roads → Travel` slice through physical arrival.
 - Android CI currently uses standard debug signing with no project keystore/secrets. Package ID remains `org.eirdan.runtime`; in-place updates are intentionally not guaranteed until stable signing is introduced later.
-- Terrain/event/camp/location-boundary parity remains a later Travel extension; it is not silently folded into Roads or World.
+- Added persistent stop/resume and camp/break-camp flow at the exact canonical road position, with map HUD controls and diagnostics.
+- Added schema-validated, packageable `travel_events` definitions and a dedicated event module that deterministically schedules route checks, pauses Travel, resolves declarative choices and applies their game-time cost.
+- Added a native road-event card with 1–3 data-defined choices. Package v1 remains data/resource-only and does not execute scripts.
+- Terrain modifiers, deeper event consequences and location-boundary parity remain later Travel extensions; they are not silently folded into Roads or World.
 
 
 ## First playable Godot regional slice

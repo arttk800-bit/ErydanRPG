@@ -40,6 +40,10 @@ func step(runtime_delta: float) -> float:
 func time() -> Dictionary:
 	return GameTimeState.snapshot(_state)
 
+func advance_game_seconds(seconds: float) -> Dictionary:
+	GameTimeState.advance(_state, maxf(0.0, seconds))
+	return time()
+
 func snapshot() -> Dictionary:
 	if _state.is_empty(): return {"status": "inactive"}
 	return {"status": "active", "mode": _mode, "time": time()}

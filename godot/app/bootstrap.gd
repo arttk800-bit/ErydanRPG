@@ -117,10 +117,11 @@ func _start_gameplay() -> void:
 	_initialize_new_world_if_needed(region, world)
 	var simulation = Modules.instance("simulation")
 	var travel = Modules.instance("travel")
+	var travel_events = Modules.instance("travel_events")
 	_simulation_runtime = SimulationRuntime.new()
 	add_child(_simulation_runtime)
-	_simulation_runtime.setup(simulation, travel, region)
-	regional_map.setup(region, world, Modules.instance("roads"), travel, simulation, DataRegistry.region_asset(str(region.region_id), "background"))
+	_simulation_runtime.setup(simulation, travel, travel_events, region)
+	regional_map.setup(region, world, Modules.instance("roads"), travel, travel_events, simulation, DataRegistry.region_asset(str(region.region_id), "background"))
 	status.clear()
 	Diagnostics.info("runtime.vertical_slice_ready", {"region": "forest", "modules": started.active})
 

@@ -61,6 +61,12 @@ func _ready() -> void:
 	_assert(rollback.ok, "rollback succeeds")
 	var restored := Packages.active_packages().filter(func(item): return item.id == "eirdan.test.balance")
 	_assert(restored.size() == 1 and restored[0].version == "1.0.0", "rollback restores v1")
+	var content_payload := JSON.stringify({"definitions": {"travel_events": {"mist_on_road": {"title": "Mist", "text": "Mist covers the road.", "weight": 1, "min_distance_km": 2, "choices": [{"id": "continue", "label": "Continue", "result": "The mist thins.", "time_seconds": 0}]}}}).to_utf8_buffer()
+	var content_package := _make_package("eirdan.test.events", "1.0.0", "0.1.0", content_payload, _sha256_for_bytes(content_payload), "content")
+	var content_result := Packages.install_archive(content_package)
+	_assert(content_result.ok, "definition content package installs")
+	_assert(DataRegistry.reload_active_packages(Packages.active_packages()).ok, "active packaged definitions reload")
+	_assert(DataRegistry.entity("travel_events", "mist_on_road").title == "Mist", "packaged travel event resolves through DataRegistry")
 
 	print("godot package installer integration: OK")
 	get_tree().quit(0)
@@ -101,7 +107,7 @@ func _test_world_map_modules() -> void:
 	_assert(registered.ok, "world/map module catalog registers")
 	var configured := Modules.configure({})
 	_assert(configured.ok, "foundation modules resolve")
-	for required_id in ["simulation", "world", "map", "roads", "travel"]:
+	for required_id in ["simulation", "world", "map", "roads", "travel", "travel_events"]:
 		_assert(required_id in configured.active, "foundation module active: %s" % required_id)
 	_assert(configured.active.find("world") < configured.active.find("map"), "world resolves before map")
 	_assert(configured.active.find("world") < configured.active.find("travel"), "world resolves before travel")
@@ -137,11 +143,24 @@ func _test_world_map_modules() -> void:
 	world.visit(hidden)
 	_assert(state.world.knowledge["grey-ruins"].visited, "world visit persists knowledge")
 	var travel = Modules.instance("travel")
+	var travel_events = Modules.instance("travel_events")
 	world.initialize_at("forest", {"id": "start", "name": "Start", "class": "location"})
 	var trip: Dictionary = travel.begin("forest", "start", "finish", "walk")
 	_assert(trip.status == "travelling", "travel begins from Roads route")
 	_assert(is_equal_approx(float(trip.speed_mps), 5.0 / 3.6), "travel resolves walk speed from DataRegistry")
 	_assert(is_equal_approx(float(trip.duration_seconds), 1000.0 / (5.0 / 3.6)), "travel ETA uses resolved data speed")
+	DataRegistry.set_layer("test.travel-events", 100, {"travel": {"event_interval_km": 0.1, "event_chance": 1.0}})
+	travel.tick(100.0)
+	var triggered: Dictionary = travel_events.advance(travel.snapshot())
+	_assert(not triggered.is_empty() and state.world.travel.status == "stopped", "package-defined road event interrupts travel")
+	var event_choice: Dictionary = triggered.choices[0]
+	var event_result: Dictionary = travel_events.resolve(str(event_choice.id))
+	_assert(event_result.ok and state.world.travel.status == "travelling", "road event choice resolves and resumes travel")
+	DataRegistry.remove_layer("test.travel-events")
+	_assert(travel.pause().status == "stopped", "travel can stop between points")
+	var camp: Dictionary = travel.make_camp()
+	_assert(not camp.is_empty() and state.world.travel.status == "camped", "camp persists at the physical travel position")
+	_assert(travel.break_camp(true).status == "travelling" and not state.world.has("camp"), "breaking camp can resume the journey")
 	travel.tick(1000.0)
 	_assert(state.world.travel.status == "arrived", "travel reaches destination")
 	var destination := {"id": "finish", "name": "Finish", "class": "location"}
@@ -206,17 +225,22 @@ func _test_save_store() -> void:
 
 func _test_data_schema() -> void:
 	var base := {
-		"travel": {"walk_speed_kmh": 5.0, "horse_speed_kmh": 12.0},
+		"travel": {"walk_speed_kmh": 5.0, "horse_speed_kmh": 12.0, "event_interval_km": 18.0, "event_chance": 0.45},
+		"travel_events": {"quiet_road": {"title": "Quiet road", "text": "Nothing moves.", "weight": 1, "min_distance_km": 1.0, "choices": [{"id": "continue", "label": "Continue", "result": "Onward.", "time_seconds": 0}]}},
 		"items": {"iron_sword": {"name": "Iron Sword", "damage": 12, "weight": 1.4}}
 	}
 	_assert(DataSchema.validate_base(base).is_empty(), "valid base data accepted")
 	_assert(DataSchema.validate_override({"items": {"iron_sword": {"damage": 15}}}, base).is_empty(), "sparse known-id override accepted")
 	_assert(not DataSchema.validate_override({"items": {"ghost_sword": {"damage": 15}}}, base).is_empty(), "unknown override id rejected")
+	_assert(DataSchema.validate_override({"travel_events": {"quiet_road": {"weight": 2}}}, base).is_empty(), "travel event balance can be overridden sparsely")
+	_assert(not DataSchema.validate_content({"travel_events": {"broken": {"title": "Broken"}}}).is_empty(), "incomplete packaged travel event rejected")
 	_assert(not DataSchema.validate_base({"travel": base.travel, "items": {"Bad ID": base.items.iron_sword}}).is_empty(), "invalid stable id rejected")
 	_assert(not DataSchema.validate_override({"mystery": {}}, base).is_empty(), "unknown root domain rejected")
 	_assert(DataRegistry.set_base(base, "test"), "registry accepts validated base")
+	DataRegistry.set_layer("test.override", 0, {"items": {"iron_sword": {"damage": 15}}})
 	var item = DataRegistry.entity("items", "iron_sword")
-	_assert(item is Dictionary and item.id == "iron_sword", "registry exposes stable entity id")
+	_assert(item is Dictionary and item.id == "iron_sword" and item.name == "Iron Sword" and item.damage == 15, "registry merges sparse entity overrides and preserves stable id")
+	DataRegistry.remove_layer("test.override")
 
 func _test_package_order() -> void:
 	var unordered: Array[Dictionary] = [
@@ -249,14 +273,14 @@ func _test_package_order() -> void:
 func _reject_test_domain(_manifest: Dictionary, _payload_path: String) -> Dictionary:
 	return {"ok": false, "errors": ["test domain rejection"]}
 
-func _make_package(id: String, version: String, runtime_min: String, payload: PackedByteArray, hash: String) -> String:
+func _make_package(id: String, version: String, runtime_min: String, payload: PackedByteArray, hash: String, kind: String = "override") -> String:
 	var path := "user://%s-%s.zip" % [id.validate_filename(), version]
 	var manifest := {
 		"format": "eirdan-package",
 		"format_version": 1,
 		"id": id,
 		"version": version,
-		"kind": "override",
+		"kind": kind,
 		"runtime_min": runtime_min,
 		"payload": "data.json",
 		"sha256": hash

@@ -7,12 +7,14 @@ extends Node
 
 var _simulation
 var _travel
+var _travel_events
 var _region: Dictionary = {}
 var _fast_travel := true
 
-func setup(simulation, travel, region: Dictionary, fast_travel: bool = true) -> void:
+func setup(simulation, travel, travel_events, region: Dictionary, fast_travel: bool = true) -> void:
 	_simulation = simulation
 	_travel = travel
+	_travel_events = travel_events
 	_region = region
 	_fast_travel = fast_travel
 	Diagnostics.register_provider(&"simulation_runtime", snapshot)
@@ -23,6 +25,7 @@ func shutdown() -> void:
 	Diagnostics.unregister_provider(&"simulation_runtime")
 	_simulation = null
 	_travel = null
+	_travel_events = null
 	_region = {}
 
 func _exit_tree() -> void:
@@ -37,6 +40,9 @@ func _process(delta: float) -> void:
 	_simulation.set_mode("travel_fast" if _fast_travel else "normal")
 	var simulation_delta := float(_simulation.step(delta))
 	travel = _travel.tick(simulation_delta)
+	if _travel_events != null:
+		_travel_events.advance(travel)
+		travel = _travel.snapshot()
 	if travel.get("status") == "arrived":
 		var destination := _point(str(travel.get("to_id", "")))
 		if destination.is_empty():
@@ -57,7 +63,8 @@ func snapshot() -> Dictionary:
 		"time_owner": "simulation",
 		"travel_owner": "travel",
 		"simulation": _simulation.snapshot() if _simulation != null else {},
-		"travel": _travel.snapshot() if _travel != null else {}
+		"travel": _travel.snapshot() if _travel != null else {},
+		"travel_events": _travel_events.snapshot() if _travel_events != null else {}
 	}
 
 func _point(id: String) -> Dictionary:

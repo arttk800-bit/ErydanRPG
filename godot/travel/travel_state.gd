@@ -14,8 +14,11 @@ static func start(state: Dictionary, region_id: String, from_id: String, to_id: 
 	if route.is_empty() or route.get("polyline", []).is_empty() or speed_mps <= 0.0: return {}
 	var speed := speed_mps
 	var total := float(route.get("distance", 0.0))
+	var journey_serial := int(state.world.get("travel_serial", 0)) + 1
+	state.world["travel_serial"] = journey_serial
 	var travel := {
 		"status": "travelling", "region_id": region_id, "from_id": from_id, "to_id": to_id,
+		"journey_id": "%s-%d" % [region_id, journey_serial],
 		"method": method, "speed_mps": speed, "route": route.duplicate(true), "distance_done": 0.0,
 		"distance_total": total, "duration_seconds": total / speed if speed > 0.0 else INF,
 		"position": route.polyline[0].duplicate(true), "segment_index": 0, "segment_distance": 0.0
@@ -67,10 +70,31 @@ static func resume(state: Dictionary) -> Dictionary:
 	if travel.get("status") == "stopped": travel["status"] = "travelling"
 	return travel
 
+static func make_camp(state: Dictionary) -> Dictionary:
+	var travel := ensure(state)
+	if travel.get("status") == "travelling": travel["status"] = "stopped"
+	if travel.get("status") != "stopped" or travel.get("position") is not Dictionary: return {}
+	travel["status"] = "camped"
+	state.world["camp"] = {
+		"region_id": travel.get("region_id", ""),
+		"position": travel.position.duplicate(true),
+		"day": int(state.get("time", {}).get("day", 1)),
+		"second": float(state.get("time", {}).get("second", 0.0))
+	}
+	return state.world.camp
+
+static func break_camp(state: Dictionary, resume_travel: bool = false) -> Dictionary:
+	var travel := ensure(state)
+	if travel.get("status") != "camped": return {}
+	state.world.erase("camp")
+	travel["status"] = "travelling" if resume_travel else "stopped"
+	return travel
+
 static func cancel(state: Dictionary) -> Dictionary:
 	var travel := ensure(state)
 	if travel.get("position") is Dictionary:
 		state.world["position"] = {"region_id": travel.get("region_id"), "point_id": null, "position": travel.position.duplicate(true)}
+	state.world.erase("camp")
 	state.world["travel"] = {"status": "idle"}
 	return state.world.travel
 

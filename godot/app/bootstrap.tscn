@@ -159,12 +159,63 @@ theme_override_colors/font_color = Color(0.67, 0.64, 0.55, 1)
 text = "Время и скорость"
 [node name="Actions" type="HBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content"]
 layout_mode = 2
+[node name="Pause" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content/Actions"]
+layout_mode = 2
+text = "Остановиться"
+[node name="Camp" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content/Actions"]
+visible = false
+layout_mode = 2
+text = "Разбить лагерь"
 [node name="Spacer" type="Control" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content/Actions"]
 layout_mode = 2
 size_flags_horizontal = 3
 [node name="Follow" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/Journey/Margin/Content/Actions"]
 layout_mode = 2
 text = "Следим"
+
+[node name="EventCard" type="PanelContainer" parent="MapSurface/MapViewport/RegionalMap/HUD"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -180.0
+offset_right = 320.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+[node name="Margin" type="MarginContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+[node name="Content" type="VBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+[node name="Title" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Событие в пути"
+[node name="Text" type="Label" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard/Margin/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Описание события"
+autowrap_mode = 2
+[node name="Choices" type="VBoxContainer" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+[node name="Choice1" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard/Margin/Content/Choices"]
+layout_mode = 2
+text = "Продолжить"
+[node name="Choice2" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard/Margin/Content/Choices"]
+layout_mode = 2
+text = "Вариант 2"
+[node name="Choice3" type="Button" parent="MapSurface/MapViewport/RegionalMap/HUD/EventCard/Margin/Content/Choices"]
+layout_mode = 2
+text = "Вариант 3"
 
 [node name="GameShell" type="Control" parent="."]
 visible = false

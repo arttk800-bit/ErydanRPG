@@ -20,7 +20,7 @@ func start(context: Dictionary) -> Dictionary:
 	if _roads == null or _world == null: return {"ok": false, "errors": ["travel module requires active world and roads modules"]}
 	_state = candidate
 	var travel := TravelState.ensure(_state)
-	if travel.get("status") in ["travelling", "stopped", "arrived"] and float(travel.get("speed_mps", 0.0)) <= 0.0:
+	if travel.get("status") in ["travelling", "stopped", "camped", "arrived"] and float(travel.get("speed_mps", 0.0)) <= 0.0:
 		var legacy_speed := _speed_kmh(str(travel.get("method", "walk"))) / 3.6
 		if legacy_speed <= 0.0: return {"ok": false, "errors": ["travel state has no valid movement speed"]}
 		travel["speed_mps"] = legacy_speed
@@ -75,10 +75,24 @@ func tick(delta_seconds: float) -> Dictionary:
 	return TravelState.tick(_state, delta_seconds)
 
 func pause() -> Dictionary:
-	return TravelState.stop(_state)
+	var travel := TravelState.stop(_state)
+	Diagnostics.info("travel.paused", {"position": travel.get("position", {}), "distance_done": travel.get("distance_done", 0.0)})
+	return travel
 
 func resume() -> Dictionary:
-	return TravelState.resume(_state)
+	var travel := TravelState.resume(_state)
+	Diagnostics.info("travel.resumed", {"position": travel.get("position", {}), "distance_done": travel.get("distance_done", 0.0)})
+	return travel
+
+func make_camp() -> Dictionary:
+	var camp := TravelState.make_camp(_state)
+	if not camp.is_empty(): Diagnostics.info("travel.camp_created", camp)
+	return camp
+
+func break_camp(resume_travel: bool = false) -> Dictionary:
+	var travel := TravelState.break_camp(_state, resume_travel)
+	if not travel.is_empty(): Diagnostics.info("travel.camp_removed", {"resume_travel": resume_travel, "position": travel.get("position", {})})
+	return travel
 
 func cancel() -> Dictionary:
 	return TravelState.cancel(_state)
