@@ -130,3 +130,6 @@ The initial vertical slice deliberately covers deterministic regional start/tick
 
 ## Android debug signing
 Current CI Android builds use Godot's standard debug signing path. No project keystore or signing secrets are required at this development stage. The package ID remains `org.eirdan.runtime`, but in-place installation over an older CI APK is not a guaranteed contract until stable signing is intentionally introduced. Mutable saves remain Persistence ownership under Godot `user://`.
+
+## CI domain isolation
+Active automatic CI targets Godot/Android only. The preserved PWA campaign, browser smoke, combat regression, diagnostic mirror and Pages deployment are legacy/reference workflows and are manual-only. Promoting a Godot change to `ci/gate` must not execute legacy PWA validation. Legacy gates may be run explicitly when parity/reference work requires them.
