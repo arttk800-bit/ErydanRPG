@@ -75,3 +75,11 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Dependencies are hard ordering constraints; missing dependencies, cycles and active conflicts reject the candidate set before persistence.
 - Independent packages use stable `priority` + package-ID ordering, removing activation-history precedence from DataRegistry overrides.
 - DataRegistry preserves Package Manager's resolved order and remains owner only of base/override data resolution and provenance.
+
+
+## Godot authored data schema
+- Extracted field/entity validation from DataRegistry into `godot/data/data_schema.gd`.
+- Base data is validated before becoming canonical Registry data.
+- Sparse override packages reject unknown roots, unsupported fields, invalid stable IDs and attempts to override unknown entity IDs.
+- Entity IDs are canonical dictionary keys; DataRegistry now exposes `entity(domain, id)` and entity provenance without coupling identity to display names.
+- Added schema/identity integration assertions and static ownership regression contracts.
