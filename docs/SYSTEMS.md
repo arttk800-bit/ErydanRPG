@@ -49,3 +49,10 @@ Active campaign diagnostics aggregate separate read-only reports for State/Saves
 ## Map registry
 `game/data/map-registry.js` is the discovery point for canonical map-bearing content and navigation descriptors. `game/diagnostics/map-diagnostics.js` validates registered maps generically; it does not own route or terrain rules. New authored maps should register there rather than adding location-specific imports to diagnostics.
 
+## Time / Pause / Travel — 0.90
+- WorldClock: canonical seconds, normal 1 real second = 1 game second.
+- Simulation: normal/travel/sleep mode and binary fast-forward; no global speed multiplier.
+- Pause: independent runtime reasons (manual, game-menu, settings, event, feedback); never persistent.
+- Travel: regional movement to one POI access node; arrival commits world.position.
+- Location Entry/Boundary: one selected transition for crossing Region ↔ Location.
+- Journey: composes local travel to the selected transition and regional travel from the single access node.
