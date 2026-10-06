@@ -10,6 +10,7 @@ var _layers: Array[Dictionary] = []
 
 func _ready() -> void:
 	Diagnostics.register_provider(&"data_registry", snapshot)
+	PackageValidators.register_validator(&"data_registry", validate_package_candidate)
 	load_base_file(BASE_PATH)
 
 func load_base_file(path: String) -> bool:
