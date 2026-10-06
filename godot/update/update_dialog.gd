@@ -43,7 +43,7 @@ func _secondary_action(action: StringName) -> void:
 	if str(action) == "cancel": updater.cancel()
 
 func _render(state: Dictionary) -> void:
-	_check.disabled = state.state in ["checking", "downloading"]
+	_check.disabled = not state.state in ["idle", "up_to_date", "error"]
 	_download.disabled = state.state != "available"
 	_install.disabled = not state.state in ["ready", "permission_required", "installer_opened"]
 	var downloading: bool = str(state.get("state", "")) == "downloading"
@@ -55,7 +55,7 @@ func _render(state: Dictionary) -> void:
 		"available": "Доступна версия %s. Скачать APK?" % state.version_name,
 		"downloading": "Загрузка: %s / %s (%d%%)" % [_format_bytes(int(state.get("downloaded_bytes", 0))), _format_bytes(int(state.get("size_bytes", 0))), int(round(float(state.get("progress", 0.0)) * 100.0))],
 		"verifying_hash": "Загрузка завершена. Проверяем размер и SHA-256…",
-		"verifying_apk": "Целостность подтверждена. Проверяем APK и подпись…",
+		"verifying_apk": "Целостность подтверждена. Подтверждаем опубликованный APK…",
 		"up_to_date": "Обновлений нет. Установлена актуальная версия (код %d)." % int(state.get("current_version_code", 0)),
 		"ready": "APK проверена. Перед установкой текущий мир будет сохранён.",
 		"permission_required": "Разрешите установку из Eirdan в настройках Android.\nЗатем вернитесь и снова нажмите «Установить».",
