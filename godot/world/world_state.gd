@@ -37,7 +37,7 @@ static func discover_point(state: Dictionary, point: Dictionary, source: String 
 	var id := str(point.get("id", ""))
 	if id.is_empty(): return false
 	var known := point_knowledge(state, id, point.get("hidden", false) != true)
-	var fresh := known.get("discovered", false) != true
+	var fresh: bool = known.get("discovered", false) != true
 	known["discovered"] = true
 	known["discovered_by"] = source
 	ensure(state).knowledge[id] = known
