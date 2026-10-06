@@ -62,7 +62,7 @@ func _process(delta: float) -> void:
 	var snapshot: Dictionary = _travel.snapshot()
 	if snapshot.get("status") == "travelling":
 		if _simulation != null: _simulation.set_mode("travel_fast" if _test_fast_forward else "normal")
-		var simulation_delta := _simulation.step(delta) if _simulation != null else delta
+		var simulation_delta: float = float(_simulation.step(delta)) if _simulation != null else float(delta)
 		_travel.tick(simulation_delta)
 		snapshot = _travel.snapshot()
 		if snapshot.get("status") == "arrived":
