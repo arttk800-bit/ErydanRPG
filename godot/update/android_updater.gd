@@ -50,12 +50,19 @@ func check() -> void:
 	Diagnostics.info("updater.check_entered", {"state": _state})
 	if _state in ["checking", "downloading"]: return
 	_release = {}
-	var identity: Dictionary = installer.identity()
-	if not identity.ok:
-		_fail(str(identity.error))
-		return
-	_current_code = int(identity.version_code)
-	_sdk = int(identity.sdk)
+	# Export CI embeds the immutable APK version code. Do not query PackageManager during update checks:
+	# JNI is an installation adapter concern, and a JNI failure must never make the Check button inert.
+	_current_code = int(ProjectSettings.get_setting("eirdan/runtime/version_code", 0))
+	_sdk = 0
+	if _current_code <= 0:
+		# Source/headless builds have no exported identity; keep the adapter fallback for integration tests.
+		var identity: Dictionary = installer.identity()
+		if not identity.ok:
+			_fail(str(identity.error))
+			return
+		_current_code = int(identity.version_code)
+		_sdk = int(identity.sdk)
+	Diagnostics.info("updater.runtime_identity", {"version_code": _current_code, "sdk": _sdk})
 	var url: String = ProjectSettings.get_setting("eirdan/update/manifest_url", "")
 	if not Manifest.secure_url(url):
 		_fail("update_source_not_configured")
