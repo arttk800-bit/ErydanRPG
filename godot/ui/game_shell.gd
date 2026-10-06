@@ -27,7 +27,8 @@ func _ready() -> void:
 	for pair in [
 		[$SystemMenu/Content/Save, "save"], [$SystemMenu/Content/Load, "load"],
 		[$SystemMenu/Content/Update, "update"], [$SystemMenu/Content/Packages, "packages"],
-		[$SystemMenu/Content/Diagnostics, "diagnostics"], [$SystemMenu/Content/MainMenu, "main_menu"]
+		[$SystemMenu/Content/Diagnostics, "diagnostics"], [$SystemMenu/Content/Settings, "settings"],
+		[$SystemMenu/Content/MainMenu, "main_menu"]
 	]:
 		pair[0].pressed.connect(func(): _emit_system(str(pair[1])))
 	Diagnostics.register_provider(&"game_shell", snapshot)
@@ -79,4 +80,4 @@ func _emit_system(action: String) -> void:
 	system_action.emit(action)
 
 func snapshot() -> Dictionary:
-	return {"world_ui_active": nav.visible, "system_menu_open": system_menu.visible, "active_screen": _active_screen, "content_screens": screens.get_child_count()}
+	return {"world_ui_active": nav.visible, "system_menu_open": system_menu.visible, "active_screen": _active_screen, "content_screens": screens.get_child_count(), "safe_area": $Layout.snapshot()}

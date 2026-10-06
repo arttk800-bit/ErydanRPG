@@ -92,7 +92,7 @@ func arrive(point: Dictionary) -> Dictionary:
 	if position.is_empty(): return {}
 	_world.enter_map_point(point)
 	_state.world["travel"] = {"status": "idle"}
-	Diagnostics.info("travel.arrival_committed", {"region_id": position.get("region_id", ""), "point_id": position.get("point_id", "")})
+	Diagnostics.info("travel.arrival_committed", {"region_id": position.get("region_id", ""), "from_id": active.get("from_id", ""), "point_id": position.get("point_id", ""), "world_position": _world.current_position()})
 	return position
 
 func progress() -> Dictionary:

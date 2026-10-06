@@ -33,12 +33,15 @@ func _ready() -> void:
 	if "--updater-test" in OS.get_cmdline_user_args():
 		get_tree().change_scene_to_file.call_deferred("res://tests/updater_test.tscn")
 		return
+	if "--ui-stabilization-test" in OS.get_cmdline_user_args() and not bool(get_meta("skip_test_redirect", false)):
+		get_tree().change_scene_to_file.call_deferred("res://tests/ui_stabilization_test.tscn")
+		return
 	if "--package-installer-test" in OS.get_cmdline_user_args():
 		get_tree().change_scene_to_file.call_deferred("res://tests/package_installer_test.tscn")
 		return
 	main_menu.action_requested.connect(_on_main_menu_action)
 	game_shell.system_action.connect(_on_system_action)
-	game_shell.back_requested.connect(_return_to_world)
+	game_shell.back_requested.connect(_handle_shell_back)
 	game_shell.world_requested.connect(func(): _show_world())
 	game_shell.character_requested.connect(func(): _show_structural_screen("character"))
 	game_shell.inventory_requested.connect(func(): _show_structural_screen("inventory"))
@@ -49,6 +52,7 @@ func _ready() -> void:
 	save_browser.back_requested.connect(_return_from_aux_screen)
 	settings_screen.back_requested.connect(_return_from_aux_screen)
 	$NewWorldDialog.confirmed.connect(_create_named_world)
+	$ExitDialog.confirmed.connect(func(): get_tree().quit())
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
 	_show_main_menu()
@@ -64,13 +68,17 @@ func _notification(what: int) -> void:
 		$NewWorldDialog.hide()
 		Diagnostics.info("ui.back", {"handled_by": "new_world_dialog"})
 		return
-	if not main_menu.visible:
-		game_shell.handle_back()
-		Diagnostics.info("ui.back", {"handled_by": "game_shell", "screen": game_shell.active_screen()})
+	if $ExitDialog.visible:
+		$ExitDialog.hide()
+		Diagnostics.info("ui.back", {"handled_by": "exit_dialog"})
 		return
-	# Main menu is the only place where application exit may be requested.
-	# Confirmation UI is added separately; until then Back is consumed.
-	Diagnostics.info("ui.back", {"handled_by": "main_menu", "exit_blocked": true})
+	if not main_menu.visible:
+		var before: String = str(game_shell.active_screen())
+		game_shell.handle_back()
+		Diagnostics.info("ui.back", {"handled_by": "game_shell", "screen_before": before, "screen_after": game_shell.active_screen()})
+		return
+	$ExitDialog.popup_centered()
+	Diagnostics.info("ui.back", {"handled_by": "main_menu", "exit_confirmation": true})
 
 func _start_gameplay() -> void:
 	main_menu.visible = false
@@ -164,6 +172,7 @@ func _on_system_action(action: String) -> void:
 		"update": _open_updates()
 		"packages": _import_package()
 		"diagnostics": _export_diagnostics()
+		"settings": _open_settings(true)
 		"main_menu": _show_main_menu()
 
 func _show_main_menu() -> void:
@@ -189,6 +198,12 @@ func _show_structural_screen(screen_id: String) -> void:
 
 func _return_to_world() -> void:
 	_show_world()
+
+func _handle_shell_back() -> void:
+	if game_shell.active_screen() in ["save_browser", "settings"]:
+		_return_from_aux_screen()
+	else:
+		_return_to_world()
 
 func _open_save_browser(from_game: bool) -> void:
 	_aux_return_screen = game_shell.active_screen() if from_game else "main_menu"

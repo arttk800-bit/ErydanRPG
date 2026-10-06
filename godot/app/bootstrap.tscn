@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource path="res://app/bootstrap.gd" type="Script" id="1"]
 [ext_resource path="res://map/regional_map_view.gd" type="Script" id="2"]
@@ -10,6 +10,7 @@
 [ext_resource path="res://ui/settings_screen.gd" type="Script" id="8"]
 [ext_resource path="res://ui/context_panel.gd" type="Script" id="9"]
 [ext_resource path="res://ui/toast.gd" type="Script" id="10"]
+[ext_resource path="res://ui/safe_area.gd" type="Script" id="11"]
 
 [node name="Bootstrap" type="Control"]
 layout_mode = 3
@@ -144,12 +145,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = 12.0
-offset_right = -16.0
-offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("11")
 [node name="Top" type="HBoxContainer" parent="GameShell/Layout"]
 visible = false
 layout_mode = 2
@@ -285,20 +283,8 @@ layout_mode = 2
 theme_override_constants/separation = 14
 [node name="Info" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
 layout_mode = 2
-text = "Каркас настроек готов. Параметры будут подключаться к своим владельцам систем."
+text = "Здесь появятся только реально работающие параметры."
 autowrap_mode = 2
-[node name="Interface" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Интерфейс — параметры ещё не подключены"
-[node name="Audio" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Звук — параметры ещё не подключены"
-[node name="Gameplay" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Игровой процесс — параметры ещё не подключены"
-[node name="Development" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
-layout_mode = 2
-text = "Разработка — диагностика и пакеты доступны через игровое меню"
 
 [node name="BottomNav" type="HBoxContainer" parent="GameShell/Layout"]
 visible = false
@@ -348,6 +334,9 @@ text = "Пакеты"
 [node name="Diagnostics" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
 text = "Диагностика"
+[node name="Settings" type="Button" parent="GameShell/SystemMenu/Content"]
+layout_mode = 2
+text = "Настройки"
 [node name="MainMenu" type="Button" parent="GameShell/SystemMenu/Content"]
 layout_mode = 2
 text = "Главное меню"
@@ -392,12 +381,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("11")
+base_left = 24.0
+base_top = 24.0
+base_right = 24.0
+base_bottom = 24.0
 [node name="Actions" type="VBoxContainer" parent="MainMenu/Center"]
 layout_mode = 2
 custom_minimum_size = Vector2(420, 0)
@@ -443,6 +433,12 @@ text = "Название мира"
 [node name="Name" type="LineEdit" parent="NewWorldDialog/Content"]
 layout_mode = 2
 placeholder_text = "Эйрдан"
+
+[node name="ExitDialog" type="ConfirmationDialog" parent="."]
+title = "Выйти из игры?"
+dialog_text = "Несохранённые изменения будут потеряны."
+ok_button_text = "Выйти"
+cancel_button_text = "Остаться"
 
 [node name="Toast" type="Label" parent="."]
 visible = false

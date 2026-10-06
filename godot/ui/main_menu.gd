@@ -24,4 +24,4 @@ func set_continue_available(available: bool) -> void:
 	actions.get_node("Continue").disabled = not available
 
 func snapshot() -> Dictionary:
-	return {"visible": visible, "continue_available": not actions.get_node("Continue").disabled}
+	return {"visible": visible, "continue_available": not actions.get_node("Continue").disabled, "safe_area": $Center.snapshot()}

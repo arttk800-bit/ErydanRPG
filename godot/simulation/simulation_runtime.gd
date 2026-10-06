@@ -42,10 +42,13 @@ func _process(delta: float) -> void:
 		if destination.is_empty():
 			Diagnostics.error("simulation_runtime.arrival_point_missing", {"to_id": travel.get("to_id", "")})
 			return
+		Diagnostics.info("simulation_runtime.arrival_started", {"from_id": travel.get("from_id", ""), "to_id": travel.get("to_id", "")})
 		var arrived: Dictionary = _travel.arrive(destination)
 		if not arrived.is_empty():
 			_simulation.set_mode("normal")
 			Diagnostics.info("simulation_runtime.travel_arrived", {"point_id": destination.get("id", ""), "time": _simulation.time()})
+		else:
+			Diagnostics.error("simulation_runtime.arrival_commit_failed", {"to_id": destination.get("id", ""), "travel": travel})
 
 func snapshot() -> Dictionary:
 	return {

@@ -137,6 +137,7 @@ func _test_world_map_modules() -> void:
 	world.visit(hidden)
 	_assert(state.world.knowledge["grey-ruins"].visited, "world visit persists knowledge")
 	var travel = Modules.instance("travel")
+	world.initialize_at("forest", {"id": "start", "name": "Start", "class": "location"})
 	var trip: Dictionary = travel.begin("forest", "start", "finish", "walk")
 	_assert(trip.status == "travelling", "travel begins from Roads route")
 	_assert(is_equal_approx(float(trip.speed_mps), 5.0 / 3.6), "travel resolves walk speed from DataRegistry")
@@ -148,6 +149,9 @@ func _test_world_map_modules() -> void:
 	_assert(state.world.position.point_id == "finish", "travel commits physical arrival")
 	_assert(world.current().location_id == "finish", "arrival enters destination through World API")
 	_assert(state.world.travel.status == "idle", "arrival closes active travel")
+	_assert(travel.begin("forest", "start", "finish", "walk").is_empty(), "stale presentation origin is rejected after arrival")
+	var return_preview: Dictionary = travel.preview_to("forest", "start", "walk")
+	_assert(return_preview.from_id == "finish" and return_preview.to_id == "start", "next route derives origin from authoritative World position")
 	Modules.stop()
 
 func _test_module_registry() -> void:

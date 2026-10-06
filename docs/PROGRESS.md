@@ -173,3 +173,10 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Android CI now uses the persistent Eirdan development signing identity from GitHub Actions Secrets. The private keystore is never stored in the repository; CI validates the keystore before export and verifies the produced APK certificate fingerprint before publishing the artifact. This signing identity is the prerequisite for in-place APK updates and the planned AndroidUpdater.
 
 - Persistence/Travel ownership correction: RegionalMap no longer mutates World on arrival; Travel remains the domain coordinator for arrival. New-world physical position is initialized through World.initialize_at instead of Bootstrap writing world.position directly. Saving now preserves the shared top-level state dictionary used by active modules and only synchronizes persisted metadata, preventing post-save gameplay mutations from becoming detached from the next save.
+
+## Runtime UI stabilization
+- Cleaned the shell scene, restored one global Toast and one system-menu Main Menu action, and centered the main menu inside platform safe-area margins.
+- Kept top/system controls and bottom navigation inside the Android safe area; structural Settings now presents explicit noninteractive sections instead of an apparently empty screen.
+- Android Back follows the shell navigation contract: modal first, auxiliary/structural screen return, world opens the system menu, and the main menu asks for exit confirmation.
+- RegionalMap no longer caches a second current point; route preview, start and party position derive from authoritative World state after every arrival.
+- Added arrival/navigation diagnostics and a headless UI stabilization integration gate. Campaign slots/autosaves remain a separate persistence design task.

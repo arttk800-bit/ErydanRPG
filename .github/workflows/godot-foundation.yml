@@ -48,3 +48,10 @@ jobs:
           timeout 45s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot -- --updater-test 2>&1 | tee "$LOG"
           if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ASSERT FAILED" "$LOG"; then exit 1; fi
           grep -F "godot updater integration: OK" "$LOG"
+      - name: UI stabilization integration
+        run: |
+          set -o pipefail
+          LOG=/tmp/godot-ui-test.log
+          timeout 45s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot -- --ui-stabilization-test 2>&1 | tee "$LOG"
+          if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|ASSERT FAILED" "$LOG"; then exit 1; fi
+          grep -F "godot ui stabilization integration: OK" "$LOG"

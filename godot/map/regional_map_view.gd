@@ -20,7 +20,6 @@ var _world
 var _roads
 var _travel
 var _simulation
-var _current_id := "veligrad"
 var _message := "Центральные земли"
 var _preview: Dictionary = {}
 var _mouse_dragging := false
@@ -56,7 +55,6 @@ func setup(region: Dictionary, world, roads, travel, simulation, background_asse
 	_roads = roads
 	_travel = travel
 	_simulation = simulation
-	_restore_current_id()
 	_build_static_layers()
 	_apply_background()
 	_center_camera()
@@ -231,9 +229,10 @@ func _select_screen(screen_position: Vector2) -> void:
 		if distance<best_distance:
 			best_distance=distance
 			best_id=str(point.id)
-	if best_id.is_empty() or best_id==_current_id: return
+	var current_id := _current_point_id()
+	if best_id.is_empty() or best_id == current_id: return
 	var destination := _point(best_id)
-	_preview = _travel.preview(str(_region.region_id), _current_id, best_id, "walk")
+	_preview = _travel.preview_to(str(_region.region_id), best_id, "walk")
 	if _preview.is_empty():
 		_message = "Маршрут до «%s» не найден" % destination.name
 	else:
@@ -243,7 +242,7 @@ func _select_screen(screen_position: Vector2) -> void:
 func _confirm_preview() -> void:
 	if _preview.is_empty() or _travel == null: return
 	var destination := _point(str(_preview.get("to_id", "")))
-	var trip: Dictionary = _travel.begin(str(_preview.region_id), str(_preview.from_id), str(_preview.to_id), str(_preview.method))
+	var trip: Dictionary = _travel.begin_to(str(_preview.region_id), str(_preview.to_id), str(_preview.method))
 	if trip.is_empty():
 		_message = "Не удалось начать путь до «%s»" % destination.get("name", "")
 	else:
@@ -285,18 +284,17 @@ func _world_point(value: Dictionary)->Vector2:
 func _party_position(travel: Dictionary)->Vector2:
 	if travel.get("status") in ["travelling","stopped","arrived"] and travel.get("position") is Dictionary:
 		return _world_point(travel.position)
-	var current:=_point(_current_id)
+	var current:=_point(_current_point_id())
 	return _world_point(current) if not current.is_empty() else WORLD_SIZE*0.5
 
-func _restore_current_id() -> void:
+func _current_point_id() -> String:
 	var position: Dictionary = _world.current_position() if _world != null else {}
 	var point_id := str(position.get("point_id", ""))
-	if not point_id.is_empty() and not _point(point_id).is_empty():
-		_current_id = point_id
-		return
+	if not point_id.is_empty() and not _point(point_id).is_empty(): return point_id
 	var current: Dictionary = _world.current() if _world != null else {}
 	var location_id := str(current.get("location_id", ""))
-	if not location_id.is_empty() and not _point(location_id).is_empty(): _current_id = location_id
+	if not location_id.is_empty() and not _point(location_id).is_empty(): return location_id
+	return ""
 
 func _point(id: String)->Dictionary:
 	for point in _region.get("points",[]):
@@ -304,4 +302,4 @@ func _point(id: String)->Dictionary:
 	return {}
 
 func diagnostic_snapshot()->Dictionary:
-	return {"region_id":_region.get("region_id"),"travel_preview":_preview.duplicate(true),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true),"simulation":_simulation.snapshot() if _simulation != null else {}}
+	return {"region_id":_region.get("region_id"),"current_point_id":_current_point_id(),"world_position":_world.current_position() if _world != null else {},"travel_preview":_preview.duplicate(true),"camera_position":camera.position,"zoom":camera.zoom.x,"external_background":background.texture!=null,"touches_active":_touches.size(),"pinch_active":_pinch_active,"input_counts":_input_counts.duplicate(true),"background_asset":_background_asset.duplicate(true),"simulation":_simulation.snapshot() if _simulation != null else {}}
