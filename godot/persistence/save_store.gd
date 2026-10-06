@@ -95,7 +95,9 @@ func list_saves() -> Array[Dictionary]:
 	for name in dir.get_files():
 		if not name.ends_with(".json"): continue
 		var loaded := _read_envelope("%s/%s" % [SAVE_DIR, name])
-		if loaded.ok: result.append(SaveSchema.metadata(loaded.state))
+		if _state_is_loadable(loaded):
+			var migrated := SaveMigrations.migrate(loaded.state)
+			result.append(SaveSchema.metadata(migrated.state))
 	result.sort_custom(func(a,b): return str(a.updated_at)>str(b.updated_at))
 	return result
 
@@ -114,7 +116,7 @@ func _recover_world(world_id: String) -> void:
 	var final_path:=_path_for(world_id)
 	var backup_path:=final_path+".bak"
 	if not FileAccess.file_exists(backup_path): return
-	var final_ok: bool = FileAccess.file_exists(final_path) and bool(_read_envelope(final_path).get("ok", false))
+	var final_ok: bool = FileAccess.file_exists(final_path) and _state_is_loadable(_read_envelope(final_path))
 	if final_ok:
 		_remove_if_exists(backup_path)
 		return
@@ -134,6 +136,11 @@ func _read_envelope(path:String)->Dictionary:
 	# Envelope validation happens here; state validation follows migration in load_state().
 	# This keeps legacy saves loadable while malformed migrated state is still rejected.
 	return {"ok":true,"state":state}
+
+func _state_is_loadable(loaded: Dictionary) -> bool:
+	if not loaded.get("ok", false): return false
+	var migrated := SaveMigrations.migrate(loaded.state)
+	return bool(migrated.get("ok", false))
 
 func _valid_world_id(world_id:String)->bool:
 	if world_id.is_empty() or world_id.length()>64:return false
