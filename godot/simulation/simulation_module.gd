@@ -25,6 +25,8 @@ func stop() -> void:
 func set_mode(mode: String) -> Dictionary:
 	if mode not in ["normal", "travel_fast", "sleep_fast"]:
 		return {"ok": false, "errors": ["unsupported simulation mode: %s" % mode]}
+	if mode == _mode:
+		return {"ok": true, "mode": mode}
 	_mode = mode
 	Diagnostics.info("simulation.mode_changed", {"mode": mode})
 	return {"ok": true, "mode": mode}
