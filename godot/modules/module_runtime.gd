@@ -45,7 +45,7 @@ func start(context: Dictionary = {}) -> Dictionary:
 		if instance.has_method("start"):
 			var module_context := context.duplicate()
 		module_context["modules"] = self
-		var result = instance.start(module_context)
+			var result = instance.start(module_context)
 			if result is Dictionary and not result.get("ok", true):
 				stop()
 				return {"ok": false, "errors": result.get("errors", ["module start failed: %s" % definition.id])}
