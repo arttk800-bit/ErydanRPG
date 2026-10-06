@@ -47,6 +47,7 @@ func snapshot() -> Dictionary:
 		"downloaded_bytes": downloaded, "size_bytes": total, "progress": progress}
 
 func check() -> void:
+	Diagnostics.info("updater.check_entered", {"state": _state})
 	if _state in ["checking", "downloading"]: return
 	_release = {}
 	var identity: Dictionary = installer.identity()
