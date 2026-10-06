@@ -5,9 +5,11 @@
 extends Node
 
 const PackageOrder = preload("res://packages/package_order.gd")
+const DataSchema = preload("res://data/data_schema.gd")
 
 func _ready() -> void:
 	_test_package_order()
+	_test_data_schema()
 	var payload := "{\"travel\":{\"walk_speed_kmh\":4.2}}".to_utf8_buffer()
 	var hash := _sha256_for_bytes(payload)
 	_assert(not hash.is_empty(), "payload hash")
@@ -56,6 +58,21 @@ func _ready() -> void:
 	print("godot package installer integration: OK")
 	get_tree().quit(0)
 
+
+
+func _test_data_schema() -> void:
+	var base := {
+		"travel": {"walk_speed_kmh": 5.0, "horse_speed_kmh": 12.0},
+		"items": {"iron_sword": {"name": "Iron Sword", "damage": 12, "weight": 1.4}}
+	}
+	_assert(DataSchema.validate_base(base).is_empty(), "valid base data accepted")
+	_assert(DataSchema.validate_override({"items": {"iron_sword": {"damage": 15}}}, base).is_empty(), "sparse known-id override accepted")
+	_assert(not DataSchema.validate_override({"items": {"ghost_sword": {"damage": 15}}}, base).is_empty(), "unknown override id rejected")
+	_assert(not DataSchema.validate_base({"travel": base.travel, "items": {"Bad ID": base.items.iron_sword}}).is_empty(), "invalid stable id rejected")
+	_assert(not DataSchema.validate_override({"mystery": {}}, base).is_empty(), "unknown root domain rejected")
+	_assert(DataRegistry.set_base(base, "test"), "registry accepts validated base")
+	var item = DataRegistry.entity("items", "iron_sword")
+	_assert(item is Dictionary and item.id == "iron_sword", "registry exposes stable entity id")
 
 func _test_package_order() -> void:
 	var unordered: Array[Dictionary] = [
