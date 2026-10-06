@@ -19,10 +19,17 @@ if (mode === 'prepare') {
   const apk = 'build/eirdan-runtime-debug.apk';
   const repository = process.env.GITHUB_REPOSITORY;
   if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository ?? '')) throw new Error('Invalid repository');
+  const badging = readFileSync('build/apk-badging.txt', 'utf8');
+  const identity = badging.match(/^package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'/m);
+  const minSdk = Number(badging.match(/^sdkVersion:'(\d+)'/m)?.[1]);
+  if (!identity || identity[1] !== 'org.eirdan.runtime' || Number(identity[2]) !== code || identity[3] !== version) throw new Error('Exported APK identity mismatch');
+  if (!Number.isSafeInteger(minSdk) || minSdk < 1) throw new Error('Missing APK min SDK');
+  if (!/^native-code: 'arm64-v8a'\s*$/m.test(badging)) throw new Error('APK must contain only arm64-v8a');
+  if (!badging.includes("name='android.permission.REQUEST_INSTALL_PACKAGES'")) throw new Error('APK missing installer permission');
   const manifest = {
     format: 'eirdan-runtime-update', format_version: 1,
     application_id: 'org.eirdan.runtime', abi: 'arm64-v8a',
-    version_code: code, version_name: version, min_sdk: 24,
+    version_code: code, version_name: version, min_sdk: minSdk,
     apk_url: `https://github.com/${repository}/releases/download/runtime-${code}/eirdan-runtime-debug.apk`,
     size_bytes: statSync(apk).size,
     sha256: createHash('sha256').update(readFileSync(apk)).digest('hex'),
