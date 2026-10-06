@@ -39,7 +39,7 @@ func _render(state: Dictionary) -> void:
 	_check.disabled = state.state in ["checking", "downloading"]
 	_download.disabled = state.state != "available"
 	_install.disabled = not state.state in ["ready", "permission_required", "installer_opened"]
-	var downloading := state.state == "downloading"
+	var downloading: bool = str(state.get("state", "")) == "downloading"
 	_progress.visible = downloading
 	_progress.value = float(state.get("progress", 0.0)) * 100.0
 	var messages := {
