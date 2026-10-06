@@ -14,7 +14,7 @@ static func ensure(state: Dictionary) -> Dictionary:
 
 static func start(state: Dictionary, region_id: String, from_id: String, to_id: String, method: String, route: Dictionary) -> Dictionary:
 	if route.is_empty() or route.get("polyline", []).is_empty(): return {}
-	var speed := float(SPEED_MPS.get(method, SPEED_MPS.walk))
+	var speed := float(SPEED_MPS.get(method, SPEED_MPS["walk"]))
 	var total := float(route.get("distance", 0.0))
 	var travel := {
 		"status": "travelling", "region_id": region_id, "from_id": from_id, "to_id": to_id,
@@ -28,7 +28,7 @@ static func start(state: Dictionary, region_id: String, from_id: String, to_id: 
 static func tick(state: Dictionary, delta_seconds: float) -> Dictionary:
 	var travel := ensure(state)
 	if travel.get("status") != "travelling": return travel
-	var speed := float(SPEED_MPS.get(str(travel.get("method", "walk")), SPEED_MPS.walk))
+	var speed := float(SPEED_MPS.get(str(travel.get("method", "walk")), SPEED_MPS["walk"]))
 	var remaining_move := maxf(0.0, delta_seconds) * speed
 	var polyline: Array = travel.route.get("polyline", [])
 	while remaining_move > 0.0 and int(travel.segment_index) < polyline.size() - 1:
