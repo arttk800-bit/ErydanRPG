@@ -80,6 +80,7 @@ func _on_diagnostics_destination(ok: bool, paths: PackedStringArray, _filter_ind
 		return
 	file.store_string(Diagnostics.export_json())
 	file.flush()
+	Diagnostics.info("diagnostics.exported", {"path": paths[0]})
 	status.text = "Диагностика экспортирована."
 
 func _diagnostic_snapshot() -> Dictionary:
