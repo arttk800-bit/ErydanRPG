@@ -8,6 +8,7 @@ const PackageOrder = preload("res://packages/package_order.gd")
 const DataSchema = preload("res://data/data_schema.gd")
 const ModuleRegistry = preload("res://modules/module_registry.gd")
 const GameModuleCatalog = preload("res://modules/game_module_catalog.gd")
+const RoadGraph = preload("res://roads/road_graph.gd")
 
 func _ready() -> void:
 	_test_package_order()
@@ -15,6 +16,7 @@ func _ready() -> void:
 	_test_save_store()
 	_test_module_registry()
 	_test_world_map_modules()
+	_test_roads()
 	var payload := "{\"travel\":{\"walk_speed_kmh\":4.2}}".to_utf8_buffer()
 	var hash := _sha256_for_bytes(payload)
 	_assert(not hash.is_empty(), "payload hash")
@@ -68,6 +70,28 @@ func _ready() -> void:
 
 
 
+
+func _test_roads() -> void:
+	var roads := {
+		"metrics": {"width_meters": 1000.0, "height_meters": 1000.0},
+		"nodes": [
+			{"id": "a", "x": 0.0, "y": 0.0},
+			{"id": "b", "x": 0.3, "y": 0.0},
+			{"id": "c", "x": 0.3, "y": 0.4},
+			{"id": "d", "x": 0.9, "y": 0.0}
+		],
+		"edges": [["a", "b"], ["b", "c"], ["a", "d"], ["d", "c"]],
+		"access": {"start": {"node": "a"}, "finish": {"node": "c"}}
+	}
+	_assert(RoadGraph.validate(roads).is_empty(), "valid road topology accepted")
+	_assert(is_equal_approx(RoadGraph.metric_distance(roads, roads.nodes[0], roads.nodes[1]), 300.0), "normalized road coordinates use physical map metrics")
+	var route := RoadGraph.shortest_route(roads, "start", "finish")
+	_assert(route.node_ids == ["a", "b", "c"], "shortest deterministic road route selected")
+	_assert(is_equal_approx(route.distance, 700.0), "road route reports metric distance")
+	var broken := roads.duplicate(true)
+	broken.access["missing"] = {"node": "ghost"}
+	_assert(not RoadGraph.validate(broken).is_empty(), "unknown road access node rejected")
+
 func _test_world_map_modules() -> void:
 	var state := {
 		"meta": {"state_version": 1, "world_id": "world-module-test", "world_name": "World Module Test"},
@@ -76,7 +100,7 @@ func _test_world_map_modules() -> void:
 	var registered := GameModuleCatalog.register_foundation(Modules)
 	_assert(registered.ok, "world/map module catalog registers")
 	var configured := Modules.configure({})
-	_assert(configured.ok and configured.active == ["world", "map"], "world/map modules resolve in dependency order")
+	_assert(configured.ok and configured.active == ["world", "map", "roads"], "world/map modules resolve in dependency order")
 	var started := Modules.start({"state": state})
 	_assert(started.ok, "world/map modules start")
 	var world = Modules.instance("world")
