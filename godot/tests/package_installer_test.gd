@@ -88,7 +88,7 @@ func _test_official_package_artifact() -> void:
 	_assert(installed.ok, "published official package installs through PackageManager")
 	_assert(installed.package.id == "eirdan.world.events" and installed.package.version == "1.0.0", "published package identity is preserved")
 	_assert(DataRegistry.reload_active_packages(Packages.active_packages()).ok, "published official package hot reloads")
-	var event := DataRegistry.entity("travel_events", "fallen_tree")
+	var event: Dictionary = DataRegistry.entity("travel_events", "fallen_tree")
 	_assert(event is Dictionary and event.title == "Дерево поперёк дороги", "published official content resolves through DataRegistry")
 
 
