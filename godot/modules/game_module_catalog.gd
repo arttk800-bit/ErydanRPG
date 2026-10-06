@@ -29,7 +29,7 @@ static func register_foundation(runtime: Node) -> Dictionary:
 	var roads: Dictionary = runtime.register_module({
 		"id": "roads",
 		"enabled_by_default": true,
-		"dependencies": ["map"],
+		"dependencies": [],
 		"owns": ["road_graph", "routing"],
 		"factory": func(): return RoadsModule.new()
 	})
