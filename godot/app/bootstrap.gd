@@ -17,13 +17,18 @@ func _ready() -> void:
 	$Panel/Diagnostics.pressed.connect(_export_diagnostics)
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	Diagnostics.info("runtime.ready")
+	_reload_data()
 	_refresh()
 
 func _refresh() -> void:
 	var active := Packages.active_packages()
-	status.text = "Runtime: Godot %s\nАктивных пакетов: %d\nДиагностика: включена" % [
+	var speed = DataRegistry.resolve("travel.walk_speed_kmh", "?")
+	var damage = DataRegistry.resolve("items.iron_sword.damage", "?")
+	var speed_source := _final_source(DataRegistry.provenance("travel.walk_speed_kmh"))
+	var damage_source := _final_source(DataRegistry.provenance("items.iron_sword.damage"))
+	status.text = "Runtime: Godot %s\nАктивных пакетов: %d\nСкорость пешком: %s км/ч  [%s]\nУрон железного меча: %s  [%s]\nДиагностика: включена" % [
 		Engine.get_version_info().get("string", "unknown"),
-		active.size()
+		active.size(), speed, speed_source, damage, damage_source
 	]
 
 func _import_package() -> void:
@@ -38,7 +43,9 @@ func _on_file_selected(ok: bool, paths: PackedStringArray, _filter_index: int) -
 	Diagnostics.info("packages.local_file_selected", {"path": path})
 	var result := Packages.install_archive(path)
 	if result.ok:
-		status.text = "Пакет установлен: %s@%s" % [result.package.id, result.package.version]
+		_reload_data()
+		_refresh()
+		Diagnostics.info("runtime.package_applied", {"id": result.package.id, "version": result.package.version})
 	else:
 		status.text = "Пакет отклонён на этапе %s:\n%s" % [result.get("stage", "unknown"), result.get("errors", result.get("error", "unknown error"))]
 
@@ -72,3 +79,10 @@ func _on_diagnostics_destination(ok: bool, paths: PackedStringArray, _filter_ind
 
 func _diagnostic_snapshot() -> Dictionary:
 	return {"scene": "bootstrap", "active_packages": Packages.active_packages().size()}
+
+func _reload_data() -> void:
+	DataRegistry.reload_active_packages(Packages.active_packages())
+
+func _final_source(entries: Array[Dictionary]) -> String:
+	if entries.is_empty(): return "нет данных"
+	return str(entries.back().get("source", "unknown"))
