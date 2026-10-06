@@ -115,3 +115,11 @@ Android runtime/APK version, package/content version, save schema, diagnostics f
 
 ## Godot package activation order
 Package manifests may declare `dependencies[]`, `conflicts[]` and integer `priority`. Package IDs are the dependency/conflict identity. Package Manager validates the complete candidate active set before replacing the current one. Missing dependencies, cycles and conflicts reject activation. The resolved load order is deterministic: dependency constraints first; otherwise ascending `priority`, then package ID. DataRegistry consumes this resolved order and does not infer override precedence from activation history.
+
+
+## Godot authored data schema
+`godot/data/data_schema.gd` owns structural validation of authored base and override data. DataRegistry owns storage/resolution/provenance and delegates schema rules rather than embedding field-specific validation.
+
+Entity collections use stable IDs as dictionary keys (for example `items.iron_sword`). The key is canonical identity; localized/player-visible names are mutable data. `DataRegistry.entity(domain, id)` exposes the canonical key as the returned entity's `id` without requiring duplicate identity fields in authored JSON.
+
+Override payloads are sparse patches. They may replace supported fields of existing entity IDs but may not silently create an entity through override data. New definitions belong to base/content data rather than an override package. Unknown root domains and unsupported fields are rejected until their owning domain extends the schema intentionally.
