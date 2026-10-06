@@ -62,11 +62,8 @@ func _initialize_new_world_if_needed(region: Dictionary, world) -> void:
 		if point is Dictionary and str(point.get("id", "")) == "veligrad":
 			start = point
 			break
-	world.enter_region(str(region.region_id))
 	if not start.is_empty():
-		world.enter_map_point(start)
-		world.visit(start)
-		_state.world["position"] = {"region_id": str(region.region_id), "point_id": str(start.id)}
+		world.initialize_at(str(region.region_id), start)
 
 func _reload_runtime() -> void:
 	_reload_data()
@@ -76,7 +73,8 @@ func _reload_runtime() -> void:
 func _save_game() -> void:
 	var result := SaveStore.save_state(_state)
 	if result.ok:
-		_state = result.state
+		var saved_meta: Dictionary = result.state.get("meta", {})
+		_state["meta"] = saved_meta.duplicate(true)
 		status.text = "Мир сохранён"
 	else:
 		status.text = "Ошибка сохранения: %s" % result.get("errors", [])
