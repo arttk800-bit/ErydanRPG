@@ -4,7 +4,10 @@
 # ============================================================================
 extends Node
 
+const PackageOrder = preload("res://packages/package_order.gd")
+
 func _ready() -> void:
+	_test_package_order()
 	var payload := "{\"travel\":{\"walk_speed_kmh\":4.2}}".to_utf8_buffer()
 	var hash := _sha256_for_bytes(payload)
 	_assert(not hash.is_empty(), "payload hash")
@@ -52,6 +55,35 @@ func _ready() -> void:
 
 	print("godot package installer integration: OK")
 	get_tree().quit(0)
+
+
+func _test_package_order() -> void:
+	var unordered: Array[Dictionary] = [
+		{"id": "mod.z", "priority": 10, "dependencies": [], "conflicts": []},
+		{"id": "mod.a", "priority": 10, "dependencies": [], "conflicts": []},
+		{"id": "mod.patch", "priority": -100, "dependencies": ["mod.z"], "conflicts": []}
+	]
+	var resolved := PackageOrder.resolve(unordered)
+	_assert(resolved.ok, "package order resolves")
+	var ids: Array[String] = []
+	for record in resolved.records:
+		ids.append(record.id)
+	_assert(ids == ["mod.a", "mod.z", "mod.patch"], "priority/id order is deterministic and dependencies win")
+
+	var missing := PackageOrder.resolve([{"id": "mod.child", "dependencies": ["mod.missing"]}])
+	_assert(not missing.ok, "missing dependency rejected")
+
+	var conflict := PackageOrder.resolve([
+		{"id": "mod.a", "conflicts": ["mod.b"]},
+		{"id": "mod.b"}
+	])
+	_assert(not conflict.ok, "active conflict rejected")
+
+	var cycle := PackageOrder.resolve([
+		{"id": "mod.a", "dependencies": ["mod.b"]},
+		{"id": "mod.b", "dependencies": ["mod.a"]}
+	])
+	_assert(not cycle.ok, "dependency cycle rejected")
 
 func _reject_test_domain(_manifest: Dictionary, _payload_path: String) -> Dictionary:
 	return {"ok": false, "errors": ["test domain rejection"]}
