@@ -101,7 +101,7 @@ func _on_main_menu_action(action: String) -> void:
 			status.text = "Настройки — следующий экран UI"
 
 func _create_named_world() -> void:
-	var world_name := $NewWorldDialog/Content/Name.text.strip_edges()
+	var world_name: String = str($NewWorldDialog/Content/Name.text).strip_edges()
 	if world_name.is_empty(): world_name = "Эйрдан"
 	var world_id := "world-%d" % Time.get_unix_time_from_system()
 	_state = {"meta": {"state_version": 1, "world_id": world_id, "world_name": world_name}, "world": {}}
