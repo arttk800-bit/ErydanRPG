@@ -128,5 +128,5 @@ Roads is read-only navigation computation. It does not mutate World location, Ma
 
 The initial vertical slice deliberately covers deterministic regional start/tick/stop/resume/cancel/arrival. Terrain traversal modifiers, events, camp and cross-scope location journeys remain later Travel extensions and must stay behind the same boundary.
 
-## Android in-place update contract
-Godot Android builds keep the stable package ID `org.eirdan.runtime` and CI restores one stable development keystore from repository secrets. Debug APKs produced with that identity/signing pair are intended to install over prior Eirdan runtime builds rather than requiring uninstall/reinstall. Mutable saves remain under Godot `user://`; save-schema migration remains Persistence ownership.
+## Android debug signing
+Current CI Android builds use Godot's standard debug signing path. No project keystore or signing secrets are required at this development stage. The package ID remains `org.eirdan.runtime`, but in-place installation over an older CI APK is not a guaranteed contract until stable signing is intentionally introduced. Mutable saves remain Persistence ownership under Godot `user://`.
