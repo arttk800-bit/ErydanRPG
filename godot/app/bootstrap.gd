@@ -22,6 +22,8 @@ func _ready() -> void:
 		return
 	$HUD/TopBar/Reload.pressed.connect(_reload_runtime)
 	$HUD/TopBar/Import.pressed.connect(_import_package)
+	$HUD/TopBar/Save.pressed.connect(_save_game)
+	$HUD/TopBar/Load.pressed.connect(_load_game)
 	$HUD/TopBar/Diagnostics.pressed.connect(_export_diagnostics)
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
@@ -54,6 +56,26 @@ func _reload_runtime() -> void:
 	_reload_data()
 	Modules.stop()
 	_start_gameplay()
+
+func _save_game() -> void:
+	var result := SaveStore.save_state(_state)
+	if result.ok:
+		_state = result.state
+		status.text = "Мир сохранён"
+	else:
+		status.text = "Ошибка сохранения: %s" % result.get("errors", [])
+
+func _load_game() -> void:
+	var world_id := str(_state.get("meta", {}).get("world_id", ""))
+	var result := SaveStore.load_state(world_id)
+	if not result.ok:
+		status.text = "Ошибка загрузки: %s" % result.get("errors", [])
+		return
+	Modules.stop()
+	_state = result.state
+	_reload_data()
+	_start_gameplay()
+	status.text = "Мир загружен"
 
 func _import_package() -> void:
 	var err := LocalImport.choose_package(_on_file_selected)
