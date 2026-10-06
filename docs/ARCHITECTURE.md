@@ -77,3 +77,7 @@ Diagnostics observes active systems through read-only adapters. State/save valid
 ## Authored map registry and diagnostics
 Authored map-bearing domains are declared in `game/data/map-registry.js`. Map diagnostics consumes registry descriptors and public Map/Travel contracts instead of importing a specific city. Content connectivity or terrain conflicts remain diagnostic findings; deterministic routing/terrain behavior belongs to synthetic campaign regression tests.
 
+## Travel boundary contract (0.90)
+`TravelSystem` owns regional movement and arrival. A mapped regional POI has one physical access node; that node may have any number of road edges. `LocationEntrySystem` resolves one explicitly selected transition inside the mapped location. Arrival direction is intentionally not preserved across the boundary. Internal location navigation (for example district approaches) may still expose multiple access nodes and is not part of this simplification.
+
+`SimulationSystem` owns the real-time→game-time conversion. Normal simulation is 1:1. Fast-forward is a binary runtime mode available only to Travel and Sleep; there is no global game-speed system. `PauseSystem` owns independent runtime pause reasons and pause state is never persistent.
