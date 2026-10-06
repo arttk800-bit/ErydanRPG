@@ -258,6 +258,24 @@ text = "Настройки"
 layout_mode = 2
 text = "Обновления"
 
+[node name="NewWorldDialog" type="ConfirmationDialog" parent="."]
+title = "Новый мир"
+size = Vector2i(460, 180)
+ok_button_text = "Создать"
+cancel_button_text = "Отмена"
+
+[node name="Content" type="VBoxContainer" parent="NewWorldDialog"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 444.0
+offset_bottom = 100.0
+[node name="Label" type="Label" parent="NewWorldDialog/Content"]
+layout_mode = 2
+text = "Название мира"
+[node name="Name" type="LineEdit" parent="NewWorldDialog/Content"]
+layout_mode = 2
+placeholder_text = "Эйрдан"
+
 [node name="Toast" type="Label" parent="."]
 offset_left = 24.0
 offset_top = 606.0
