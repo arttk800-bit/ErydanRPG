@@ -20,6 +20,17 @@ func load_base_file(path: String) -> bool:
 	set_base(data, path)
 	return true
 
+func validate_package_candidate(manifest: Dictionary, payload_path: String) -> Dictionary:
+	if manifest.get("kind") != "override":
+		return {"ok": true}
+	if payload_path.get_extension().to_lower() != "json":
+		return {"ok": false, "errors": ["override payload must be JSON"]}
+	var data = _read_json_file(payload_path)
+	if data is not Dictionary:
+		return {"ok": false, "errors": ["override payload must be a JSON object"]}
+	var errors := _validate_override_data(data)
+	return {"ok": errors.is_empty(), "errors": errors}
+
 func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 	_layers.clear()
 	var failures: Array[Dictionary] = []
@@ -88,3 +99,29 @@ func _read_path(root: Dictionary, path: String, fallback):
 		if current is not Dictionary or not current.has(key): return fallback
 		current = current[key]
 	return current
+
+
+func _validate_override_data(data: Dictionary) -> Array[String]:
+	var errors: Array[String] = []
+	if data.has("travel"):
+		if data.travel is not Dictionary:
+			errors.append("travel must be an object")
+		else:
+			if data.travel.has("walk_speed_kmh") and (data.travel.walk_speed_kmh is not float and data.travel.walk_speed_kmh is not int):
+				errors.append("travel.walk_speed_kmh must be numeric")
+			elif data.travel.has("walk_speed_kmh") and float(data.travel.walk_speed_kmh) <= 0.0:
+				errors.append("travel.walk_speed_kmh must be > 0")
+	if data.has("items"):
+		if data.items is not Dictionary:
+			errors.append("items must be an object")
+		else:
+			for item_id in data.items:
+				var item = data.items[item_id]
+				if item is not Dictionary:
+					errors.append("items.%s must be an object" % item_id)
+					continue
+				if item.has("damage") and (item.damage is not float and item.damage is not int):
+					errors.append("items.%s.damage must be numeric" % item_id)
+				elif item.has("damage") and float(item.damage) < 0.0:
+					errors.append("items.%s.damage must be >= 0" % item_id)
+	return errors
