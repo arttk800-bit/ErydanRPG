@@ -8,8 +8,17 @@ const WorldModule = preload("res://world/world_module.gd")
 const MapModule = preload("res://map/map_module.gd")
 const RoadsModule = preload("res://roads/roads_module.gd")
 const TravelModule = preload("res://travel/travel_module.gd")
+const SimulationModule = preload("res://simulation/simulation_module.gd")
 
 static func register_foundation(runtime: Node) -> Dictionary:
+	var simulation: Dictionary = runtime.register_module({
+		"id": "simulation",
+		"enabled_by_default": true,
+		"dependencies": [],
+		"owns": ["game_time", "runtime_time_conversion"],
+		"factory": func(): return SimulationModule.new()
+	})
+	if not simulation.ok: return simulation
 	var world: Dictionary = runtime.register_module({
 		"id": "world",
 		"enabled_by_default": true,
