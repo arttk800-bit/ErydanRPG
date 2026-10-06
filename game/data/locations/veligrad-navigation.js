@@ -1,8 +1,8 @@
 // ============================================================================
 // VELIGRAD NAVIGATION
 // Canonical pedestrian graph for city-01-central-lands.png.
-// Logical districts use multiple access ports; buildings/walls/water are
-// navigation obstacles, while gates and bridges are explicit passages.
+// The location boundary has one selected transition; districts may still use
+// multiple internal access nodes. Obstacles and passages remain map-local.
 // ============================================================================
 export const VELIGRAD_NAVIGATION={
  mapId:'location:veligrad',version:2,
@@ -26,12 +26,7 @@ export const VELIGRAD_NAVIGATION={
   ['vg-sw2','vg-s2'],['vg-ne2','vg-ce'],['vg-se2','vg-s2']
  ],
  access:{
-  'veligrad':{ports:[
-   {id:'veligrad:west',node:'vg-gate-w',pointId:'veligrad-gate-west'},
-   {id:'veligrad:northwest',node:'vg-gate-nw',pointId:'veligrad-gate-northwest'},
-   {id:'veligrad:east',node:'vg-gate-e',pointId:'veligrad-gate-east'},
-   {id:'veligrad:south',node:'vg-gate-s',pointId:'veligrad-gate-south'}
-  ]},
+  'veligrad':{node:'vg-gate-w',pointId:'veligrad-gate-west'},
   'veligrad-district-west':{ports:[{id:'west:north',node:'vg-w2'},{id:'west:east',node:'vg-w3'},{id:'west:south',node:'vg-w1'}]},
   'veligrad-district-northwest':{ports:[{id:'northwest:north',node:'vg-n2'},{id:'northwest:east',node:'vg-n3'},{id:'northwest:south',node:'vg-bridge-w'}]},
   'veligrad-district-north':{ports:[{id:'north:west',node:'vg-n3'},{id:'north:south',node:'vg-n4'},{id:'north:east',node:'vg-ne1'}]},
