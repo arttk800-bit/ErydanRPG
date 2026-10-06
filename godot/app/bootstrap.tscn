@@ -5,6 +5,11 @@
 [ext_resource path="res://ui/main_menu.gd" type="Script" id="3"]
 [ext_resource path="res://ui/game_shell.gd" type="Script" id="4"]
 [ext_resource path="res://ui/screen_frame.gd" type="Script" id="5"]
+[ext_resource path="res://ui/world_screen.gd" type="Script" id="6"]
+[ext_resource path="res://ui/save_browser.gd" type="Script" id="7"]
+[ext_resource path="res://ui/settings_screen.gd" type="Script" id="8"]
+[ext_resource path="res://ui/context_panel.gd" type="Script" id="9"]
+[ext_resource path="res://ui/toast.gd" type="Script" id="10"]
 
 [node name="Bootstrap" type="Control"]
 layout_mode = 3
@@ -14,6 +19,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+
+[node name="WorldScreen" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+script = ExtResource("6")
 
 [node name="RegionalMap" type="Control" parent="."]
 layout_mode = 1
@@ -201,6 +217,7 @@ size_flags_vertical = 3
 layout_mode = 2
 vertical_alignment = 1
 horizontal_alignment = 1
+script = ExtResource("10")
 
 [node name="Inventory" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
 visible = false
@@ -306,6 +323,89 @@ text = "Главное меню"
 layout_mode = 2
 text = "Главное меню"
 
+[node name="SaveBrowser" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("7")
+[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser"]
+layout_mode = 2
+[node name="Back" type="Button" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser/Header"]
+layout_mode = 2
+text = "←"
+[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser/Header"]
+layout_mode = 2
+text = "Загрузить игру"
+theme_override_font_sizes/font_size = 28
+[node name="List" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens/SaveBrowser"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Settings" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("8")
+[node name="Header" type="HBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Settings"]
+layout_mode = 2
+[node name="Back" type="Button" parent="GameShell/Layout/ContentHost/Screens/Settings/Header"]
+layout_mode = 2
+text = "←"
+[node name="Title" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Header"]
+layout_mode = 2
+text = "Настройки"
+theme_override_font_sizes/font_size = 28
+[node name="Sections" type="VBoxContainer" parent="GameShell/Layout/ContentHost/Screens/Settings"]
+layout_mode = 2
+[node name="Interface" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Интерфейс"
+[node name="Audio" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Звук"
+[node name="Gameplay" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Игровой процесс"
+[node name="Development" type="Label" parent="GameShell/Layout/ContentHost/Screens/Settings/Sections"]
+layout_mode = 2
+text = "Разработка"
+
+[node name="ContextPanel" type="PanelContainer" parent="GameShell"]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -280.0
+offset_right = -18.0
+offset_bottom = -78.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("9")
+[node name="Margin" type="MarginContainer" parent="GameShell/ContextPanel"]
+layout_mode = 2
+[node name="Content" type="VBoxContainer" parent="GameShell/ContextPanel/Margin"]
+layout_mode = 2
+[node name="Title" type="Label" parent="GameShell/ContextPanel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+[node name="Body" type="Label" parent="GameShell/ContextPanel/Margin/Content"]
+layout_mode = 2
+autowrap_mode = 2
+[node name="Actions" type="HBoxContainer" parent="GameShell/ContextPanel/Margin/Content"]
+layout_mode = 2
+
 [node name="MainMenu" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -391,4 +491,5 @@ offset_bottom = -22.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
+script = ExtResource("10")
 horizontal_alignment = 1
