@@ -77,7 +77,7 @@ for(const contract of [/SECONDS_PER_DAY/,/func advance\(/,/func snapshot\(/,/"da
 const simulation=await read('godot/simulation/simulation_module.gd');
 for(const contract of [/func set_mode\(/,/travel_fast/,/sleep_fast/,/func step\(/,/GameTimeState\.advance/,/Diagnostics\.register_provider/] ) assert.match(simulation,contract);
 const travelModule=await read('godot/travel/travel_module.gd');
-for(const contract of [/_roads\.route\(/,/DataRegistry\.resolve\("travel\.%s_speed_kmh"/,/travel\.started/,/travel\.legacy_speed_migrated/,/_world\.enter_map_point\(/,/func arrive\(/,/func snapshot\(/,/Diagnostics\.register_provider/] ) assert.match(travelModule,contract);
+for(const contract of [/func preview\(/,/_roads\.route\(/,/DataRegistry\.resolve\("travel\.%s_speed_kmh"/,/travel\.started/,/travel\.legacy_speed_migrated/,/_world\.enter_map_point\(/,/func arrive\(/,/func snapshot\(/,/Diagnostics\.register_provider/] ) assert.match(travelModule,contract);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
@@ -101,6 +101,8 @@ assert.match(androidPreset,/permissions\/internet=true/);
 assert.match(androidPreset,/package\/unique_name="org\.eirdan\.runtime"/);
 assert.match(androidPreset,/gradle_build\/use_gradle_build=false/);
 
+const theme=await read('godot/ui/eirdan_theme.gd');
+for(const contract of [/static func build\(\) -> Theme/,/static func panel_style\(\) -> StyleBoxFlat/]) assert.match(theme,contract);
 const bootstrap=await read('godot/app/bootstrap.gd');
 assert.match(bootstrap,/FILE_DIALOG_MODE_SAVE_FILE/);
 assert.match(bootstrap,/diagnostics\.exported/);
@@ -123,6 +125,7 @@ const regionalMap=await read('godot/map/regional_map_view.gd');
 for(const contract of [/_travel\.begin\(/,/Camera2D/,/func _input\(/,/InputEventScreenTouch/,/InputEventScreenDrag/,/_input_counts/,/MapAssetLoader\.background/,/Diagnostics\.register_provider/] ) assert.match(regionalMap,contract);
 assert.doesNotMatch(regionalMap,/func _unhandled_input\(/);
 assert.doesNotMatch(regionalMap,/func _process\(|_simulation\.step\(|_travel\.tick\(|_travel\.arrive\(/);
+for(const contract of [/_travel\.preview\(/,/func _confirm_preview\(/,/travel_card\.visible/,/journey_progress\.value/]) assert.match(regionalMap,contract);
 const bootstrapScene=await read('godot/app/bootstrap.tscn');
 assert.match(bootstrapScene,/\[node name="HUD" type="CanvasLayer" parent="\."\]/);
 assert.match(bootstrapScene,/follow_viewport_enabled = false/);
