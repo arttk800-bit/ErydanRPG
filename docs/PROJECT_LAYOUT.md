@@ -47,3 +47,6 @@ Startup-critical visual assets are preloaded through `game/client/asset-loader.j
 Godot/Android is the active development target. The PWA under `game/` remains preserved and runnable as a reference implementation while systems are migrated deliberately. It is not deleted until relevant behavior and data have been transferred and verified.
 
 APK binaries are runtime releases. Authorable content and balance use package/data layers where practical rather than requiring an APK rebuild.
+
+- `godot/map/region_map_view.gd` / `regional_map_view.gd` — native layered regional presentation, Camera2D input and rendering adapters only.
+- `godot/map/map_asset_loader.gd` — runtime external regional background loader; visual assets live under `user://map_assets/<region>/` and are replaceable independently of APK gameplay code.
