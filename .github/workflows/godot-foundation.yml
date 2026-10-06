@@ -31,4 +31,4 @@ jobs:
       - name: Headless project boot
         run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --quit-after 2
       - name: Package installer integration
-        run: timeout 45s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot res://tests/package_installer_test.tscn
+        run: timeout 45s /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot -- --package-installer-test
