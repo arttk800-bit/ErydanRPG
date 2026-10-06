@@ -181,6 +181,7 @@ func _test_save_store() -> void:
 			"created_at": "2026-01-01T00:00:00Z",
 			"updated_at": "2026-01-01T00:00:00Z"
 		},
+		"time": {"day": 1, "second": 28800.0},
 		"world": {}
 	}
 	var saved := SaveStore.save_state(state)
@@ -188,6 +189,7 @@ func _test_save_store() -> void:
 	var loaded := SaveStore.load_state(world_id)
 	_assert(loaded.ok and loaded.state.meta.world_id == world_id, "saved state loads")
 	_assert(loaded.state.meta.state_version == 1, "state schema version preserved")
+	_assert(loaded.state.time.day == 1 and loaded.state.time.second == 28800.0, "canonical game time persists")
 	var listed := SaveStore.list_saves().filter(func(item): return item.world_id == world_id)
 	_assert(listed.size() == 1 and listed[0].world_name == "Persistence Test", "save metadata lists independently of UI")
 	var invalid := state.duplicate(true)
