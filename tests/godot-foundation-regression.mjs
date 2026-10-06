@@ -102,6 +102,5 @@ assert.match(installerTest,/invalid JSON rejected before activation/);
 assert.match(installerTest,/invalid data preserves active package/);
 
 const androidWorkflow=await read('.github/workflows/godot-android-debug.yml');
-assert.doesNotMatch(androidWorkflow,/keytool -genkeypair/);
-for(const secret of ['EIRDAN_DEV_KEYSTORE_B64','EIRDAN_DEV_KEYSTORE_PASSWORD','EIRDAN_DEV_KEY_ALIAS']) assert.match(androidWorkflow,new RegExp(secret));
-assert.match(androidWorkflow,/Restore stable development keystore/);
+assert.doesNotMatch(androidWorkflow,/EIRDAN_DEV_KEYSTORE|Restore stable development keystore|GODOT_ANDROID_KEYSTORE_DEBUG/);
+assert.match(androidWorkflow,/--export-debug "Android Debug"/);
