@@ -4,6 +4,8 @@
 # ============================================================================
 extends RefCounted
 
+const RoadGraph = preload("res://roads/road_graph.gd")
+
 static func validate(region: Dictionary, expected_id: String = "") -> Array[String]:
 	var errors: Array[String] = []
 	var region_id := str(region.get("region_id", ""))
@@ -33,6 +35,9 @@ static func validate(region: Dictionary, expected_id: String = "") -> Array[Stri
 				elif float(value) < 0.0 or float(value) > 1.0:
 					errors.append("points[%s].%s must be normalized 0..1" % [index, axis])
 	_validate_roads(region.get("roads"), errors)
+	if region.get("roads") is Dictionary:
+		for error in RoadGraph.validate(region.roads): errors.append("roads: %s" % error)
+		_validate_access_owners(region, errors)
 	return errors
 
 static func _validate_metrics(value, path: String, errors: Array[String]) -> void:
@@ -54,3 +59,11 @@ static func _validate_roads(value, errors: Array[String]) -> void:
 	if value.get("nodes") is not Array: errors.append("roads.nodes must be an array")
 	if value.get("edges") is not Array: errors.append("roads.edges must be an array")
 	if value.get("access") is not Dictionary: errors.append("roads.access must be an object")
+
+static func _validate_access_owners(region: Dictionary, errors: Array[String]) -> void:
+	var point_ids: Dictionary = {}
+	for point in region.get("points", []):
+		if point is Dictionary: point_ids[str(point.get("id", ""))] = true
+	for owner_id in region.get("roads", {}).get("access", {}):
+		if not point_ids.has(str(owner_id)):
+			errors.append("roads.access references unknown point: %s" % owner_id)
