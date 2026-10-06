@@ -145,3 +145,11 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Added runtime external background loading from `user://map_assets/<region>/background.*` with a safe schematic fallback.
 - Decoupled Roads from Map browsing; routing now depends only on authored road data.
 - Map presentation exposes a read-only diagnostics snapshot and continues to call World/Roads/Travel public APIs rather than owning gameplay state.
+
+
+## Android map input correction
+- Moved runtime controls into an independent screen-space CanvasLayer so Camera2D cannot move diagnostics/package/reload controls.
+- Regional touch handling now uses raw _input for ScreenTouch/ScreenDrag rather than relying on _unhandled_input after GUI propagation.
+- Added explicit single-touch pan, tap-slop selection, two-touch pinch state and post-pinch tap suppression.
+- Added read-only touch/drag/tap/pinch counters to map presentation diagnostics for device verification.
+- POI geometry/hit radius was intentionally not enlarged: this pass targets lost/consumed input rather than masking it with oversized targets.
