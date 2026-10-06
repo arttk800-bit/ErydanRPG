@@ -4,11 +4,37 @@
 # ============================================================================
 extends Node
 
+const BASE_PATH := "res://data/examples/base.json"
 var _base: Dictionary = {}
 var _layers: Array[Dictionary] = []
 
 func _ready() -> void:
 	Diagnostics.register_provider(&"data_registry", snapshot)
+	load_base_file(BASE_PATH)
+
+func load_base_file(path: String) -> bool:
+	var data = _read_json_file(path)
+	if data is not Dictionary:
+		Diagnostics.error("data.base_rejected", {"path": path})
+		return false
+	set_base(data, path)
+	return true
+
+func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
+	_layers.clear()
+	var failures: Array[Dictionary] = []
+	var priority := 100
+	for record in records:
+		if record.get("kind") != "override": continue
+		var path := str(record.get("path", ""))
+		var data = _read_json_file(path)
+		if data is not Dictionary:
+			failures.append({"id": record.get("id"), "path": path})
+			continue
+		set_layer(str(record.get("id")), priority, data)
+		priority += 10
+	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "failures": failures.size()})
+	return {"ok": failures.is_empty(), "failures": failures}
 
 func set_base(data: Dictionary, source: String = "base") -> void:
 	_base = data.duplicate(true)
@@ -42,7 +68,19 @@ func provenance(path: String) -> Array[Dictionary]:
 func snapshot() -> Dictionary:
 	var ids: Array[String] = []
 	for layer in _layers: ids.append(str(layer.id))
-	return {"layers": ids, "layer_count": _layers.size()}
+	return {
+		"layers": ids,
+		"layer_count": _layers.size(),
+		"walk_speed_kmh": resolve("travel.walk_speed_kmh"),
+		"iron_sword_damage": resolve("items.iron_sword.damage"),
+		"walk_speed_provenance": provenance("travel.walk_speed_kmh"),
+		"iron_sword_damage_provenance": provenance("items.iron_sword.damage")
+	}
+
+func _read_json_file(path: String):
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null: return null
+	return JSON.parse_string(file.get_as_text())
 
 func _read_path(root: Dictionary, path: String, fallback):
 	var current = root
