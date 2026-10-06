@@ -160,3 +160,5 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Save world IDs are collision-safe: only explicit ASCII letters, digits, '-' and '_' are accepted instead of filename sanitization.
 - The active World/Travel shared state can now be saved and loaded from the Android vertical slice through fixed HUD controls.
 - Loading stops modules before replacing the shared state and then restarts the same composition root against the restored state.
+
+- Fixed save/load integration regression: RegionalMap presentation no longer resets World to Veligrad during setup. New-world initialization is owned by bootstrap composition and runs only when no persistent physical position exists; map presentation restores its marker from the public World position API.
