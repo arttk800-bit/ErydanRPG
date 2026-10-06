@@ -131,8 +131,8 @@ func _read_envelope(path:String)->Dictionary:
 	var errors:=SaveSchema.validate_envelope(parsed)
 	if not errors.is_empty():return {"ok":false,"errors":errors}
 	var state:Dictionary=parsed.state
-	var state_errors:=SaveSchema.validate_state(state)
-	if not state_errors.is_empty():return {"ok":false,"errors":state_errors}
+	# Envelope validation happens here; state validation follows migration in load_state().
+	# This keeps legacy saves loadable while malformed migrated state is still rejected.
 	return {"ok":true,"state":state}
 
 func _valid_world_id(world_id:String)->bool:
