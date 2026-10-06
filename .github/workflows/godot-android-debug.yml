@@ -28,22 +28,7 @@ jobs:
           cp -a /tmp/templates/templates/. "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
           printf '4.7.2.stable.official.ed1daf0bf\n' > "$HOME/.local/share/godot/export_templates/4.7.2.stable/version.txt"
 
-      - name: Restore stable development keystore
-        run: |
-          set -euo pipefail
-          test -n "$EIRDAN_DEV_KEYSTORE_B64" || { echo "Missing EIRDAN_DEV_KEYSTORE_B64 repository secret"; exit 1; }
-          printf '%s' "$EIRDAN_DEV_KEYSTORE_B64" | base64 --decode > /tmp/eirdan-development.keystore
-          keytool -list -keystore /tmp/eirdan-development.keystore -storepass "$EIRDAN_DEV_KEYSTORE_PASSWORD" -alias "$EIRDAN_DEV_KEY_ALIAS" >/dev/null
-        env:
-          EIRDAN_DEV_KEYSTORE_B64: ${{ secrets.EIRDAN_DEV_KEYSTORE_B64 }}
-          EIRDAN_DEV_KEYSTORE_PASSWORD: ${{ secrets.EIRDAN_DEV_KEYSTORE_PASSWORD }}
-          EIRDAN_DEV_KEY_ALIAS: ${{ secrets.EIRDAN_DEV_KEY_ALIAS }}
-
       - name: Export Android debug APK
-        env:
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /tmp/eirdan-development.keystore
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: ${{ secrets.EIRDAN_DEV_KEY_ALIAS }}
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: ${{ secrets.EIRDAN_DEV_KEYSTORE_PASSWORD }}
         run: |
           set -o pipefail
           mkdir -p build
