@@ -97,6 +97,13 @@ static func enter_map_point(state: Dictionary, point: Dictionary) -> Dictionary:
 			current_state["place_id"] = point.id
 	return current_state
 
+static func initialize_at(state: Dictionary, region_id: String, point: Dictionary) -> Dictionary:
+	var current_state := enter_region(state, region_id)
+	if point.is_empty(): return current_state
+	enter_map_point(state, point)
+	ensure(state)["position"] = {"region_id": region_id, "point_id": str(point.get("id", ""))}
+	return current_state
+
 static func leave_location_for_region(state: Dictionary) -> Dictionary:
 	var current_state := current(state)
 	current_state["location_id"] = null
