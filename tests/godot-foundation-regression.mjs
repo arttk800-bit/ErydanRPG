@@ -5,6 +5,7 @@ import {readFile} from 'node:fs/promises';
 
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const project=await read('godot/project.godot');
+assert.match(project,/config\/version="0\.1\.0-foundation"/);
 for(const autoload of ['Diagnostics','Packages','DataRegistry'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
 
 const manager=await read('godot/packages/package_manager.gd');
@@ -38,3 +39,9 @@ assert.equal(manifest.payload,'user-balance.json');
 assert.match(manifest.sha256,/^[0-9a-f]{64}$/);
 
 console.log('godot foundation regression: OK');
+
+const androidPreset=await read('godot/export_presets.cfg');
+assert.match(androidPreset,/name="Android Debug"/);
+assert.match(androidPreset,/architectures\/arm64-v8a=true/);
+assert.match(androidPreset,/permissions\/internet=true/);
+assert.match(androidPreset,/gradle_build\/use_gradle_build=false/);
