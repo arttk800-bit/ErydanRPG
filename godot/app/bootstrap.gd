@@ -7,6 +7,9 @@ extends Control
 @onready var status: Label = $Panel/Status
 
 func _ready() -> void:
+	if "--package-installer-test" in OS.get_cmdline_user_args():
+		get_tree().change_scene_to_file("res://tests/package_installer_test.tscn")
+		return
 	$Panel/Reload.pressed.connect(_refresh)
 	$Panel/Import.pressed.connect(_import_package)
 	$Panel/Diagnostics.pressed.connect(_export_diagnostics)
