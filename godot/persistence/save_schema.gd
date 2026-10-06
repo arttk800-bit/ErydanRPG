@@ -32,6 +32,16 @@ static func validate_state(state: Dictionary) -> Array[String]:
 		errors.append("meta.state_version must be positive")
 	elif version > STATE_VERSION:
 		errors.append("state version is newer than runtime")
+	var time = state.get("time")
+	if time is not Dictionary:
+		errors.append("time must be an object")
+	else:
+		var day: Variant = time.get("day")
+		var second: Variant = time.get("second")
+		if not (day is int or day is float) or float(day) != floor(float(day)) or int(day) < 1:
+			errors.append("time.day must be a positive integer")
+		if not (second is int or second is float) or not is_finite(float(second)) or float(second) < 0.0 or float(second) >= 86400.0:
+			errors.append("time.second must be within 0..<86400")
 	return errors
 
 static func metadata(state: Dictionary) -> Dictionary:
