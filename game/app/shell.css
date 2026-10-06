@@ -92,9 +92,10 @@
 .region-poi.party-near.travel-label{transform:translate(-50%,calc(-50% - 42px))}
 .region-poi.route-start::before,.region-poi.route-target::before{flex:0 0 auto}
 
-/* Settings is a contextual overlay: the current game/main screen remains visible behind it. */
-#screen-settings{position:fixed;inset:0;z-index:18;min-height:100dvh;background:color-mix(in srgb,var(--bg) 62%,transparent);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
-#screen-settings .panel{box-shadow:0 18px 55px #0008;background:color-mix(in srgb,var(--panel) 94%,transparent)}
+/* Settings blur only when opened over an active game session. */
+#screen-settings[data-context="game"]{position:fixed;inset:0;z-index:18;min-height:100dvh;background:color-mix(in srgb,var(--bg) 62%,transparent);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#screen-settings[data-context="game"] .panel{box-shadow:0 18px 55px #0008;background:color-mix(in srgb,var(--panel) 94%,transparent)}
+.version-tools{display:flex;justify-content:center;align-items:center;gap:2px}.debug-shortcut{min-width:30px;min-height:30px;padding:3px 7px;border-color:transparent;background:transparent;color:var(--muted);font-size:12px}
 
 /* Game menu uses the same restrained vertical hierarchy as the main menu. */
 .game-menu-list{display:grid;gap:9px}.game-menu-list button{width:100%;min-height:48px}.modal:has(.game-menu-list){background:#0008}.modal:has(.game-menu-list) .modal-card{width:min(88vw,420px);padding:16px 18px 18px}.modal:has(.game-menu-list) #modalTitle{text-align:center;margin:2px 0 8px}.modal:has(.game-menu-list) .modal-actions{display:none}
