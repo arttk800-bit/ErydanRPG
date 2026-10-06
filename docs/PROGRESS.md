@@ -59,3 +59,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Settings blur only over an active game; diagnostics moved to the main menu.
 - World selection artifact/current-region status and route-message stacking were corrected.
 - State schema: v4. Runtime build: travel-contract-0.90.0-alpha.
+
+
+## Godot/Android foundation
+- Active client development moved to an isolated Godot/Android runtime while preserving the PWA as a reference implementation.
+- Added portable package infrastructure with manifest/compatibility validation, SHA-256 verification, activation and rollback.
+- Added DataRegistry foundation for base/override resolution and provenance.
+- Added runtime diagnostics and Android system-file import/export.
+- Added real Godot headless integration validation and automated arm64 debug APK export.
+- Verified the foundation on a physical Android device: runtime startup, package picker and diagnostic save flow.
