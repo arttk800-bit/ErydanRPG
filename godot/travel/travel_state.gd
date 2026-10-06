@@ -17,7 +17,7 @@ static func start(state: Dictionary, region_id: String, from_id: String, to_id: 
 	var travel := {
 		"status": "travelling", "region_id": region_id, "from_id": from_id, "to_id": to_id,
 		"method": method, "speed_mps": speed, "route": route.duplicate(true), "distance_done": 0.0,
-		"distance_total": total, "eta_seconds": total / speed if speed > 0.0 else INF,
+		"distance_total": total, "duration_seconds": total / speed if speed > 0.0 else INF,
 		"position": route.polyline[0].duplicate(true), "segment_index": 0, "segment_distance": 0.0
 	}
 	state.world["travel"] = travel
@@ -85,7 +85,9 @@ static func progress(state: Dictionary) -> Dictionary:
 	var travel := ensure(state)
 	var total := float(travel.get("distance_total", 0.0))
 	var done := float(travel.get("distance_done", 0.0))
-	return {"done": done, "total": total, "left": maxf(0.0, total - done), "ratio": done / total if total > 0.0 else 0.0, "eta_seconds": travel.get("eta_seconds")}
+	var left := maxf(0.0, total - done)
+	var speed := float(travel.get("speed_mps", 0.0))
+	return {"done": done, "total": total, "left": left, "ratio": done / total if total > 0.0 else 0.0, "eta_seconds": left / speed if speed > 0.0 else INF}
 
 static func _segment_metric(travel: Dictionary, index: int, a: Dictionary, b: Dictionary) -> float:
 	var route: Dictionary = travel.route
