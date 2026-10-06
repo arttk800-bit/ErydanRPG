@@ -24,6 +24,9 @@ func current() -> Dictionary:
 func current_position() -> Dictionary:
 	return WorldState.current_position(_state).duplicate(true)
 
+func initialize_at(region_id: String, point: Dictionary) -> Dictionary:
+	return WorldState.initialize_at(_state, region_id, point).duplicate(true)
+
 func discover(point: Dictionary, source: String = "unknown") -> bool:
 	return WorldState.discover_point(_state, point, source)
 
