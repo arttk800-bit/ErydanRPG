@@ -9,9 +9,12 @@ const LocalImport = preload("res://packages/local_import.gd")
 const GameModuleCatalog = preload("res://modules/game_module_catalog.gd")
 const AndroidUpdater = preload("res://update/android_updater.gd")
 const UpdateDialog = preload("res://update/update_dialog.gd")
+const SimulationRuntime = preload("res://simulation/simulation_runtime.gd")
 
 @onready var status: Label = $HUD/TopBar/Status
 @onready var regional_map = $RegionalMap
+
+var _simulation_runtime: Node
 
 var _state: Dictionary = {
 	"meta": {"state_version": 1, "world_id": "vertical-slice", "world_name": "Эйрдан"},
@@ -68,7 +71,12 @@ func _start_gameplay() -> void:
 		return
 	var world = Modules.instance("world")
 	_initialize_new_world_if_needed(region, world)
-	regional_map.setup(region, world, Modules.instance("roads"), Modules.instance("travel"), Modules.instance("simulation"), DataRegistry.region_asset(str(region.region_id), "background"))
+	var simulation = Modules.instance("simulation")
+	var travel = Modules.instance("travel")
+	_simulation_runtime = SimulationRuntime.new()
+	add_child(_simulation_runtime)
+	_simulation_runtime.setup(simulation, travel, region)
+	regional_map.setup(region, world, Modules.instance("roads"), travel, simulation, DataRegistry.region_asset(str(region.region_id), "background"))
 	status.text = "Центральные земли · нажмите на точку для путешествия"
 	Diagnostics.info("runtime.vertical_slice_ready", {"region": "forest", "modules": started.active})
 
@@ -85,6 +93,7 @@ func _initialize_new_world_if_needed(region: Dictionary, world) -> void:
 
 func _reload_runtime() -> void:
 	_reload_data()
+	_stop_simulation_runtime()
 	Modules.stop()
 	_start_gameplay()
 
@@ -103,11 +112,18 @@ func _load_game() -> void:
 	if not result.ok:
 		status.text = "Ошибка загрузки: %s" % result.get("errors", [])
 		return
+	_stop_simulation_runtime()
 	Modules.stop()
 	_state = result.state
 	_reload_data()
 	_start_gameplay()
 	status.text = "Мир загружен"
+
+func _stop_simulation_runtime() -> void:
+	if _simulation_runtime == null: return
+	_simulation_runtime.shutdown()
+	_simulation_runtime.queue_free()
+	_simulation_runtime = null
 
 func _save_for_update() -> Dictionary:
 	var result := SaveStore.save_state(_state)
