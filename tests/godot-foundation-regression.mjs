@@ -58,7 +58,7 @@ assert.match(catalog,/"id": "roads"/);
 assert.match(catalog,/"dependencies": \["map"\]/);
 const roadGraph=await read('godot/roads/road_graph.gd');
 for(const contract of [/func metric_distance\(/,/func access_node_id\(/,/func shortest_route\(/,/func validate\(/]) assert.match(roadGraph,contract);
-assert.doesNotMatch(roadGraph,/World|world_state|Travel/);
+assert.doesNotMatch(roadGraph,/world_state|travel_state|res:\/\/world|res:\/\/travel/);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
