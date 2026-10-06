@@ -123,3 +123,11 @@ Package manifests may declare `dependencies[]`, `conflicts[]` and integer `prior
 Entity collections use stable IDs as dictionary keys (for example `items.iron_sword`). The key is canonical identity; localized/player-visible names are mutable data. `DataRegistry.entity(domain, id)` exposes the canonical key as the returned entity's `id` without requiring duplicate identity fields in authored JSON.
 
 Override payloads are sparse patches. They may replace supported fields of existing entity IDs but may not silently create an entity through override data. New definitions belong to base/content data rather than an override package. Unknown root domains and unsupported fields are rejected until their owning domain extends the schema intentionally.
+
+
+## Godot save contract v1
+Godot persistence uses a portable JSON envelope with `format: "eirdan-save"`, independent `format_version`, and canonical mutable game `state`. The current Godot state schema begins at `meta.state_version = 1`; it is intentionally a new runtime contract rather than pretending to be PWA state schema v4.
+
+`meta.world_id` is stable internal save identity and remains separate from `meta.world_name`. Save filenames are storage details derived from the internal ID; UI names never become storage identity.
+
+`SaveStore` validates before writing, writes a temporary file, rereads and validates it, then activates the verified file. Loading validates the envelope/state and passes state through `SaveMigrations`. New persistent schema changes must add an ordered migration and increment the Godot state schema version. Static authored DataRegistry data is not embedded as mutable ownership merely because a save references its stable IDs.
