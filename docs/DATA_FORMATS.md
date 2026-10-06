@@ -111,3 +111,7 @@ Stable IDs are identity; player-visible names are data and may change without ch
 
 ## Version separation
 Android runtime/APK version, package/content version, save schema, diagnostics format and asset revisions are independent version axes. Diagnostics should identify the combination needed to reproduce a failure.
+
+
+## Godot package activation order
+Package manifests may declare `dependencies[]`, `conflicts[]` and integer `priority`. Package IDs are the dependency/conflict identity. Package Manager validates the complete candidate active set before replacing the current one. Missing dependencies, cycles and conflicts reject activation. The resolved load order is deterministic: dependency constraints first; otherwise ascending `priority`, then package ID. DataRegistry consumes this resolved order and does not infer override precedence from activation history.
