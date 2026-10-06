@@ -110,3 +110,12 @@ Added player-facing bug/suggestion reports with text, optional screenshots, opti
 - Added World/Map lifecycle adapters and registered them through the Godot composition root.
 - Added integration coverage proving Map can browse another region while World physical region remains unchanged.
 - Roads and Travel remain next in this same vertical slice; PWA remains the parity/reference implementation until the slice is complete.
+
+
+## Gameplay migration: Roads
+- Ported normalized-coordinate road topology into `godot/roads/road_graph.gd`.
+- Physical distances are derived from explicit map width/height metrics rather than screen pixels.
+- Added deterministic shortest-route and access-node validation.
+- Registered Roads as a separate runtime module after Map; it does not mutate World/Map/Travel state.
+- Added integration checks for 3-4-5 geometry, shortest path selection and invalid access references.
+- Terrain and travel-method modifiers remain for the upcoming Travel/conditions owner rather than contaminating road topology.
