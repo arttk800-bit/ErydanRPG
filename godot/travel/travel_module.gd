@@ -78,6 +78,7 @@ func snapshot() -> Dictionary:
 	var method := str(result.get("method", "walk"))
 	result["configured_speed_kmh"] = _speed_kmh(method)
 	result["speed_provenance"] = DataRegistry.provenance("travel.%s_speed_kmh" % method)
+	result["progress_snapshot"] = TravelState.progress(_state)
 	return result
 
 func _speed_kmh(method: String) -> float:
