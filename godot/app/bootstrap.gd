@@ -148,6 +148,7 @@ func _setup_packages() -> void:
 	add_child(_package_service)
 	_package_dialog = PackageDialog.new()
 	add_child(_package_dialog)
+	_package_dialog.hide()
 	_package_dialog.bind(_package_service)
 	_package_dialog.local_import_requested.connect(_import_package)
 	_package_service.operation_finished.connect(_on_remote_package_operation)
