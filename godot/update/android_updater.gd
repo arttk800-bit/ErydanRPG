@@ -15,6 +15,7 @@ var _release: Dictionary = {}
 var _current_code := 0
 var _sdk := 0
 var _redirects := 0
+var _last_progress_bytes := -1
 
 func _ready() -> void:
 	_request = HTTPRequest.new()
@@ -27,14 +28,23 @@ func _ready() -> void:
 	_remove_partial()
 	Diagnostics.register_provider(&"android_updater", snapshot)
 
+func _process(_delta: float) -> void:
+	if _state != "downloading" or _request == null: return
+	var downloaded := _request.get_downloaded_bytes()
+	if downloaded == _last_progress_bytes: return
+	_last_progress_bytes = downloaded
+	changed.emit(snapshot())
+
 func _exit_tree() -> void:
 	Diagnostics.unregister_provider(&"android_updater")
 
 func snapshot() -> Dictionary:
+	var downloaded := _request.get_downloaded_bytes() if _request != null and _state == "downloading" else 0
+	var total := int(_release.get("size_bytes", 0))
+	var progress := clampf(float(downloaded) / float(total), 0.0, 1.0) if total > 0 else 0.0
 	return {"state": _state, "error": _error, "current_version_code": _current_code,
 		"candidate_version_code": _release.get("version_code", 0), "version_name": _release.get("version_name", ""),
-		"downloaded_bytes": _request.get_downloaded_bytes() if _request != null and _state == "downloading" else 0,
-		"size_bytes": _release.get("size_bytes", 0)}
+		"downloaded_bytes": downloaded, "size_bytes": total, "progress": progress}
 
 func check() -> void:
 	if _state in ["checking", "downloading"]: return
@@ -64,6 +74,7 @@ func download() -> void:
 	_request.body_size_limit = int(_release.size_bytes)
 	_request.timeout = 600.0
 	_redirects = 0
+	_last_progress_bytes = -1
 	_set_state("downloading")
 	var err := _request.request(str(_release.apk_url))
 	if err != OK: _fail("apk_request_failed")
@@ -120,10 +131,12 @@ func _completed(result: int, code: int, headers: PackedStringArray, body: Packed
 		_release = validated.release
 		_set_state("available" if validated.available else "up_to_date")
 		return
+	_set_state("verifying_hash")
 	var verified := Manifest.verify_file(PART, _release)
 	if not verified.ok:
 		_fail(str(verified.error))
 		return
+	_set_state("verifying_apk")
 	var native: Dictionary = installer.verify_archive(PART, _release)
 	if not native.ok:
 		_fail(str(native.error))
