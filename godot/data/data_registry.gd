@@ -1,19 +1,25 @@
 # ============================================================================
 # DATA REGISTRY
 # Resolves official data plus ordered package/user overrides with provenance.
+# Owns gameplay-facing lookup of complete region definitions.
 # ============================================================================
 extends Node
 
 const DataSchema = preload("res://data/data_schema.gd")
+const RegionSchema = preload("res://data/region_schema.gd")
 const BASE_PATH := "res://data/examples/base.json"
-const REGION_PATHS := {"forest": "res://data/world/central_lands.json"}
+const BUILTIN_REGION_PATHS := {"forest": "res://data/world/central_lands.json"}
+
 var _base: Dictionary = {}
 var _layers: Array[Dictionary] = []
+var _regions: Dictionary = {}
+var _region_sources: Dictionary = {}
 
 func _ready() -> void:
 	Diagnostics.register_provider(&"data_registry", snapshot)
 	PackageValidators.register_validator(&"data_registry", validate_package_candidate)
 	load_base_file(BASE_PATH)
+	_load_builtin_regions()
 
 func load_base_file(path: String) -> bool:
 	var data = _read_json_file(path)
@@ -27,30 +33,38 @@ func load_base_file(path: String) -> bool:
 	return set_base(data, path)
 
 func validate_package_candidate(manifest: Dictionary, payload_path: String) -> Dictionary:
-	if manifest.get("kind") != "override":
-		return {"ok": true}
-	if payload_path.get_extension().to_lower() != "json":
-		return {"ok": false, "errors": ["override payload must be JSON"]}
-	var data = _read_json_file(payload_path)
-	if data is not Dictionary:
-		return {"ok": false, "errors": ["override payload must be a JSON object"]}
-	var errors := DataSchema.validate_override(data, _base)
-	return {"ok": errors.is_empty(), "errors": errors}
+	if manifest.get("kind") == "override":
+		if payload_path.get_extension().to_lower() != "json":
+			return {"ok": false, "errors": ["override payload must be JSON"]}
+		var data = _read_json_file(payload_path)
+		if data is not Dictionary:
+			return {"ok": false, "errors": ["override payload must be a JSON object"]}
+		var errors := DataSchema.validate_override(data, _base)
+		return {"ok": errors.is_empty(), "errors": errors}
+	if manifest.get("kind") == "content" and payload_path.get_extension().to_lower() == "json":
+		return _validate_content_payload(payload_path)
+	return {"ok": true}
 
 func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 	_layers.clear()
+	_load_builtin_regions()
 	var failures: Array[Dictionary] = []
 	var order := 0
 	for record in records:
-		if record.get("kind") != "override": continue
+		var kind := str(record.get("kind", ""))
 		var path := str(record.get("path", ""))
-		var data = _read_json_file(path)
-		if data is not Dictionary:
-			failures.append({"id": record.get("id"), "path": path})
-			continue
-		set_layer(str(record.get("id")), int(record.get("priority", 0)), data, order)
-		order += 1
-	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "failures": failures.size()})
+		if kind == "override":
+			var data = _read_json_file(path)
+			if data is not Dictionary:
+				failures.append({"id": record.get("id"), "path": path})
+				continue
+			set_layer(str(record.get("id")), int(record.get("priority", 0)), data, order)
+			order += 1
+		elif kind == "content" and path.get_extension().to_lower() == "json":
+			var loaded := _apply_content_payload(str(record.get("id")), path)
+			if not loaded.ok:
+				failures.append({"id": record.get("id"), "path": path, "errors": loaded.errors})
+	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "regions": _regions.size(), "failures": failures.size()})
 	return {"ok": failures.is_empty(), "failures": failures}
 
 func set_base(data: Dictionary, source: String = "base") -> bool:
@@ -82,13 +96,11 @@ func entity(domain: String, id: String, fallback = null):
 	return result
 
 func region(id: String) -> Dictionary:
-	var path := str(REGION_PATHS.get(id, ""))
-	if path.is_empty(): return {}
-	var data = _read_json_file(path)
-	if data is not Dictionary:
-		Diagnostics.error("data.region_rejected", {"id": id, "path": path})
-		return {}
-	return data.duplicate(true)
+	var value = _regions.get(id)
+	return value.duplicate(true) if value is Dictionary else {}
+
+func region_provenance(id: String) -> Dictionary:
+	return _region_sources.get(id, {}).duplicate(true)
 
 func entity_provenance(domain: String, id: String) -> Array[Dictionary]:
 	return provenance("%s.%s" % [domain, id])
@@ -111,14 +123,65 @@ func provenance(path: String) -> Array[Dictionary]:
 func snapshot() -> Dictionary:
 	var ids: Array[String] = []
 	for layer in _layers: ids.append(str(layer.id))
+	var region_ids: Array[String] = []
+	for id in _regions: region_ids.append(str(id))
+	region_ids.sort()
 	return {
 		"layers": ids,
 		"layer_count": _layers.size(),
+		"regions": region_ids,
+		"region_sources": _region_sources.duplicate(true),
 		"walk_speed_kmh": resolve("travel.walk_speed_kmh"),
 		"iron_sword_damage": resolve("items.iron_sword.damage"),
 		"walk_speed_provenance": provenance("travel.walk_speed_kmh"),
 		"iron_sword_damage_provenance": provenance("items.iron_sword.damage")
 	}
+
+func _load_builtin_regions() -> void:
+	_regions.clear()
+	_region_sources.clear()
+	for id in BUILTIN_REGION_PATHS:
+		var path := str(BUILTIN_REGION_PATHS[id])
+		var data = _read_json_file(path)
+		if data is not Dictionary:
+			Diagnostics.error("data.region_rejected", {"id": id, "path": path})
+			continue
+		var errors := RegionSchema.validate(data, str(id))
+		if not errors.is_empty():
+			Diagnostics.error("data.region_rejected", {"id": id, "path": path, "errors": errors})
+			continue
+		_regions[id] = data.duplicate(true)
+		_region_sources[id] = {"source": "builtin", "path": path}
+	Diagnostics.info("data.regions_loaded", {"count": _regions.size()})
+
+func _validate_content_payload(path: String) -> Dictionary:
+	var payload = _read_json_file(path)
+	if payload is not Dictionary:
+		return {"ok": false, "errors": ["content payload must be a JSON object"]}
+	var errors: Array[String] = []
+	for key in payload:
+		if str(key) != "regions": errors.append("unsupported content root: %s" % key)
+	var regions = payload.get("regions")
+	if regions is not Dictionary or regions.is_empty():
+		errors.append("content.regions must be a non-empty object")
+	else:
+		for id in regions:
+			if regions[id] is not Dictionary:
+				errors.append("regions.%s must be an object" % id)
+				continue
+			for error in RegionSchema.validate(regions[id], str(id)):
+				errors.append("regions.%s: %s" % [id, error])
+	return {"ok": errors.is_empty(), "errors": errors}
+
+func _apply_content_payload(package_id: String, path: String) -> Dictionary:
+	var checked := _validate_content_payload(path)
+	if not checked.ok: return checked
+	var payload: Dictionary = _read_json_file(path)
+	for id in payload.regions:
+		_regions[id] = payload.regions[id].duplicate(true)
+		_region_sources[id] = {"source": package_id, "path": path}
+		Diagnostics.info("data.region_changed", {"id": id, "source": package_id})
+	return {"ok": true}
 
 func _read_json_file(path: String):
 	var file := FileAccess.open(path, FileAccess.READ)
@@ -131,4 +194,3 @@ func _read_path(root: Dictionary, path: String, fallback):
 		if current is not Dictionary or not current.has(key): return fallback
 		current = current[key]
 	return current
-
