@@ -68,7 +68,7 @@ func _start_gameplay() -> void:
 		return
 	var world = Modules.instance("world")
 	_initialize_new_world_if_needed(region, world)
-	regional_map.setup(region, world, Modules.instance("roads"), Modules.instance("travel"), DataRegistry.region_asset(str(region.region_id), "background"))
+	regional_map.setup(region, world, Modules.instance("roads"), Modules.instance("travel"), Modules.instance("simulation"), DataRegistry.region_asset(str(region.region_id), "background"))
 	status.text = "Центральные земли · нажмите на точку для путешествия"
 	Diagnostics.info("runtime.vertical_slice_ready", {"region": "forest", "modules": started.active})
 
