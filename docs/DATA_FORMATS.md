@@ -95,3 +95,19 @@ A feedback package contains `report.json` / `report.txt`, optional `screenshots/
 - Regional road access for a mapped POI: `access[poiId] = { node: roadNodeId }`.
 - Location navigation selects its single boundary transition with `access[locationId] = { node: navigationNodeId, pointId: transitionPointId }`.
 - Legacy regional `ports[]` data is collapsed to one access node when editable regional roads are loaded; internal location multi-access data remains readable.
+
+
+## Godot portable package v1
+A downloadable/user package is one ZIP document so Android SAF needs access to only one selected file. The archive contains `manifest.json` and the declared payload.
+
+The manifest identifies format/version, stable package ID, package version, kind, minimum runtime version, payload and payload SHA-256. Supported foundation kinds are `content`, `override` and `development`.
+
+Install lifecycle: validation → staging → SHA-256 verification → installed storage → activation. PackageManager retains the previous active set for rollback. Mutable installed content lives under `user://packages`.
+
+## Godot data layers
+Base data is packaged read-only content. Active override packages may provide sparse nested values. DataRegistry resolves effective values without mutating base definitions and exposes provenance for queried paths.
+
+Stable IDs are identity; player-visible names are data and may change without changing references. Save/session state and package/content definitions remain separate contracts.
+
+## Version separation
+Android runtime/APK version, package/content version, save schema, diagnostics format and asset revisions are independent version axes. Diagnostics should identify the combination needed to reproduce a failure.
