@@ -23,8 +23,7 @@ func load_base_file(path: String) -> bool:
 	if not errors.is_empty():
 		Diagnostics.error("data.base_rejected", {"path": path, "errors": errors})
 		return false
-	set_base(data, path)
-	return true
+	return set_base(data, path)
 
 func validate_package_candidate(manifest: Dictionary, payload_path: String) -> Dictionary:
 	if manifest.get("kind") != "override":
@@ -53,9 +52,14 @@ func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "failures": failures.size()})
 	return {"ok": failures.is_empty(), "failures": failures}
 
-func set_base(data: Dictionary, source: String = "base") -> void:
+func set_base(data: Dictionary, source: String = "base") -> bool:
+	var errors := DataSchema.validate_base(data)
+	if not errors.is_empty():
+		Diagnostics.error("data.base_rejected", {"source": source, "errors": errors})
+		return false
 	_base = data.duplicate(true)
 	Diagnostics.info("data.base_loaded", {"source": source})
+	return true
 
 func set_layer(id: String, priority: int, data: Dictionary, order: int = -1) -> void:
 	_layers = _layers.filter(func(layer): return layer.id != id)
@@ -67,6 +71,17 @@ func set_layer(id: String, priority: int, data: Dictionary, order: int = -1) -> 
 func remove_layer(id: String) -> void:
 	_layers = _layers.filter(func(layer): return layer.id != id)
 	Diagnostics.info("data.layer_removed", {"id": id})
+
+func entity(domain: String, id: String, fallback = null):
+	var value = resolve("%s.%s" % [domain, id], fallback)
+	if value is not Dictionary:
+		return value
+	var result: Dictionary = value.duplicate(true)
+	result["id"] = id
+	return result
+
+func entity_provenance(domain: String, id: String) -> Array[Dictionary]:
+	return provenance("%s.%s" % [domain, id])
 
 func resolve(path: String, fallback = null):
 	var value = _read_path(_base, path, fallback)
