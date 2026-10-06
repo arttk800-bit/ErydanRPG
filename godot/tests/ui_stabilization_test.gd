@@ -22,6 +22,21 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_expect(shell.visible and shell.get_node("Layout/Top").visible and shell.get_node("Layout/BottomNav").visible, "world shows shell and bottom navigation")
 	_expect(regional_map.get_viewport() != app.get_viewport(), "map camera is isolated in a subviewport")
+	var touch_press := InputEventScreenTouch.new()
+	touch_press.index = 0
+	touch_press.position = Vector2(320, 280)
+	touch_press.pressed = true
+	app.call("_input", touch_press)
+	var touch_release := InputEventScreenTouch.new()
+	touch_release.index = 0
+	touch_release.position = touch_press.position
+	touch_release.pressed = false
+	app.call("_input", touch_release)
+	_expect(regional_map.diagnostic_snapshot().input_counts.touch_press == 1, "root forwards touch input into map subviewport")
+	shell.toggle_system_menu()
+	app.call("_input", touch_press)
+	_expect(regional_map.diagnostic_snapshot().input_counts.touch_press == 1, "system menu blocks map input")
+	shell.toggle_system_menu()
 	app.call("_show_structural_screen", "character")
 	shell.handle_back()
 	_expect(shell.active_screen() == "world" and map_surface.visible, "character Back returns to world")

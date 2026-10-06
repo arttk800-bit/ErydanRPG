@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource path="res://app/bootstrap.gd" type="Script" id="1"]
 [ext_resource path="res://map/regional_map_view.gd" type="Script" id="2"]
@@ -11,6 +11,7 @@
 [ext_resource path="res://ui/context_panel.gd" type="Script" id="9"]
 [ext_resource path="res://ui/toast.gd" type="Script" id="10"]
 [ext_resource path="res://ui/safe_area.gd" type="Script" id="11"]
+[ext_resource path="res://map/map_viewport_container.gd" type="Script" id="12"]
 
 [node name="Bootstrap" type="Control"]
 layout_mode = 3
@@ -42,6 +43,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
 stretch = true
+script = ExtResource("12")
 
 [node name="MapViewport" type="SubViewport" parent="MapSurface"]
 disable_3d = true

@@ -17,6 +17,7 @@ const EirdanTheme = preload("res://ui/eirdan_theme.gd")
 @onready var save_browser = $GameShell/Layout/ContentHost/Screens/SaveBrowser
 @onready var settings_screen = $GameShell/Layout/ContentHost/Screens/Settings
 @onready var map_surface = $MapSurface
+@onready var map_viewport: SubViewport = $MapSurface/MapViewport
 @onready var regional_map = $MapSurface/MapViewport/RegionalMap
 @onready var main_menu = $MainMenu
 @onready var game_shell = $GameShell
@@ -57,6 +58,14 @@ func _ready() -> void:
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
 	_show_main_menu()
+
+func _input(event: InputEvent) -> void:
+	if not map_surface.visible or not regional_map.is_processing_input(): return
+	if game_shell.active_screen() != "world" or game_shell.system_menu.visible: return
+	var update_dialog = get_meta("update_dialog", null)
+	if update_dialog != null and update_dialog.visible: return
+	if event is InputEventScreenTouch or event is InputEventScreenDrag or event is InputEventMouseButton or event is InputEventMouseMotion:
+		map_viewport.push_input(event, false)
 
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_WM_GO_BACK_REQUEST: return
