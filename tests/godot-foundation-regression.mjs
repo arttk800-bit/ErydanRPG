@@ -54,6 +54,11 @@ const catalog=await read('godot/modules/game_module_catalog.gd');
 assert.match(catalog,/"id": "world"/);
 assert.match(catalog,/"id": "map"/);
 assert.match(catalog,/"dependencies": \["world"\]/);
+assert.match(catalog,/"id": "roads"/);
+assert.match(catalog,/"dependencies": \["map"\]/);
+const roadGraph=await read('godot/roads/road_graph.gd');
+for(const contract of [/func metric_distance\(/,/func access_node_id\(/,/func shortest_route\(/,/func validate\(/]) assert.match(roadGraph,contract);
+assert.doesNotMatch(roadGraph,/World|world_state|Travel/);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
