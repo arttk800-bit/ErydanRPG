@@ -5,8 +5,8 @@ This document is the index of system ownership. It describes responsibilities, n
 | System | Primary location | Owns | Must not own |
 | --- | --- | --- | --- |
 | Android runtime | `godot/app/` | bootstrap, Android-facing composition and presentation | package validation or gameplay rules |
-| Package Manager | `godot/packages/` | validation, staging, integrity, active/previous package set and rollback | balance or transport policy |
-| Data Registry | `godot/data/` | base + override resolution and provenance | gameplay algorithms |
+| Package Manager | `godot/packages/` | staging, integrity, validator orchestration, active/previous package set and rollback | domain validation rules, balance or transport policy |
+| Package Validators | `godot/packages/package_validators.gd` | registry and aggregation of domain package validators | domain-specific validation rules |\n| Data Registry | `godot/data/` | base + override resolution, provenance and data-domain package validation | gameplay algorithms |
 | Godot Diagnostics | `godot/diagnostics/` | runtime events and provider snapshots | domain rules |
 | Legacy PWA app shell | `game/app/` | browser navigation, lifecycle, screen composition | world/combat rules |
 | Client | `game/client/` | PWA release detection, reload, revisioned asset cache/preload | gameplay state |
@@ -31,7 +31,7 @@ Map coordinates are normalized to 0..1 in data/state. Rendering converts them in
 World hierarchy currently supports world -> region -> location -> district/place. Knowledge/discovery belongs to world state rather than DOM state.
 
 ## Active Android/package boundary
-APK/runtime and content packages have separate lifecycles. Local SAF import, GitHub and HTTP are source adapters; Package Manager owns validation and activation. A failed candidate must leave the last active set usable offline.
+APK/runtime and content packages have separate lifecycles. Local SAF import, GitHub and HTTP are source adapters; Package Manager owns the install/activation transaction and delegates content checks to Package Validators. Domain owners register their own validators; Package Manager does not import domain rules. A failed candidate must leave the last active set usable offline.
 
 DataRegistry resolves authorable values from base data and active overrides. Provenance is part of the diagnostic/editing contract.
 
