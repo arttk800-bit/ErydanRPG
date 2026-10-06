@@ -20,11 +20,13 @@ func _ready() -> void:
 	_render(updater.snapshot())
 
 func _action(action: StringName) -> void:
-	match action:
-		&"check": updater.check()
-		&"download": updater.download()
-		&"install": updater.install(save_callback)
-		&"cancel": updater.cancel()
+	# AcceptDialog emits the action identifier supplied to add_button as StringName.
+	# Normalize once at the presentation boundary so UI commands cannot silently miss.
+	match str(action):
+		"check": updater.check()
+		"download": updater.download()
+		"install": updater.install(save_callback)
+		"cancel": updater.cancel()
 
 func _render(state: Dictionary) -> void:
 	_check.disabled = state.state in ["checking", "downloading"]
