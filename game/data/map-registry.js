@@ -10,8 +10,7 @@ import {VELIGRAD_NAVIGATION} from './locations/veligrad-navigation.js';
 
 export const MAP_REGISTRY=[
  {id:'region:forest',kind:'region',ownerId:'forest',content:CENTRAL_LANDS,navigation:CENTRAL_LANDS_ROADS},
- {id:'location:veligrad',kind:'location',ownerId:'veligrad',content:VELIGRAD,navigation:VELIGRAD_NAVIGATION,
-  expectations:{ownerPorts:4,districtPorts:3}}
+ {id:'location:veligrad',kind:'location',ownerId:'veligrad',content:VELIGRAD,navigation:VELIGRAD_NAVIGATION}
 ];
 
 export function registeredMaps(){return MAP_REGISTRY}
