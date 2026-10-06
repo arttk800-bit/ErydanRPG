@@ -48,12 +48,86 @@ position_smoothing_speed = 12.0
 layer = 10
 follow_viewport_enabled = false
 [node name="Status" type="Label" parent="RegionalMap/HUD"]
-offset_left = 18.0
-offset_top = 62.0
-offset_right = 1250.0
-offset_bottom = 94.0
+offset_left = 22.0
+offset_top = 66.0
+offset_right = 980.0
+offset_bottom = 98.0
 mouse_filter = 2
-text = "Выберите точку назначения"
+text = "Центральные земли"
+
+[node name="TravelCard" type="PanelContainer" parent="RegionalMap/HUD"]
+visible = false
+offset_left = 24.0
+offset_top = 500.0
+offset_right = 472.0
+offset_bottom = 696.0
+
+[node name="Margin" type="MarginContainer" parent="RegionalMap/HUD/TravelCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Content" type="VBoxContainer" parent="RegionalMap/HUD/TravelCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Пункт назначения"
+
+[node name="Meta" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+layout_mode = 2
+text = "Расстояние · Время"
+
+[node name="Method" type="Label" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+layout_mode = 2
+text = "Пешком"
+
+[node name="Actions" type="HBoxContainer" parent="RegionalMap/HUD/TravelCard/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Go" type="Button" parent="RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Отправиться"
+
+[node name="Cancel" type="Button" parent="RegionalMap/HUD/TravelCard/Margin/Content/Actions"]
+layout_mode = 2
+text = "Отмена"
+
+[node name="Journey" type="PanelContainer" parent="RegionalMap/HUD"]
+visible = false
+offset_left = 24.0
+offset_top = 612.0
+offset_right = 640.0
+offset_bottom = 696.0
+
+[node name="Margin" type="MarginContainer" parent="RegionalMap/HUD/Journey"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="Content" type="VBoxContainer" parent="RegionalMap/HUD/Journey/Margin"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="RegionalMap/HUD/Journey/Margin/Content"]
+layout_mode = 2
+text = "В пути"
+
+[node name="Progress" type="ProgressBar" parent="RegionalMap/HUD/Journey/Margin/Content"]
+layout_mode = 2
+show_percentage = false
+value = 0.0
+
+[node name="Meta" type="Label" parent="RegionalMap/HUD/Journey/Margin/Content"]
+layout_mode = 2
+text = "Осталось"
 
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 20
