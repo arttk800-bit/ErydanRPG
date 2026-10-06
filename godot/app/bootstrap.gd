@@ -39,6 +39,7 @@ func _ready() -> void:
 	game_shell.inventory_requested.connect(func(): _show_placeholder("Инвентарь"))
 	game_shell.journal_requested.connect(func(): _show_placeholder("Журнал"))
 	_setup_updater()
+	$NewWorldDialog.confirmed.connect(_create_named_world)
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
 	_show_main_menu()
@@ -88,14 +89,22 @@ func _setup_updater() -> void:
 func _on_main_menu_action(action: String) -> void:
 	match action:
 		"new_game":
-			_state = {"meta": {"state_version": 1, "world_id": "vertical-slice", "world_name": "Эйрдан"}, "world": {}}
-			_start_gameplay()
+			$NewWorldDialog/Content/Name.text = ""
+			$NewWorldDialog.popup_centered()
 		"continue", "load":
 			_load_game()
 		"updates":
 			_open_updates()
 		"settings":
 			status.text = "Настройки — следующий экран UI"
+
+func _create_named_world() -> void:
+	var world_name := $NewWorldDialog/Content/Name.text.strip_edges()
+	if world_name.is_empty(): world_name = "Эйрдан"
+	var world_id := "world-%d" % Time.get_unix_time_from_system()
+	_state = {"meta": {"state_version": 1, "world_id": world_id, "world_name": world_name}, "world": {}}
+	Diagnostics.info("world.created", {"world_id": world_id, "world_name": world_name})
+	_start_gameplay()
 
 func _on_system_action(action: String) -> void:
 	match action:
