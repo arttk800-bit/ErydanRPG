@@ -15,6 +15,16 @@ if (mode === 'prepare') {
   }
   writeFileSync(path, preset.replace(/^version\/code=.*$/m, `version/code=${code}`)
     .replace(/^version\/name=.*$/m, `version/name="${version}"`));
+  const projectPath = 'godot/project.godot';
+  let project = readFileSync(projectPath, 'utf8');
+  if (!project.includes('[eirdan]')) throw new Error('Missing [eirdan] project settings');
+  project = project.replace(/^config\/version=.*$/m, `config/version="${version}"`);
+  if (/^runtime\/version_code=.*$/m.test(project)) {
+    project = project.replace(/^runtime\/version_code=.*$/m, `runtime/version_code=${code}`);
+  } else {
+    project = project.replace(/^\[eirdan\]$/m, `[eirdan]\nruntime/version_code=${code}`);
+  }
+  writeFileSync(projectPath, project);
 } else if (mode === 'manifest') {
   const apk = 'build/eirdan-runtime-debug.apk';
   const repository = process.env.GITHUB_REPOSITORY;
