@@ -103,3 +103,9 @@ Authorable values are data unless they are algorithms. Resolution is layered and
 `godot/persistence/SaveStore` is the durable-storage owner for mutable game state. Save format version and game-state schema version are separate axes. `save_schema.gd` validates the persistent contract; `save_migrations.gd` owns ordered state transformations; domain systems remain owners of the meaning and mutation of their state.
 
 Persistence does not import World, Travel, Character, Combat or UI rules. Those domains will expose canonical serializable state through the future Godot composition/session boundary. Static DataRegistry definitions remain referenced by stable IDs rather than becoming save-owned definitions.
+
+
+## Godot composition root
+`godot/modules/module_runtime.gd` is the only runtime composition boundary for optional Godot gameplay domains. `module_registry.gd` owns metadata, default enabled state and dependency validation; ModuleRuntime owns construction and start/stop lifecycle.
+
+Domain implementations register factories through the composition root. ModuleRuntime must not import concrete World, Map, Travel, Character, Combat or AI implementations. Disabled modules are not constructed and therefore cannot perform runtime side effects. Dependencies start before dependents and stop in reverse order. Module enabled state may later be persisted in session state, but the registry remains the authority for whether a configuration is legal.
