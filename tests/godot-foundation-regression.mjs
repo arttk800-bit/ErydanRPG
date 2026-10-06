@@ -65,7 +65,7 @@ const travelState=await read('godot/travel/travel_state.gd');
 for(const contract of [/func start\(/,/func tick\(/,/func stop\(/,/func resume\(/,/func cancel\(/,/func commit_arrival\(/,/func progress\(/]) assert.match(travelState,contract);
 assert.doesNotMatch(travelState,/RoadGraph|WorldState|MapViewState/);
 const travelModule=await read('godot/travel/travel_module.gd');
-for(const contract of [/_roads\.route\(/,/_world\.enter_map_point\(/,/func arrive\(/]) assert.match(travelModule,contract);
+for(const contract of [/_roads\.route\(/,/_world\.enter_map_point\(/,/func arrive\(/,/func snapshot\(/,/Diagnostics\.register_provider/] ) assert.match(travelModule,contract);
 
 const diagnostics=await read('godot/diagnostics/diagnostics.gd');
 for(const contract of [/MAX_EVENTS := 5000/,/func register_provider\(/,/func snapshot\(/]) assert.match(diagnostics,contract);
@@ -95,7 +95,13 @@ assert.match(bootstrap,/diagnostics\.exported/);
 
 assert.match(registry,/reload_active_packages/);
 assert.match(registry,/walk_speed_provenance/);
-assert.match(bootstrap,/DataRegistry\.resolve\("travel\.walk_speed_kmh"/);
+assert.match(bootstrap,/DataRegistry\.region\("forest"\)/);
+assert.match(bootstrap,/GameModuleCatalog\.register_foundation\(Modules\)/);
+assert.match(bootstrap,/regional_map\.setup/);
+const regionalMap=await read('godot/map/regional_map_view.gd');
+assert.match(regionalMap,/_travel\.begin\(/);
+assert.match(regionalMap,/_world\.enter_map_point/);
+assert.doesNotMatch(regionalMap,/state\.world|world\["current"\]/);
 
 const installerTest=await read('godot/tests/package_installer_test.gd');
 assert.match(installerTest,/invalid JSON rejected before activation/);
