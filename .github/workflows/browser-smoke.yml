@@ -1,11 +1,8 @@
-# CAMPAIGN BROWSER GATE
-# Runs only when the finished change block is promoted to the ci/gate branch.
-name: Browser smoke
+# LEGACY PWA BROWSER GATE
+# Reference implementation only. Never runs automatically for Godot development.
+name: Legacy PWA browser smoke
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - ci/gate
 jobs:
   smoke:
     runs-on: ubuntu-latest
