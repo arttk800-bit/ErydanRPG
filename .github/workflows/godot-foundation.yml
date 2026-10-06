@@ -12,12 +12,21 @@ on:
       - 'package.json'
       - '.github/workflows/godot-foundation.yml'
 jobs:
-  contracts:
+  foundation:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm run test:godot-foundation
+      - name: Static foundation contracts
+        run: npm run test:godot-foundation
+      - name: Install Godot 4.7.2 stable
+        run: |
+          curl -fL -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+          /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --version
+      - name: Headless project boot
+        run: /tmp/godot/Godot_v4.7.2-stable_linux.x86_64 --headless --path godot --quit-after 2
