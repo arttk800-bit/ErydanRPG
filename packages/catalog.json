@@ -1,6 +1,19 @@
 {
   "format": "eirdan-package-catalog",
   "format_version": 1,
-  "generated_at": "2026-10-06T15:00:00Z",
-  "packages": []
+  "generated_at": "2026-10-06T15:20:00Z",
+  "packages": [
+    {
+      "id": "eirdan.world.events",
+      "title": "Дорожные события Центральных земель",
+      "version": "1.0.0",
+      "channel": "official",
+      "category": "world",
+      "apply": "hot",
+      "runtime_min": "0.1.0",
+      "size_bytes": 1341,
+      "sha256": "812f41266f1ea1a6c9f76625b58fc57330f145ccd1f69a20f1695a3b6174bd4d",
+      "url": "https://raw.githubusercontent.com/arttk800-bit/ErydanRPG/main/packages/dist/eirdan.world.events-1.0.0.zip"
+    }
+  ]
 }

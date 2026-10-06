@@ -1,0 +1,15 @@
+{
+  "id": "eirdan.world.events",
+  "title": "Дорожные события Центральных земель",
+  "version": "1.0.0",
+  "kind": "content",
+  "channel": "official",
+  "category": "world",
+  "apply": "hot",
+  "runtime_min": "0.1.0",
+  "priority": -100,
+  "dependencies": [],
+  "conflicts": [],
+  "payload": "data.json",
+  "published_at": "2026-10-06T15:20:00Z"
+}

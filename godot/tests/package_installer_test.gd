@@ -76,9 +76,20 @@ func _ready() -> void:
 	_assert(content_result.ok, "definition content package installs")
 	_assert(DataRegistry.reload_active_packages(Packages.active_packages()).ok, "active packaged definitions reload")
 	_assert(DataRegistry.entity("travel_events", "mist_on_road").title == "Mist", "packaged travel event resolves through DataRegistry")
+	_test_official_package_artifact()
 
 	print("godot package installer integration: OK")
 	get_tree().quit(0)
+
+func _test_official_package_artifact() -> void:
+	var archive_path := ProjectSettings.globalize_path("res://../packages/dist/eirdan.world.events-1.0.0.zip").simplify_path()
+	_assert(FileAccess.file_exists(archive_path), "published official package artifact exists")
+	var installed := Packages.install_archive(archive_path)
+	_assert(installed.ok, "published official package installs through PackageManager")
+	_assert(installed.package.id == "eirdan.world.events" and installed.package.version == "1.0.0", "published package identity is preserved")
+	_assert(DataRegistry.reload_active_packages(Packages.active_packages()).ok, "published official package hot reloads")
+	var event := DataRegistry.entity("travel_events", "fallen_tree")
+	_assert(event is Dictionary and event.title == "Дерево поперёк дороги", "published official content resolves through DataRegistry")
 
 
 

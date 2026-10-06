@@ -8,6 +8,8 @@ on:
       - ci/gate
     paths:
       - 'godot/**'
+      - 'packages/**'
+      - 'scripts/build-packages.mjs'
       - 'tests/godot-foundation-regression.mjs'
       - 'package.json'
       - '.github/workflows/godot-foundation.yml'
@@ -21,7 +23,9 @@ jobs:
         with:
           node-version: 22
       - name: Static foundation contracts
-        run: npm run test:godot-foundation
+        run: |
+          npm run packages:check
+          npm run test:godot-foundation
       - name: Install Godot 4.7.2 stable
         run: |
           curl -fL -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip

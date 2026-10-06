@@ -53,6 +53,7 @@ jobs:
       - name: Validate runtime before export
         run: |
           set -euo pipefail
+          npm run packages:check
           npm run test:godot-foundation
           GODOT_BIN=/tmp/godot/Godot_v4.7.2-stable_linux.x86_64
           "$GODOT_BIN" --headless --path godot --quit-after 2 2>&1 | tee /tmp/boot.log

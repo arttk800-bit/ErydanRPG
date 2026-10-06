@@ -10,6 +10,7 @@ This file is a concise inventory of functionality that exists in the repository 
 - Schema-validated content definitions for package-delivered travel events without an APK rebuild.
 - Remote package catalog validation, semantic update detection, HTTPS download, archive SHA-256 verification and hot/scene application modes.
 - Player-facing content-management window with catalog refresh, per-package install/update status and retained local-file import.
+- First official hot-reload package `eirdan.world.events` with three additional road events, reproducible ZIP assembly and catalog/archive integrity verification.
 - Runtime diagnostics with registered system snapshots and Android system-file export.
 - Headless Godot boot and real package-installer integration gates.
 

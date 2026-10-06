@@ -57,4 +57,7 @@ assert.match(project,/packages\/catalog_url="https:\/\//);
 const publishedCatalog=JSON.parse(await read('packages/catalog.json'));
 assert.equal(publishedCatalog.format,'eirdan-package-catalog');
 assert.equal(publishedCatalog.format_version,1);
+assert.equal(publishedCatalog.packages.length,1);
+assert.equal(publishedCatalog.packages[0].id,'eirdan.world.events');
+assert.equal(publishedCatalog.packages[0].apply,'hot');
 console.log('godot foundation regression: OK');
