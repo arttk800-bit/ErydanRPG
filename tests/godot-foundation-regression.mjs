@@ -8,9 +8,11 @@ const project=await read('godot/project.godot');
 for(const autoload of ['Diagnostics','Packages','DataRegistry'])assert.match(project,new RegExp('^'+autoload+'=', 'm'));
 
 const manager=await read('godot/packages/package_manager.gd');
-for(const contract of [/ProjectSettings\.load_resource_pack/,/func install\(/,/func rollback\(/,/PREVIOUS_FILE/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
+for(const contract of [/ProjectSettings\.load_resource_pack/,/func install_archive\(/,/func rollback\(/,/PREVIOUS_FILE/,/Diagnostics\.register_provider/]) assert.match(manager,contract);
 
 const installer=await read('godot/packages/package_installer.gd');
+assert.match(installer,/ZIPReader/);
+assert.match(installer,/manifest\.json/);
 assert.match(installer,/FileAccess\.get_sha256/);
 assert.match(installer,/staging/);
 assert.match(installer,/installed/);
