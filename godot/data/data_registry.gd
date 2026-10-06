@@ -35,7 +35,6 @@ func validate_package_candidate(manifest: Dictionary, payload_path: String) -> D
 func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 	_layers.clear()
 	var failures: Array[Dictionary] = []
-	var priority := 100
 	for record in records:
 		if record.get("kind") != "override": continue
 		var path := str(record.get("path", ""))
@@ -43,8 +42,7 @@ func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
 		if data is not Dictionary:
 			failures.append({"id": record.get("id"), "path": path})
 			continue
-		set_layer(str(record.get("id")), priority, data)
-		priority += 10
+		set_layer(str(record.get("id")), int(record.get("priority", 0)), data)
 	Diagnostics.info("data.packages_reloaded", {"layers": _layers.size(), "failures": failures.size()})
 	return {"ok": failures.is_empty(), "failures": failures}
 
