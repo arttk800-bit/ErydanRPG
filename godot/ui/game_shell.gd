@@ -11,15 +11,16 @@ signal inventory_requested
 signal journal_requested
 signal system_action(action: String)
 
-@onready var nav: HBoxContainer = $BottomNav
+@onready var nav: HBoxContainer = $Layout/BottomNav
 @onready var system_menu: PanelContainer = $SystemMenu
+@onready var screens: Control = $Layout/ContentHost/Screens
 
 func _ready() -> void:
-	$Top/Menu.pressed.connect(func(): system_menu.visible = not system_menu.visible)
-	$BottomNav/World.pressed.connect(func(): world_requested.emit())
-	$BottomNav/Character.pressed.connect(func(): character_requested.emit())
-	$BottomNav/Inventory.pressed.connect(func(): inventory_requested.emit())
-	$BottomNav/Journal.pressed.connect(func(): journal_requested.emit())
+	$Layout/Top/Menu.pressed.connect(func(): system_menu.visible = not system_menu.visible)
+	$Layout/BottomNav/World.pressed.connect(func(): show_screen("world"); world_requested.emit())
+	$Layout/BottomNav/Character.pressed.connect(func(): show_screen("character"); character_requested.emit())
+	$Layout/BottomNav/Inventory.pressed.connect(func(): show_screen("inventory"); inventory_requested.emit())
+	$Layout/BottomNav/Journal.pressed.connect(func(): show_screen("journal"); journal_requested.emit())
 	for pair in [
 		[$SystemMenu/Content/Save, "save"], [$SystemMenu/Content/Load, "load"],
 		[$SystemMenu/Content/Update, "update"], [$SystemMenu/Content/Packages, "packages"],
@@ -33,12 +34,17 @@ func _exit_tree() -> void:
 
 func set_world_active(active: bool) -> void:
 	nav.visible = active
-	$Top.visible = active
+	$Layout/Top.visible = active
 	if not active: system_menu.visible = false
+
+func show_screen(screen_id: String) -> void:
+	for child in screens.get_children():
+		if child is Control: child.visible = child.name.to_snake_case() == screen_id
+	Diagnostics.info("ui.screen_changed", {"screen": screen_id})
 
 func _emit_system(action: String) -> void:
 	system_menu.visible = false
 	system_action.emit(action)
 
 func snapshot() -> Dictionary:
-	return {"world_ui_active": nav.visible, "system_menu_open": system_menu.visible}
+	return {"world_ui_active": nav.visible, "system_menu_open": system_menu.visible, "content_screens": screens.get_child_count()}
