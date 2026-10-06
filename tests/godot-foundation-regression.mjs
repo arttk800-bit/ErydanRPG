@@ -49,3 +49,7 @@ assert.match(androidPreset,/gradle_build\/use_gradle_build=false/);
 const bootstrap=await read('godot/app/bootstrap.gd');
 assert.match(bootstrap,/FILE_DIALOG_MODE_SAVE_FILE/);
 assert.match(bootstrap,/diagnostics\.exported/);
+
+assert.match(registry,/reload_active_packages/);
+assert.match(registry,/walk_speed_provenance/);
+assert.match(bootstrap,/DataRegistry\.resolve\("travel\.walk_speed_kmh"/);
