@@ -24,7 +24,7 @@ func start(context: Dictionary) -> Dictionary:
 		if legacy_speed <= 0.0: return {"ok": false, "errors": ["travel state has no valid movement speed"]}
 		travel["speed_mps"] = legacy_speed
 		var total := float(travel.get("distance_total", 0.0))
-		travel["eta_seconds"] = total / legacy_speed if legacy_speed > 0.0 else INF
+		travel["duration_seconds"] = total / legacy_speed if legacy_speed > 0.0 else INF
 		Diagnostics.info("travel.legacy_speed_migrated", {"method": travel.get("method", "walk"), "speed_mps": legacy_speed})
 	Diagnostics.register_provider(&"travel", snapshot)
 	return {"ok": true}
@@ -43,7 +43,7 @@ func begin(region_id: String, from_id: String, to_id: String, method: String = "
 		return {}
 	var trip := TravelState.start(_state, region_id, from_id, to_id, method, route, speed_kmh / 3.6)
 	if not trip.is_empty():
-		Diagnostics.info("travel.started", {"region_id": region_id, "from_id": from_id, "to_id": to_id, "method": method, "speed_kmh": speed_kmh, "distance_m": trip.get("distance_total", 0.0), "eta_seconds": trip.get("eta_seconds", 0.0)})
+		Diagnostics.info("travel.started", {"region_id": region_id, "from_id": from_id, "to_id": to_id, "method": method, "speed_kmh": speed_kmh, "distance_m": trip.get("distance_total", 0.0), "duration_seconds": trip.get("duration_seconds", 0.0)})
 	return trip
 
 func tick(delta_seconds: float) -> Dictionary:
