@@ -33,7 +33,7 @@ func install_archive(archive_path: String) -> Dictionary:
 	var manifest: Dictionary = staged.manifest
 	if not _runtime_compatible(manifest.runtime_min):
 		return _reject("runtime", PackageManifest.identity(manifest), ["requires runtime >= %s" % manifest.runtime_min])
-	var content_validation := DataRegistry.validate_package_candidate(manifest, staged.payload_path)
+	var content_validation := PackageValidators.validate(manifest, staged.payload_path)
 	if not content_validation.ok:
 		return _reject("content", PackageManifest.identity(manifest), content_validation.get("errors", ["content validation failed"]))
 
