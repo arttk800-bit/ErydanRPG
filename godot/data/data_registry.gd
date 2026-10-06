@@ -4,6 +4,7 @@
 # ============================================================================
 extends Node
 
+const DataSchema = preload("res://data/data_schema.gd")
 const BASE_PATH := "res://data/examples/base.json"
 var _base: Dictionary = {}
 var _layers: Array[Dictionary] = []
@@ -18,6 +19,10 @@ func load_base_file(path: String) -> bool:
 	if data is not Dictionary:
 		Diagnostics.error("data.base_rejected", {"path": path})
 		return false
+	var errors := DataSchema.validate_base(data)
+	if not errors.is_empty():
+		Diagnostics.error("data.base_rejected", {"path": path, "errors": errors})
+		return false
 	set_base(data, path)
 	return true
 
@@ -29,7 +34,7 @@ func validate_package_candidate(manifest: Dictionary, payload_path: String) -> D
 	var data = _read_json_file(payload_path)
 	if data is not Dictionary:
 		return {"ok": false, "errors": ["override payload must be a JSON object"]}
-	var errors := _validate_override_data(data)
+	var errors := DataSchema.validate_override(data, _base)
 	return {"ok": errors.is_empty(), "errors": errors}
 
 func reload_active_packages(records: Array[Dictionary]) -> Dictionary:
@@ -102,28 +107,3 @@ func _read_path(root: Dictionary, path: String, fallback):
 		current = current[key]
 	return current
 
-
-func _validate_override_data(data: Dictionary) -> Array[String]:
-	var errors: Array[String] = []
-	if data.has("travel"):
-		if data.travel is not Dictionary:
-			errors.append("travel must be an object")
-		else:
-			if data.travel.has("walk_speed_kmh") and (data.travel.walk_speed_kmh is not float and data.travel.walk_speed_kmh is not int):
-				errors.append("travel.walk_speed_kmh must be numeric")
-			elif data.travel.has("walk_speed_kmh") and float(data.travel.walk_speed_kmh) <= 0.0:
-				errors.append("travel.walk_speed_kmh must be > 0")
-	if data.has("items"):
-		if data.items is not Dictionary:
-			errors.append("items must be an object")
-		else:
-			for item_id in data.items:
-				var item = data.items[item_id]
-				if item is not Dictionary:
-					errors.append("items.%s must be an object" % item_id)
-					continue
-				if item.has("damage") and (item.damage is not float and item.damage is not int):
-					errors.append("items.%s.damage must be numeric" % item_id)
-				elif item.has("damage") and float(item.damage) < 0.0:
-					errors.append("items.%s.damage must be >= 0" % item_id)
-	return errors
