@@ -12,8 +12,10 @@ const UpdateDialog = preload("res://update/update_dialog.gd")
 const SimulationRuntime = preload("res://simulation/simulation_runtime.gd")
 const EirdanTheme = preload("res://ui/eirdan_theme.gd")
 
-@onready var status: Label = $HUD/TopBar/Status
+@onready var status: Label = $Toast
 @onready var regional_map = $RegionalMap
+@onready var main_menu = $MainMenu
+@onready var game_shell = $GameShell
 
 var _simulation_runtime: Node
 
@@ -30,29 +32,21 @@ func _ready() -> void:
 	if "--package-installer-test" in OS.get_cmdline_user_args():
 		get_tree().change_scene_to_file.call_deferred("res://tests/package_installer_test.tscn")
 		return
-	$HUD/TopBar/Reload.pressed.connect(_reload_runtime)
-	$HUD/TopBar/Import.pressed.connect(_import_package)
-	$HUD/TopBar/Save.pressed.connect(_save_game)
-	$HUD/TopBar/Load.pressed.connect(_load_game)
-	$HUD/TopBar/Diagnostics.pressed.connect(_export_diagnostics)
-	var updater := AndroidUpdater.new()
-	add_child(updater)
-	var update_dialog := UpdateDialog.new()
-	update_dialog.updater = updater
-	update_dialog.save_callback = _save_for_update
-	add_child(update_dialog)
-	$HUD/TopBar/Update.pressed.connect(func():
-		regional_map.set_process_input(false)
-		update_dialog.popup_centered()
-	)
-	update_dialog.visibility_changed.connect(func():
-		if not update_dialog.visible: regional_map.set_process_input(true)
-	)
+	main_menu.action_requested.connect(_on_main_menu_action)
+	game_shell.system_action.connect(_on_system_action)
+	game_shell.world_requested.connect(func(): _show_world())
+	game_shell.character_requested.connect(func(): _show_placeholder("Персонаж"))
+	game_shell.inventory_requested.connect(func(): _show_placeholder("Инвентарь"))
+	game_shell.journal_requested.connect(func(): _show_placeholder("Журнал"))
+	_setup_updater()
 	Diagnostics.register_provider(&"bootstrap", _diagnostic_snapshot)
 	_reload_data()
-	_start_gameplay()
+	_show_main_menu()
 
 func _start_gameplay() -> void:
+	main_menu.visible = false
+	regional_map.visible = true
+	game_shell.set_world_active(true)
 	var region := DataRegistry.region("forest")
 	if region.is_empty():
 		status.text = "Ошибка: данные Центральных земель не загружены"
@@ -79,8 +73,65 @@ func _start_gameplay() -> void:
 	add_child(_simulation_runtime)
 	_simulation_runtime.setup(simulation, travel, region)
 	regional_map.setup(region, world, Modules.instance("roads"), travel, simulation, DataRegistry.region_asset(str(region.region_id), "background"))
-	status.text = "Центральные земли · нажмите на точку для путешествия"
+	status.text = ""
 	Diagnostics.info("runtime.vertical_slice_ready", {"region": "forest", "modules": started.active})
+
+func _setup_updater() -> void:
+	var updater := AndroidUpdater.new()
+	add_child(updater)
+	var update_dialog := UpdateDialog.new()
+	update_dialog.updater = updater
+	update_dialog.save_callback = _save_for_update
+	add_child(update_dialog)
+	set_meta("update_dialog", update_dialog)
+
+func _on_main_menu_action(action: String) -> void:
+	match action:
+		"new_game":
+			_state = {"meta": {"state_version": 1, "world_id": "vertical-slice", "world_name": "Эйрдан"}, "world": {}}
+			_start_gameplay()
+		"continue", "load":
+			_load_game()
+		"updates":
+			_open_updates()
+		"settings":
+			status.text = "Настройки — следующий экран UI"
+
+func _on_system_action(action: String) -> void:
+	match action:
+		"save": _save_game()
+		"load": _load_game()
+		"update": _open_updates()
+		"packages": _import_package()
+		"diagnostics": _export_diagnostics()
+		"main_menu": _show_main_menu()
+
+func _show_main_menu() -> void:
+	_stop_simulation_runtime()
+	Modules.stop()
+	regional_map.visible = false
+	regional_map.set_process_input(false)
+	game_shell.set_world_active(false)
+	main_menu.visible = true
+	main_menu.set_continue_available(not SaveStore.list_saves().is_empty())
+	status.text = ""
+
+func _show_world() -> void:
+	regional_map.visible = true
+	regional_map.set_process_input(true)
+	status.text = ""
+
+func _show_placeholder(title: String) -> void:
+	status.text = "%s — экран будет подключён к своему домену" % title
+
+func _open_updates() -> void:
+	var update_dialog = get_meta("update_dialog", null)
+	if update_dialog == null: return
+	regional_map.set_process_input(false)
+	update_dialog.popup_centered()
+	update_dialog.visibility_changed.connect(func():
+		if not update_dialog.visible and regional_map.visible: regional_map.set_process_input(true)
+	, CONNECT_ONE_SHOT)
 
 func _initialize_new_world_if_needed(region: Dictionary, world) -> void:
 	var position: Dictionary = world.current_position()
